@@ -14,6 +14,12 @@ import io.ktor.features.*
 import io.ktor.auth.*
 import com.fasterxml.jackson.databind.*
 import io.ktor.jackson.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -42,9 +48,28 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
+    Database.connect(
+        "jdbc:pgsql://localhost:5432/kernelf", driver = "com.impossibl.postgres.jdbc.PGDriver",
+        user = "postgres", password = "mysecretpassword"
+    )
+
+    transaction {
+        // print sql to std-out
+        addLogger(StdOutSqlLogger)
+    }
+
     routing {
         get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+            call.index()
+        }
+        post("/new-container") {
+            val user = call.getUserEMail()
+            if(!canCreateContainer(user)) {
+                call.respond(HttpStatusCode.ServiceUnavailable, "You can't create more containers!")
+                return@post
+            }
+            createContainer(UUID.randomUUID().toString())
+
         }
 
         get("/html-dsl") {
@@ -81,6 +106,85 @@ fun Application.module(testing: Boolean = false) {
 
         get("/json/jackson") {
             call.respond(mapOf("hello" to "world"))
+        }
+    }
+}
+
+private suspend fun ApplicationCall.getUserEMail(): String {
+    return "k.dummann@gmail.com"
+}
+
+private fun createUserIfNotExists(email: String) {
+    if (!userExists(email)) {
+        createUser(email)
+    }
+}
+
+private suspend fun ApplicationCall.index() {
+    val user = this.getUserEMail()
+    createUserIfNotExists(user)
+    respondHtml {
+        head { title { +"Kernel F on k8s" } }
+        body {
+            div {
+                form {
+                    button {
+                        type = ButtonType.submit
+                        id = "new-containers"
+                        formAction = "/new-container"
+                        formMethod = ButtonFormMethod.post
+                        +"New KernelF Instance"
+                    }
+                }
+
+            }
+            table {
+                thead {
+                    tr {
+                        th {
+                            scope = ThScope.col
+                            +"Container"
+                        }
+                        th {
+                            scope = ThScope.col
+                            +"Kernel F Version"
+                        }
+                        th {
+                            scope = ThScope.col
+                            +"Created"
+                        }
+                        th {
+                            scope = ThScope.col
+                            +"Status"
+                        }
+                        th {
+                            scope = ThScope.col
+                            +"Actions"
+                        }
+                    }
+                }
+                tbody {
+                    containers(user).forEach { container ->
+                        tr {
+                            td {
+                                +container.name
+                            }
+                            td {
+                                +container.kernelFVersion
+                            }
+                            td {
+                                +container.created.toString()
+                            }
+                            td {
+                                +container.status
+                            }
+                            td {
+                                +"actions"
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

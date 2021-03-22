@@ -21,16 +21,15 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var email by Users.email
     var regDate by Users.regDate
     var lastLogin by Users.lastLogin
-    val containers by User referrersOn KernelFContainers.user
+    val containers by KernelFContainer referrersOn KernelFContainers.user
 }
 
 fun userExists(email: String): Boolean {
-    val user = transaction() { 
+    return !transaction() {
         User.find {
             Users.email eq email
-        } 
+        }.empty()
      }
-     return !user.empty()
 }
 
 fun createUser(emailAddress: String){

@@ -1,15 +1,14 @@
 package ws.logv.hosting
 
-import org.jetbrains.exposed.dao.*
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.transactions.nullableTransactionScope
-import org.jetbrains.exposed.sql.`java-time`.*
-import java.time.*
+import java.time.LocalDateTime
 
-object KernelFContainers: IntIdTable(){
+object KernelFContainers : IntIdTable() {
     val name = varchar("name", 1024).uniqueIndex()
     val kernelFVersion = varchar("kernelf", 128)
     val status = varchar("status", 50)
@@ -19,8 +18,8 @@ object KernelFContainers: IntIdTable(){
     val user = reference("user", Users)
 }
 
-class KernelFContainer(id: EntityID<Int>): IntEntity(id) {
-    companion object: IntEntityClass<KernelFContainer>(KernelFContainers)
+class KernelFContainer(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<KernelFContainer>(KernelFContainers)
 
     var name by KernelFContainers.name
     var kernelFVersion by KernelFContainers.kernelFVersion
@@ -31,15 +30,31 @@ class KernelFContainer(id: EntityID<Int>): IntEntity(id) {
     var user by User referencedOn KernelFContainers.user
 }
 
-fun canCreateContainer(email: String): Boolean{
-    val usersContainers = transaction() { User.find {Users.email eq email}.firstOrNull()?.containers?.count()} ?: return false
+fun canCreateContainer(email: String): Boolean {
+    val usersContainers =
+        transaction() { User.find { Users.email eq email }.firstOrNull()?.containers?.count() } ?: return false
     return usersContainers <= 1
 }
 
-fun containerWithNameExists(name: String) = !transaction() { KernelFContainer.find {KernelFContainers.name eq name} }.empty()
+fun containerWithNameExists(name: String) =
+    !transaction() { KernelFContainer.find { KernelFContainers.name eq name } }.empty()
 
-fun createContainer(name: String) {
-    
+fun createContainer(name: String, userEmail: String, kernelFVersion: String) {
+    transaction {
+        val user = User.find {
+            Users.email eq userEmail
+        }.first()
+        KernelFContainer.new {
+            this.user = user
+            this.kernelFVersion = kernelFVersion
+            created = LocalDateTime.now()
+            status = "Created"
+        }
+    }
+}
+
+fun containers(email: String): List<KernelFContainer> {
+    return transaction { User.find { Users.email eq email }.firstOrNull()?.containers?.toList() } ?: emptyList()
 }
 
 
