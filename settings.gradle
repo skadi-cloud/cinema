@@ -1,1 +1,6 @@
 rootProject.name = "kernel-f"
+
+include ':web'
+
+
+
