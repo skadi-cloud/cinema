@@ -1,6 +1,7 @@
 package ws.logv.hosting
 
 import com.fasterxml.jackson.databind.*
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
@@ -31,6 +32,9 @@ import java.util.*
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
+import com.fkorotkov.kubernetes.extensions.*
+import io.fabric8.kubernetes.api.model.IntOrString
+
 
 
 val HOST_URL = "kernelf.logv.ws"
@@ -46,6 +50,7 @@ data class UserSession(
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@KtorExperimentalLocationsAPI
 @ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads

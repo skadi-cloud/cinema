@@ -50,6 +50,7 @@ dependencies {
     compile 'org.jetbrains.exposed:exposed-java-time:0.29.1'
     compile 'com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.3'
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.124'
+    compile "com.fkorotkov:kubernetes-dsl:2.8.1"
 }
 
 compileKotlin {
