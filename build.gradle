@@ -36,6 +36,8 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:$logback_version"
     implementation "io.ktor:ktor-server-core:$ktor_version"
     implementation "io.ktor:ktor-html-builder:$ktor_version"
+    compile "io.ktor:ktor-locations:$ktor_version"
+    compile "io.ktor:ktor-client-apache:$ktor_version"
     implementation "org.jetbrains:kotlin-css-jvm:1.0.0-pre.31-kotlin-1.2.41"
     implementation "io.ktor:ktor-server-host-common:$ktor_version"
     implementation "io.ktor:ktor-metrics:$ktor_version"
@@ -47,6 +49,7 @@ dependencies {
     compile "org.jetbrains.exposed:exposed-jdbc:0.29.1"
     compile 'org.jetbrains.exposed:exposed-java-time:0.29.1'
     compile 'com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.3'
+    implementation group: 'org.kohsuke', name: 'github-api', version: '1.124'
 }
 
 compileKotlin {

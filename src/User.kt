@@ -43,7 +43,7 @@ fun createUser(emailAddress: String){
      }
 }
 
-fun login(email: String) {
+fun loginUser(email: String) {
     val user = transaction() { User.find{
         Users.email eq email
     } }

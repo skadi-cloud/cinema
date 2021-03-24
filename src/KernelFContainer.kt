@@ -5,6 +5,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 
@@ -33,11 +34,14 @@ class KernelFContainer(id: EntityID<Int>) : IntEntity(id) {
 fun canCreateContainer(email: String): Boolean {
     val usersContainers =
         transaction() { User.find { Users.email eq email }.firstOrNull()?.containers?.count() } ?: return false
-    return usersContainers <= 1
+    return usersContainers < 1
 }
 
+fun getContainerByName(name:String): KernelFContainer? {
+    return transaction { KernelFContainer.find { KernelFContainers.name eq name }.firstOrNull() }
+}
 fun containerWithNameExists(name: String) =
-    !transaction() { KernelFContainer.find { KernelFContainers.name eq name } }.empty()
+    !transaction() { KernelFContainer.find { KernelFContainers.name eq name }.empty() }
 
 fun createContainer(name: String, userEmail: String, kernelFVersion: String) {
     transaction {
@@ -45,12 +49,19 @@ fun createContainer(name: String, userEmail: String, kernelFVersion: String) {
             Users.email eq userEmail
         }.first()
         KernelFContainer.new {
+            this.name = name
             this.user = user
             this.kernelFVersion = kernelFVersion
             created = LocalDateTime.now()
             status = "Created"
+            lastHeartBeat = LocalDateTime.now()
+            started = LocalDateTime.now()
         }
     }
+}
+
+fun deleteContainer(name: String) {
+    transaction { KernelFContainers.deleteWhere { KernelFContainers.name eq name } }
 }
 
 fun containers(email: String): List<KernelFContainer> {

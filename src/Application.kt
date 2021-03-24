@@ -1,28 +1,52 @@
 package ws.logv.hosting
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.html.*
-import kotlinx.html.*
-import kotlinx.css.*
-import io.ktor.content.*
-import io.ktor.http.content.*
-import io.ktor.features.*
-import io.ktor.auth.*
 import com.fasterxml.jackson.databind.*
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.client.*
+import io.ktor.client.engine.apache.*
+import io.ktor.content.*
+import io.ktor.features.*
+import io.ktor.html.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.jackson.*
+import io.ktor.locations.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.sessions.*
+import io.ktor.util.*
+import kotlinx.coroutines.*
+import kotlinx.css.*
+import kotlinx.html.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.kohsuke.github.GitHub
+import org.kohsuke.github.GitHubBuilder
 import java.util.*
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
+
+
+val HOST_URL = "kernelf.logv.ws"
+
+@Location("/login/{type?}")
+class Login(val type: String = "")
+
+data class UserSession(
+    val username: String,
+    val email: String,
+    val idToken: String
+)
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
@@ -38,8 +62,34 @@ fun Application.module(testing: Boolean = false) {
 
     install(ForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
     install(XForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
+    install(Locations)
+
+    install(Sessions) {
+        cookie<UserSession>("KernelFSession") {
+            val salt = hex("6819b57a326945c1968f45236589")
+            transform(SessionTransportTransformerMessageAuthentication(salt))
+            cookie.httpOnly = true
+            cookie.maxAge = 30.toDuration(DurationUnit.DAYS)
+        }
+    }
+
+    val loginProviders = listOf(
+        OAuthServerSettings.OAuth2ServerSettings(
+            name = "github",
+            authorizeUrl = "https://github.com/login/oauth/authorize",
+            accessTokenUrl = "https://github.com/login/oauth/access_token",
+            clientId = "2e42cbb49e1ef57ae0db",
+            clientSecret = "c34ba52e88df5bcd79588427aadc770312630d3d",
+            defaultScopes = listOf("user:email")
+        )
+    ).associateBy { it.name }
 
     install(Authentication) {
+        oauth("gitHubOAuth") {
+            client = HttpClient(Apache)
+            providerLookup = { loginProviders[application.locations.resolve<Login>(Login::class, this).type] }
+            urlProvider = { url(Login(it.name)) }
+        }
     }
 
     install(ContentNegotiation) {
@@ -56,62 +106,160 @@ fun Application.module(testing: Boolean = false) {
     transaction {
         // print sql to std-out
         addLogger(StdOutSqlLogger)
+
+        try {
+            SchemaUtils.create(Users, KernelFContainers)
+        } catch (_: Throwable) {
+
+        }
     }
 
     routing {
         get("/") {
             call.index()
         }
+
+        val HOME_PATH = "/home"
+        authenticate("gitHubOAuth") {
+            location<Login>() {
+                param("error") {
+                    handle {
+                        call.loginFailedPage(call.parameters.getAll("error").orEmpty())
+                    }
+                }
+
+                handle {
+                    val principal = call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
+                    val accessToken = principal!!.accessToken
+                    val github =
+                        withContext(Dispatchers.IO) {
+                            GitHubBuilder().withOAuthToken(accessToken).build()
+                        }
+                    val myself = github.myself
+
+                    val session = UserSession(
+                        username = myself.name,
+                        email = myself.email,
+                        idToken = accessToken
+                    )
+
+                    call.sessions.set(session)
+                    call.respondRedirect(HOME_PATH)
+                }
+            }
+        }
+        // Perform logout by cleaning cookies and start RP-initiated logout
+        get("/logout") {
+            call.sessions.clear<UserSession>()
+            call.respondRedirect("/")
+        }
+
+        get(HOME_PATH) {
+            if (call.session == null) {
+                call.respondRedirect("/")
+                return@get
+            }
+            call.home(call.session!!.username, call.session!!.email)
+        }
         post("/new-container") {
+            if (call.session == null) {
+                call.respondRedirect("/")
+                return@post
+            }
             val user = call.getUserEMail()
-            if(!canCreateContainer(user)) {
+            if (!canCreateContainer(user)) {
                 call.respond(HttpStatusCode.ServiceUnavailable, "You can't create more containers!")
                 return@post
             }
-            createContainer(UUID.randomUUID().toString())
-
+            createContainer(UUID.randomUUID().toString(), user, "latest")
+            call.respondRedirect(HOME_PATH)
         }
 
-        get("/html-dsl") {
-            call.respondHtml {
-                body {
-                    h1 { +"HTML" }
-                    ul {
-                        for (n in 1..10) {
-                            li { +"$n" }
-                        }
-                    }
-                }
+        post("/container/{id}/delete") {
+            if (call.session == null) {
+                call.respondRedirect("/")
+                return@post
             }
-        }
 
-        get("/styles.css") {
-            call.respondCss {
-                body {
-                    backgroundColor = Color.red
-                }
-                p {
-                    fontSize = 2.em
-                }
-                rule("p.myclass") {
-                    color = Color.blue
-                }
+            val containerId = call.parameters["id"]!!
+            deleteContainer(containerId)
+            call.respondRedirect(HOME_PATH)
+        }
+        post("/container/{id}/start") {
+            if (call.session == null) {
+                call.respondRedirect("/")
+                return@post
             }
+            val containerId = call.parameters["id"]!!
+            val container = getContainerByName(containerId)
+            if (container == null) {
+                call.respond(HttpStatusCode.NotFound, "unknown container")
+                return@post
+            }
+
+            if (canStartContainer(container)) {
+                startContainer(container)
+            }
+            call.respondRedirect(HOME_PATH)
+        }
+        post("/container/{id}/stop") {
+            if (call.session == null) {
+                call.respondRedirect("/")
+                return@post
+            }
+
+            val containerId = call.parameters["id"]!!
+            val container = getContainerByName(containerId)
+
+            if (container == null) {
+                call.respond(HttpStatusCode.NotFound, "unknown container")
+                return@post
+            }
+
+            if (canStopContainer(container)) {
+                stopContainer(container)
+            }
+
+            call.respondRedirect(HOME_PATH)
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
         }
+    }
+}
 
-        get("/json/jackson") {
-            call.respond(mapOf("hello" to "world"))
+private suspend fun ApplicationCall.index() {
+    respondHtml {
+        defaultHead("KernelF in k8s")
+        body {
+            a {
+                href = url(Login("github"))
+                +"Log in with Github"
+            }
         }
     }
 }
 
-private suspend fun ApplicationCall.getUserEMail(): String {
-    return "k.dummann@gmail.com"
+fun stopContainer(container: KernelFContainer) {
+    transaction { container.status = "Stopping" }
+    GlobalScope.launch {
+        delay(60000)
+        transaction { container.status = "Stopped" }
+    }
+}
+
+fun startContainer(container: KernelFContainer) {
+    transaction { container.status = "Starting" }
+    GlobalScope.launch {
+        delay(60000)
+        transaction { container.status = "Running" }
+    }
+}
+
+private fun ApplicationCall.getUserEMail(): String {
+    return this.session!!.email
 }
 
 private fun createUserIfNotExists(email: String) {
@@ -120,20 +268,29 @@ private fun createUserIfNotExists(email: String) {
     }
 }
 
-private suspend fun ApplicationCall.index() {
+private fun HTML.defaultHead(title: String) {
+    head { title { +title } }
+}
+
+private suspend fun ApplicationCall.home(username: String, email: String) {
     val user = this.getUserEMail()
     createUserIfNotExists(user)
     respondHtml {
-        head { title { +"Kernel F on k8s" } }
+        defaultHead("KernelF on k8s")
         body {
+            p {
+                +"Hello $username (${email})"
+            }
             div {
                 form {
                     button {
                         type = ButtonType.submit
+                        disabled = !canCreateContainer(user)
                         id = "new-containers"
                         formAction = "/new-container"
                         formMethod = ButtonFormMethod.post
                         +"New KernelF Instance"
+
                     }
                 }
 
@@ -159,6 +316,10 @@ private suspend fun ApplicationCall.index() {
                         }
                         th {
                             scope = ThScope.col
+                            +"Url"
+                        }
+                        th {
+                            scope = ThScope.col
                             +"Actions"
                         }
                     }
@@ -179,7 +340,42 @@ private suspend fun ApplicationCall.index() {
                                 +container.status
                             }
                             td {
-                                +"actions"
+                                a {
+                                    val url = "https://${container.name}.$HOST_URL"
+                                    href = url
+                                    +url
+                                }
+                            }
+                            td {
+                                form {
+                                    button {
+                                        type = ButtonType.submit
+                                        id = "delete-${container.name}"
+                                        formAction = "/container/${container.name}/start"
+                                        formMethod = ButtonFormMethod.post
+                                        disabled = !canStartContainer(container)
+                                        +"Start"
+                                    }
+                                }
+                                form {
+                                    button {
+                                        type = ButtonType.submit
+                                        id = "delete-${container.name}"
+                                        formAction = "/container/${container.name}/stop"
+                                        formMethod = ButtonFormMethod.post
+                                        disabled = !canStopContainer(container)
+                                        +"Stop"
+                                    }
+                                }
+                                form {
+                                    button {
+                                        type = ButtonType.submit
+                                        id = "delete-${container.name}"
+                                        formAction = "/container/${container.name}/delete"
+                                        formMethod = ButtonFormMethod.post
+                                        +"Delete"
+                                    }
+                                }
                             }
                         }
                     }
@@ -189,16 +385,31 @@ private suspend fun ApplicationCall.index() {
     }
 }
 
-fun FlowOrMetaDataContent.styleCss(builder: CSSBuilder.() -> Unit) {
-    style(type = ContentType.Text.CSS.toString()) {
-        +CSSBuilder().apply(builder).toString()
+fun canStopContainer(container: KernelFContainer): Boolean {
+    return container.status == "Running"
+}
+
+fun canStartContainer(container: KernelFContainer): Boolean {
+    return container.status == "Created" || container.status == "Stopped"
+}
+
+private suspend fun ApplicationCall.loginFailedPage(errors: List<String>) {
+    respondHtml {
+        head {
+            title { +"Login with" }
+        }
+        body {
+            h1 {
+                +"Login error"
+            }
+
+            for (e in errors) {
+                p {
+                    +e
+                }
+            }
+        }
     }
 }
-
-fun CommonAttributeGroupFacade.style(builder: CSSBuilder.() -> Unit) {
-    this.style = CSSBuilder().apply(builder).toString().trim()
-}
-
-suspend inline fun ApplicationCall.respondCss(builder: CSSBuilder.() -> Unit) {
-    this.respondText(CSSBuilder().apply(builder).toString(), ContentType.Text.CSS)
-}
+val ApplicationCall.session: UserSession?
+    get() = sessions.get<UserSession>()
