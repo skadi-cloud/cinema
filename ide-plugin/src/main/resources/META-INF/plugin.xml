@@ -1,0 +1,28 @@
+<idea-plugin>
+    <id>ws.logv.kernelf-on-k8s.ide-plugin</id>
+    <name>Plugin display name here</name>
+    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+
+    <description><![CDATA[
+    Enter short description for your plugin here.<br>
+    <em>most HTML tags may be used</em>
+    ]]></description>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+        <action id="ws.logv.kernelf-on-k8s.KernelFSamplesAction" class="ws.logv.kernelf-on-k8s.KernelFSamplesAction"
+                text="Kernel F Samples" description="Installs the Kernel F Samples"
+        >
+            <add-to-group group-id="WelcomeScreen.QuickStart" anchor="last"/>
+        </action>
+
+    </actions>
+</idea-plugin>
