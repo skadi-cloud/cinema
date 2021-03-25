@@ -34,10 +34,26 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 import com.fkorotkov.kubernetes.extensions.*
 import io.fabric8.kubernetes.api.model.IntOrString
+import java.lang.IllegalArgumentException
 
 
+fun getEnvOfFail(env: String): String {
+    return System.getenv(env) ?: throw IllegalArgumentException("missing $env")
+}
 
-val HOST_URL = "kernelf.logv.ws"
+fun getEnvOrDefault(env: String, default: String): String {
+    return System.getenv(env) ?: default
+}
+
+val SQL_PASSWORD = getEnvOfFail("SQL_PASSWORD")
+val SQL_USER = getEnvOfFail("SQL_USER")
+val SQL_DB = getEnvOrDefault("SQL_DB", "kernelf")
+val SQL_HOST = getEnvOrDefault("SQL_HOST", "localhost:5432")
+val GITHUB_SECRET = getEnvOfFail("GITHUB_SECRET")
+val GITHUB_ID = getEnvOfFail("GITHUB_ID")
+val COOKIE_SALT = getEnvOfFail("COOKIE_SALT")
+
+const val HOST_URL = "kernelf.logv.ws"
 
 @Location("/login/{type?}")
 class Login(val type: String = "")
@@ -71,7 +87,7 @@ fun Application.module(testing: Boolean = false) {
 
     install(Sessions) {
         cookie<UserSession>("KernelFSession") {
-            val salt = hex("6819b57a326945c1968f45236589")
+            val salt = hex(COOKIE_SALT)
             transform(SessionTransportTransformerMessageAuthentication(salt))
             cookie.httpOnly = true
             cookie.maxAge = 30.toDuration(DurationUnit.DAYS)
@@ -83,8 +99,8 @@ fun Application.module(testing: Boolean = false) {
             name = "github",
             authorizeUrl = "https://github.com/login/oauth/authorize",
             accessTokenUrl = "https://github.com/login/oauth/access_token",
-            clientId = "2e42cbb49e1ef57ae0db",
-            clientSecret = "c34ba52e88df5bcd79588427aadc770312630d3d",
+            clientId = GITHUB_ID,
+            clientSecret = GITHUB_SECRET,
             defaultScopes = listOf("user:email")
         )
     ).associateBy { it.name }
@@ -104,8 +120,8 @@ fun Application.module(testing: Boolean = false) {
     }
 
     Database.connect(
-        "jdbc:pgsql://localhost:5432/kernelf", driver = "com.impossibl.postgres.jdbc.PGDriver",
-        user = "postgres", password = "mysecretpassword"
+        "jdbc:pgsql://$SQL_HOST/$SQL_DB", driver = "com.impossibl.postgres.jdbc.PGDriver",
+        user = SQL_USER, password = SQL_PASSWORD
     )
 
     transaction {
@@ -416,5 +432,6 @@ private suspend fun ApplicationCall.loginFailedPage(errors: List<String>) {
         }
     }
 }
+
 val ApplicationCall.session: UserSession?
     get() = sessions.get<UserSession>()
