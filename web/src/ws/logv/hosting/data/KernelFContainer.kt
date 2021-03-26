@@ -1,30 +1,33 @@
-package ws.logv.hosting
+package ws.logv.hosting.data
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.UUIDEntity
+import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.util.*
 
-object KernelFContainers : IntIdTable() {
-    val name = varchar("name", 1024).uniqueIndex()
+object KernelFContainers : UUIDTable() {
+    val name = varchar("name", 1024)
     val kernelFVersion = varchar("kernelf", 128)
-    val status = varchar("status", 50)
     val created = datetime("created")
     val started = datetime("started")
     val lastHeartBeat = datetime("heartbeat")
     val user = reference("user", Users)
 }
 
-class KernelFContainer(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<KernelFContainer>(KernelFContainers)
+class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<KernelFContainer>(KernelFContainers)
 
     var name by KernelFContainers.name
     var kernelFVersion by KernelFContainers.kernelFVersion
-    var status by KernelFContainers.status
     var created by KernelFContainers.created
     var started by KernelFContainers.started
     var lastHeartBeat by KernelFContainers.lastHeartBeat
@@ -34,17 +37,22 @@ class KernelFContainer(id: EntityID<Int>) : IntEntity(id) {
 fun canCreateContainer(email: String): Boolean {
     val usersContainers =
         transaction() { User.find { Users.email eq email }.firstOrNull()?.containers?.count() } ?: return false
-    return usersContainers < 1
+    return usersContainers < 10
 }
 
-fun getContainerByName(name:String): KernelFContainer? {
-    return transaction { KernelFContainer.find { KernelFContainers.name eq name }.firstOrNull() }
+fun getContainerByName(name:String, user: User): KernelFContainer? {
+    return transaction { KernelFContainer.find { (KernelFContainers.name eq name) and (KernelFContainers.user eq user.id) }.firstOrNull() }
 }
+
+fun getContainerById(id: String): KernelFContainer? {
+    return transaction { KernelFContainer.findById(UUID.fromString(id)) }
+}
+
 fun containerWithNameExists(name: String) =
     !transaction() { KernelFContainer.find { KernelFContainers.name eq name }.empty() }
 
-fun createContainer(name: String, userEmail: String, kernelFVersion: String) {
-    transaction {
+fun createContainer(name: String, userEmail: String, kernelFVersion: String): KernelFContainer {
+    return transaction {
         val user = User.find {
             Users.email eq userEmail
         }.first()
@@ -53,15 +61,18 @@ fun createContainer(name: String, userEmail: String, kernelFVersion: String) {
             this.user = user
             this.kernelFVersion = kernelFVersion
             created = LocalDateTime.now()
-            status = "Created"
             lastHeartBeat = LocalDateTime.now()
             started = LocalDateTime.now()
         }
     }
 }
 
-fun deleteContainer(name: String) {
+fun deleteContainerByName(name: String) {
     transaction { KernelFContainers.deleteWhere { KernelFContainers.name eq name } }
+}
+
+fun deleteContainerById(id: String) {
+    transaction { KernelFContainer.findById(UUID.fromString(id))?.delete() }
 }
 
 fun containers(email: String): List<KernelFContainer> {

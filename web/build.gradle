@@ -51,6 +51,7 @@ dependencies {
     compile 'com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.3'
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.124'
     compile "com.fkorotkov:kubernetes-dsl:2.8.1"
+    compile "io.fabric8:kubernetes-client:4.11.2"
 }
 
 compileKotlin {

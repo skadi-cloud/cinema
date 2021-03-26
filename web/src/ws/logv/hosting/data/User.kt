@@ -1,4 +1,4 @@
-package ws.logv.hosting
+package ws.logv.hosting.data
 
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.dao.id.EntityID
