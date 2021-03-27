@@ -30,6 +30,8 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 import com.fkorotkov.kubernetes.extensions.*
 import io.fabric8.kubernetes.api.model.IntOrString
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.ticker
 import org.jetbrains.exposed.sql.*
@@ -55,6 +57,7 @@ val COOKIE_SALT = getEnvOfFail("COOKIE_SALT")
 
 const val HOST_URL = "kernelf-staging.logv.ws"
 const val HOME_PATH = "/home"
+const val INTERNAL_API_PORT = 9090
 
 @Location("/login/{type?}")
 class Login(val type: String = "")
@@ -65,7 +68,24 @@ data class UserSession(
     val idToken: String
 )
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+@ExperimentalTime
+fun main(args: Array<String>): Unit {
+    val env = applicationEngineEnvironment {
+        developmentMode = true
+        module {
+            mainModule(false)
+        }
+        connector {
+            host = "0.0.0.0"
+            port = 8080
+        }
+        connector {
+            host = "0.0.0.0"
+            port = INTERNAL_API_PORT
+        }
+    }
+    embeddedServer(Netty, env).start(true)
+}
 
 @ObsoleteCoroutinesApi
 val containerStatusTicker = ticker(10_000)
@@ -77,8 +97,7 @@ val runningContainerStatusTicker = ticker(60_000)
 @ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
-
+fun Application.mainModule(testing: Boolean = false) {
     install(Compression) {
         gzip {
             priority = 1.0
@@ -104,9 +123,6 @@ fun Application.module(testing: Boolean = false) {
     )
 
     transaction {
-        // print sql to std-out
-        addLogger(StdOutSqlLogger)
-
         try {
             SchemaUtils.create(Users, KernelFContainers)
         } catch (_: Throwable) {
@@ -123,6 +139,7 @@ fun Application.module(testing: Boolean = false) {
 
     containerApi()
     installAuth()
+    installInternalApi()
 
     routing {
         get("/") {

@@ -80,7 +80,7 @@ class KernelFInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment()
                                 "memory" to Quantity("2Gi")
                             )
                             limits = mapOf(
-                                "cpu" to Quantity("2000m"),
+                                "cpu" to Quantity("3000m"),
                                 "memory" to Quantity("2.2Gi")
                             )
 

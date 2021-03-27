@@ -110,7 +110,7 @@ fun canStartContainer(container: KernelFContainer): Boolean {
     return status == ContainerStatus.Stopped
 }
 
-val client = DefaultKubernetesClient().inNamespace("default")!!
+private val client = DefaultKubernetesClient().inNamespace("default")!!
 
 fun pauseContainer(id: UUID) = GlobalScope.launch {
     client.apps().deployments().withName(deploymentName(id)).scale(0)
