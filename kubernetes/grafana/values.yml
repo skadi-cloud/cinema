@@ -1,0 +1,9 @@
+## Pass the plugins you want installed as a list.
+##
+persistence:
+  enabled: true
+  type: pvc
+  size: 10Gi
+plugins:
+  - grafana-piechart-panel
+  # - grafana-clock-panel
