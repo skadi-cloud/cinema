@@ -21,10 +21,6 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.css.*
 import kotlinx.html.*
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
@@ -34,10 +30,10 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 import com.fkorotkov.kubernetes.extensions.*
 import io.fabric8.kubernetes.api.model.IntOrString
-import ws.logv.hosting.data.KernelFContainers
-import ws.logv.hosting.data.Users
-import ws.logv.hosting.data.createUser
-import ws.logv.hosting.data.userExists
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.ticker
+import org.jetbrains.exposed.sql.*
+import ws.logv.hosting.data.*
 import java.lang.IllegalArgumentException
 
 
@@ -71,11 +67,18 @@ data class UserSession(
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@ObsoleteCoroutinesApi
+val containerStatusTicker = ticker(10_000)
+
+@ObsoleteCoroutinesApi
+val runningContainerStatusTicker = ticker(60_000)
+
 @KtorExperimentalLocationsAPI
 @ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+
     install(Compression) {
         gzip {
             priority = 1.0
@@ -96,7 +99,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     Database.connect(
-        "jdbc:pgsql://$SQL_HOST/$SQL_DB", driver = "com.impossibl.postgres.jdbc.PGDriver",
+        "jdbc:postgresql://$SQL_HOST/$SQL_DB", driver = "org.postgresql.Driver",
         user = SQL_USER, password = SQL_PASSWORD
     )
 
@@ -109,6 +112,13 @@ fun Application.module(testing: Boolean = false) {
         } catch (_: Throwable) {
 
         }
+    }
+
+    GlobalScope.launch {
+        updateNewContainers()
+    }
+    GlobalScope.launch {
+        updateRunningContainers()
     }
 
     containerApi()
@@ -139,6 +149,44 @@ fun Application.module(testing: Boolean = false) {
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
+        }
+    }
+}
+
+private suspend fun updateNewContainers() {
+    for (tick in containerStatusTicker) {
+        transaction {
+            KernelFContainer.find {
+                (KernelFContainers.status eq ContainerStatus.Stopping) or (KernelFContainers.status eq ContainerStatus.Deploying)
+            }.map {
+                when (it.status) {
+                    ContainerStatus.Created -> null
+                    ContainerStatus.Error -> null
+                    ContainerStatus.Stopped -> null
+                    ContainerStatus.Stopping -> Pair(it, getPodStatus(it.id.value))
+                    ContainerStatus.Deploying -> Pair(it, getPodStatus(it.id.value))
+                    ContainerStatus.Running -> null
+                }
+            }.filterNotNull().filter { it.first.status != it.second }.forEach { it.first.status = it.second }
+        }
+    }
+}
+
+private suspend fun updateRunningContainers() {
+    for (tick in runningContainerStatusTicker) {
+        val containers = transaction {
+            KernelFContainer.find {
+                (KernelFContainers.status eq ContainerStatus.Running)
+            }.map {
+                when (it.status) {
+                    ContainerStatus.Created -> null
+                    ContainerStatus.Error -> null
+                    ContainerStatus.Stopped -> null
+                    ContainerStatus.Stopping -> null
+                    ContainerStatus.Deploying -> null
+                    ContainerStatus.Running -> Pair(it, getPodStatus(it.id.value))
+                }
+            }.filterNotNull().filter { it.first.status != it.second }.forEach { it.first.status = it.second }
         }
     }
 }

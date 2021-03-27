@@ -2,6 +2,7 @@ package ws.logv.hosting
 
 import io.ktor.html.*
 import kotlinx.html.*
+import ws.logv.hosting.data.ContainerStatus
 import ws.logv.hosting.data.KernelFContainer
 import ws.logv.hosting.data.canCreateContainer
 import ws.logv.hosting.data.containers
@@ -38,11 +39,13 @@ fun TBODY.containerRow(container: KernelFContainer) {
             +container.created.toString()
         }
         td {
-            when (getPodStatus(container.id.value)) {
-                ContainerStatus.NotDeployed -> +"not deployed"
+            when (container.status) {
+                ContainerStatus.Stopped -> +"stopped"
+                ContainerStatus.Stopping -> +"stopping"
                 ContainerStatus.Running -> +"running"
                 ContainerStatus.Error -> +"error"
                 ContainerStatus.Deploying -> +"deploying"
+                ContainerStatus.Created -> +"created"
             }
         }
         td {

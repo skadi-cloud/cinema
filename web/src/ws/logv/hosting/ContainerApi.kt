@@ -9,14 +9,14 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.jetbrains.exposed.sql.transactions.transaction
 import ws.logv.hosting.data.*
 import ws.logv.hosting.k8s.*
 import ws.logv.hosting.ws.logv.hosting.getName
 import java.util.*
 
-enum class ContainerStatus {
-    Deploying, Running, Error, NotDeployed
-}
 
 @Suppress("EnumEntryName")
 enum class KernelFVersion(val tag: String) {
@@ -38,7 +38,8 @@ fun Application.containerApi() = routing {
         }
 
         val container = createContainer(getName(), user, KERNELF_LATEST.tag)
-        deployContainer(container.id.value,KERNELF_LATEST.tag)
+        transaction { container.status = ContainerStatus.Deploying }
+        deployContainer(container.id.value, KERNELF_LATEST.tag)
         call.respondRedirect(HOME_PATH)
     }
 
@@ -71,6 +72,7 @@ fun Application.containerApi() = routing {
         }
 
         if (canStartContainer(container)) {
+            transaction { container.status = ContainerStatus.Deploying }
             startContainer(container.id.value)
         }
         call.respondRedirect(HOME_PATH)
@@ -90,6 +92,7 @@ fun Application.containerApi() = routing {
         }
 
         if (canStopContainer(container)) {
+            transaction { container.status = ContainerStatus.Stopping }
             pauseContainer(container.id.value)
         }
 
@@ -98,35 +101,33 @@ fun Application.containerApi() = routing {
 }
 
 fun canStopContainer(container: KernelFContainer): Boolean {
-    val status = getPodStatus(container.id.value)
-    return status != ContainerStatus.NotDeployed
+    val status = container.status
+    return status != ContainerStatus.Stopped && status != ContainerStatus.Stopping
 }
 
 fun canStartContainer(container: KernelFContainer): Boolean {
-    val status = getPodStatus(container.id.value)
-    return status == ContainerStatus.NotDeployed
+    val status = container.status
+    return status == ContainerStatus.Stopped
 }
 
-fun pauseContainer(id: UUID) {
-    val client = DefaultKubernetesClient().inNamespace("default")
+val client = DefaultKubernetesClient().inNamespace("default")!!
+
+fun pauseContainer(id: UUID) = GlobalScope.launch {
     client.apps().deployments().withName(deploymentName(id)).scale(0)
 }
 
-fun startContainer(id: UUID) {
-    val client = DefaultKubernetesClient().inNamespace("default")
+fun startContainer(id: UUID) = GlobalScope.launch {
     client.apps().deployments().withName(deploymentName(id)).scale(1)
 }
 
-fun deployContainer(id: UUID, kernelFVersion: String) {
-    val client = DefaultKubernetesClient().inNamespace("default")
+fun deployContainer(id: UUID, kernelFVersion: String) = GlobalScope.launch {
     client.persistentVolumeClaims().create(KernelFInstancePVC(id))
     client.apps().deployments().create(KernelFInstanceDeployment(id, kernelFVersion))
     client.services().create(KernelFInstanceService(id))
     client.network().ingresses().create(KernelFInstanceIngress(id))
 }
 
-fun undeployContainer(id: UUID) {
-    val client = DefaultKubernetesClient().inNamespace("default")
+fun undeployContainer(id: UUID) = GlobalScope.launch {
     client.network().ingresses().delete(KernelFInstanceIngress(id))
     client.services().delete(KernelFInstanceService(id))
     client.apps().deployments().delete(KernelFInstanceDeployment(id, ""))
@@ -134,21 +135,14 @@ fun undeployContainer(id: UUID) {
 }
 
 fun getPodStatus(id: UUID): ContainerStatus {
-    val client = DefaultKubernetesClient().inNamespace("default")
-    val deployment = client.apps().deployments().withName(deploymentName(id))
+    val deployment = client.apps().deployments().withName(deploymentName(id)).get()
 
-    if (deployment.scale().status.replicas == 0 && deployment.scale().spec.replicas == null) {
-        return ContainerStatus.NotDeployed
+    if (deployment.spec.replicas == 0 && deployment.status.replicas == null) {
+        return ContainerStatus.Stopped
     }
 
-    val pod = client.pods().withLabels(id.appLabel()).list().items.firstOrNull()
-    if (pod == null){
-        return ContainerStatus.Error
-    }
-    val state = pod.status.containerStatuses.firstOrNull()
-    if (state == null) {
-        return ContainerStatus.Deploying
-    }
+    val pod = client.pods().withLabels(id.appLabel()).list(newListOptions { limit = 1 }).items.firstOrNull() ?: return ContainerStatus.Error
+    val state = pod.status.containerStatuses.firstOrNull() ?: return ContainerStatus.Deploying
 
     if (state.state.waiting != null) {
         return ContainerStatus.Deploying

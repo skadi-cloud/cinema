@@ -11,8 +11,14 @@ import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.postgresql.util.PGobject
 import java.time.LocalDateTime
 import java.util.*
+
+
+enum class ContainerStatus {
+    Created, Deploying, Running, Error, Stopped, Stopping
+}
 
 object KernelFContainers : UUIDTable() {
     val name = varchar("name", 1024)
@@ -21,6 +27,7 @@ object KernelFContainers : UUIDTable() {
     val started = datetime("started")
     val lastHeartBeat = datetime("heartbeat")
     val user = reference("user", Users)
+    val status = enumeration("status", ContainerStatus::class)
 }
 
 class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -32,6 +39,7 @@ class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
     var started by KernelFContainers.started
     var lastHeartBeat by KernelFContainers.lastHeartBeat
     var user by User referencedOn KernelFContainers.user
+    var status by KernelFContainers.status
 }
 
 fun canCreateContainer(email: String): Boolean {
@@ -40,8 +48,10 @@ fun canCreateContainer(email: String): Boolean {
     return usersContainers < 10
 }
 
-fun getContainerByName(name:String, user: User): KernelFContainer? {
-    return transaction { KernelFContainer.find { (KernelFContainers.name eq name) and (KernelFContainers.user eq user.id) }.firstOrNull() }
+fun getContainerByName(name: String, user: User): KernelFContainer? {
+    return transaction {
+        KernelFContainer.find { (KernelFContainers.name eq name) and (KernelFContainers.user eq user.id) }.firstOrNull()
+    }
 }
 
 fun getContainerById(id: String): KernelFContainer? {
@@ -63,6 +73,7 @@ fun createContainer(name: String, userEmail: String, kernelFVersion: String): Ke
             created = LocalDateTime.now()
             lastHeartBeat = LocalDateTime.now()
             started = LocalDateTime.now()
+            status = ContainerStatus.Created
         }
     }
 }
