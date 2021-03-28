@@ -1,4 +1,4 @@
-package ws.logv.`kernelf-on-k8s`
+package cloud.skadi.ide.plugin
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent

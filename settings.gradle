@@ -2,7 +2,11 @@ rootProject.name = "skadi-cloud"
 
 include ':web'
 include ':ide-plugin'
-includeBuild 'projector-server'
+includeBuild ('projector-server') {
+    dependencySubstitution {
+        substitute module("org.jetbrains.projector-server:projector-agent") with project(':projector-agent')
+    }
+}
 
 
 
