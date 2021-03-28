@@ -1,7 +1,8 @@
-rootProject.name = "kernel-f"
+rootProject.name = "skandi-cloud"
 
 include ':web'
 include ':ide-plugin'
+includeBuild 'projector-server'
 
 
 
