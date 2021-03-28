@@ -18,12 +18,35 @@ import java.time.LocalDateTime
 import java.util.*
 
 
-@Suppress("EnumEntryName")
-enum class KernelFVersion(val tag: String) {
-    V2020_3_4731_f5286c0("2020.3.4731.f5286c0"),
+enum class MPSVersion(private val year: Int, private val major: Int, patch: Int) {
+    V2020_3_3(2020, 3, 3),
+    V2020_3_2(2020, 3, 2),
+    V2020_3_1(2020, 3, 1),
+    V2020_3(2020, 3, 0),
+    V2020_2_3(2020, 2, 3),
+    V2020_2_2(2020, 2, 2),
+    V2020_2_1(2020, 2, 1),
+    V2020_2(2020, 2, 0);
+
+    val fullVersion = if (patch != 0) "$year.$major.$patch" else "$year.$major"
+    fun isUpgrade(current: MPSVersion) = current.year < this.year || current.major < this.major
+    fun isDowngrade(current: MPSVersion) = current.year > this.year || current.major > this.major
 }
 
-val KERNELF_LATEST = KernelFVersion.V2020_3_4731_f5286c0
+@Suppress("EnumEntryName")
+enum class ContainerVersion(private val mpsVersion: MPSVersion, buildNumber: Int? = null, commit: String? = null) {
+    V2020_3_4731_f5286c0(MPSVersion.V2020_3_1, 4731, "f5286c0");
+
+    val tag =
+        if (buildNumber != null && commit != null)
+            "${mpsVersion.fullVersion}-$buildNumber.$commit"
+        else mpsVersion.fullVersion
+
+    fun isUpgrade(current: ContainerVersion) = this.mpsVersion.isUpgrade(current.mpsVersion)
+    fun isDowngrade(current: ContainerVersion) = this.mpsVersion.isDowngrade(current.mpsVersion)
+}
+
+val CONTAINER_LATEST = ContainerVersion.V2020_3_4731_f5286c0
 
 fun Application.containerApi() = routing {
     post("/new-container") {
@@ -37,9 +60,9 @@ fun Application.containerApi() = routing {
             return@post
         }
 
-        val container = createContainer(getName(), user, KERNELF_LATEST.tag)
+        val container = createContainer(getName(), user, CONTAINER_LATEST.tag)
         transaction { container.status = ContainerStatus.Deploying }
-        deployContainer(container.id.value, KERNELF_LATEST.tag)
+        deployContainer(container.id.value, CONTAINER_LATEST.tag)
         call.respondRedirect(HOME_PATH)
     }
 
