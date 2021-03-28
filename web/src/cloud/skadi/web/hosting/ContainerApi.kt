@@ -124,17 +124,17 @@ fun startContainer(id: UUID) = GlobalScope.launch {
 }
 
 fun deployContainer(id: UUID, kernelFVersion: String) = GlobalScope.launch {
-    client.persistentVolumeClaims().create(KernelFInstancePVC(id))
-    client.apps().deployments().create(KernelFInstanceDeployment(id, kernelFVersion))
-    client.services().create(KernelFInstanceService(id))
-    client.network().ingresses().create(KernelFInstanceIngress(id))
+    client.persistentVolumeClaims().create(MPSInstancePVC(id))
+    client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion))
+    client.services().create(MPSInstanceService(id))
+    client.network().ingresses().create(MPSInstanceIngress(id))
 }
 
 fun undeployContainer(id: UUID) = GlobalScope.launch {
-    client.network().ingresses().delete(KernelFInstanceIngress(id))
-    client.services().delete(KernelFInstanceService(id))
-    client.apps().deployments().delete(KernelFInstanceDeployment(id, ""))
-    client.persistentVolumeClaims().delete(KernelFInstancePVC(id))
+    client.network().ingresses().delete(MPSInstanceIngress(id))
+    client.services().delete(MPSInstanceService(id))
+    client.apps().deployments().delete(MPSInstanceDeployment(id, ""))
+    client.persistentVolumeClaims().delete(MPSInstancePVC(id))
 }
 
 fun getPodStatus(id: UUID): ContainerStatus {

@@ -16,10 +16,10 @@ import cloud.skadi.web.hosting.HOST_URL
 import java.util.*
 
 
-fun UUID.appLabel() = mapOf("app" to "kernelf-instance-$this")
+fun UUID.appLabel() = mapOf("app" to "mps-instance-$this")
 
-fun pvcName(id: UUID) = "pvc-kernelf-instance-$id"
-class KernelFInstancePVC(id: UUID) : PersistentVolumeClaim() {
+fun pvcName(id: UUID) = "pvc-mps-instance-$id"
+class MPSInstancePVC(id: UUID) : PersistentVolumeClaim() {
     init {
         metadata {
             name = pvcName(id)
@@ -34,8 +34,8 @@ class KernelFInstancePVC(id: UUID) : PersistentVolumeClaim() {
     }
 }
 
-fun serviceName(id: UUID) = "svc-kernef-instance-$id"
-class KernelFInstanceService(id: UUID) : Service() {
+fun serviceName(id: UUID) = "svc-mps-instance-$id"
+class MPSInstanceService(id: UUID) : Service() {
     init {
         metadata {
             name = serviceName(id)
@@ -53,8 +53,8 @@ class KernelFInstanceService(id: UUID) : Service() {
     }
 }
 
-fun deploymentName(id:UUID) = "kernelf-instance-$id"
-class KernelFInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment() {
+fun deploymentName(id:UUID) = "mps-instance-$id"
+class MPSInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment() {
     init {
         metadata {
             name = deploymentName(id)
@@ -70,10 +70,16 @@ class KernelFInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment()
                 spec {
                     securityContext { fsGroup = 1024 }
                     containers = listOf(newContainer {
-                        name = "kernelf-instance-$id"
+                        name = "mps-instance-$id"
                         image = "rg.nl-ams.scw.cloud/kernelf-logv-ws/kernelf:$kernelFVersion"
                         imagePullPolicy = "Always"
                         ports = listOf(newContainerPort { containerPort = 8887 })
+                        env = listOf(
+                            newEnvVar {
+                                name = "SKADI_INSTANCE_ID"
+                                value = id.toString()
+                            }
+                        )
                         resources {
                             requests = mapOf(
                                 "cpu" to Quantity("1500m"),
@@ -86,7 +92,7 @@ class KernelFInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment()
 
                         }
                         volumeMounts = listOf(newVolumeMount {
-                            name = "kernelf-instance-$id-volume"
+                            name = "mps-instance-$id-volume"
                             mountPath = "/home/projector-user"
                         })
                         readinessProbe {
@@ -111,7 +117,7 @@ class KernelFInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment()
                         }
                     })
                     volumes = listOf(newVolume {
-                        name = "kernelf-instance-$id-volume"
+                        name = "mps-instance-$id-volume"
                         persistentVolumeClaim {
                             claimName = pvcName(id)
                         }
@@ -125,8 +131,8 @@ class KernelFInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment()
     }
 }
 
-fun ingressName(id: UUID) = "ingress-kernelf-instance-$id"
-class KernelFInstanceIngress(id: UUID) : Ingress() {
+fun ingressName(id: UUID) = "ingress-mps-instance-$id"
+class MPSInstanceIngress(id: UUID) : Ingress() {
     init {
         metadata { name = ingressName(id) }
         spec {
@@ -137,7 +143,7 @@ class KernelFInstanceIngress(id: UUID) : Ingress() {
                         path = "/"
                         pathType = "Prefix"
                         backend {
-                            serviceName = "svc-kernef-instance-$id"
+                            serviceName = serviceName(id)
                             servicePort = IntOrString(80)
                         }
                     })
