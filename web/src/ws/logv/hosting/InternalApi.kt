@@ -9,6 +9,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
+import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.jetbrains.exposed.sql.transactions.transaction
 import ws.logv.hosting.data.getContainerById
 import ws.logv.hosting.k8s.appLabel
@@ -25,10 +26,18 @@ suspend fun ApplicationCall.internalApiOnly(body: suspend (ApplicationCall) -> U
 
 private val client = DefaultKubernetesClient().inNamespace("default")!!
 
-fun Application.installInternalApi() = routing {
+fun Application.installInternalApi(registry: PrometheusMeterRegistry) = routing {
     get("/health") {
         call.internalApiOnly {
             call.respond(HttpStatusCode.OK)
+        }
+    }
+
+    get("/metrics") {
+        call.internalApiOnly {
+            call.respondText {
+                registry.scrape()
+            }
         }
     }
 
@@ -48,6 +57,12 @@ fun Application.installInternalApi() = routing {
             if (podIp == null) {
                 log.error("no ip found for pods of container: $containerId")
                 call.respond(HttpStatusCode.NotFound)
+                return@internalApiOnly
+            }
+
+            if(podIp != host) {
+                log.error("ip of the request and the container don't match: $host != $podIp ")
+                call.respond(HttpStatusCode.Forbidden)
                 return@internalApiOnly
             }
 
