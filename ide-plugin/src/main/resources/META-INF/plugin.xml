@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>ws.logv.kernelf-on-k8s.ide-plugin</id>
+    <id>cloud.skadi.ide.plugin</id>
     <name>Plugin display name here</name>
     <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
@@ -13,8 +13,9 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+        <preloadingActivity implementation="cloud.skadi.ide.plugin.SkadiHeartbeat"/>
     </extensions>
+
 
     <actions>
         <!-- Add your actions here -->
