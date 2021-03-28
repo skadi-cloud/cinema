@@ -37,6 +37,7 @@ import kotlinx.css.*
 import kotlinx.html.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.ExperimentalTime
 
@@ -207,7 +208,7 @@ private suspend fun updateNewContainers() {
 
 private suspend fun updateRunningContainers() {
     for (tick in runningContainerStatusTicker) {
-        val containers = transaction {
+        transaction {
             KernelFContainer.find {
                 (KernelFContainers.status eq ContainerStatus.Running)
             }.map {
@@ -221,8 +222,18 @@ private suspend fun updateRunningContainers() {
                 }
             }.filterNotNull().filter { it.first.status != it.second }.forEach { it.first.status = it.second }
         }
+        transaction {
+            KernelFContainer.find {
+                (KernelFContainers.lastHeartBeat less (LocalDateTime.now()
+                    .minusMinutes(30))) and (KernelFContainers.status eq ContainerStatus.Running)
+            }.forEach {
+                it.status = ContainerStatus.Stopping
+                pauseContainer(it.id.value)
+            }
+        }
     }
 }
+
 
 private fun createUserIfNotExists(email: String) {
     if (!userExists(email)) {

@@ -1,5 +1,6 @@
 package ws.logv.hosting
 
+import cloud.skadi.web.hosting.mainModule
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.request.*
@@ -22,7 +23,7 @@ class ApplicationTest {
     @ExperimentalTime
     @Test
     fun testRoot() {
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ mainModule(testing = true) }) {
             handleRequest(HttpMethod.Get, "/").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
                 assertEquals("HELLO WORLD!", response.content)

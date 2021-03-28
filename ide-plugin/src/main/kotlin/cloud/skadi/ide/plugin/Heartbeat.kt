@@ -14,15 +14,12 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import java.util.*
 
 
 class SkadiHeartbeat : PreloadingActivity() {
     private val logger = Logger.getInstance(this::class.java)
-    private lateinit var backendAddress: String
-    private lateinit var skadiInstance: String
-
-    @ObsoleteCoroutinesApi
-    val ticker = ticker(60_000, initialDelayMillis = 120_000)
+    var timer = Timer(true)
 
     @ObsoleteCoroutinesApi
     override fun preload(indicator: ProgressIndicator) {
@@ -40,32 +37,31 @@ class SkadiHeartbeat : PreloadingActivity() {
             return
         }
 
-        this.skadiInstance = id
-        this.backendAddress = address
-
-        GlobalScope.launch {
-            for (e in ticker) {
-                heartbeat()
-            }
-        }
+        timer.scheduleAtFixedRate(Task(address, id), 0, 60_000)
     }
 
-    private suspend fun heartbeat() {
-        if (AgentLauncher.getClientList().isNotEmpty()) {
-            try {
-                val client = HttpClient.newHttpClient()
-                val request = HttpRequest.newBuilder()
-                    .GET()
-                    .timeout(Duration.ofSeconds(30))
-                    .uri(URI.create("http://$backendAddress/heartbeat/$skadiInstance"))
-                    .build()
-                client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-                logger.info("heartbeat send")
-            } catch (e: Exception) {
-                logger.error("error sending heartbeat", e)
+    private class Task(val backendAddress: String, val skadiInstance: String) : TimerTask() {
+        private val logger = Logger.getInstance(this::class.java)
+        override fun run() {
+            if (AgentLauncher.getClientList().isNotEmpty()) {
+                try {
+                    val client = HttpClient.newHttpClient()
+                    val request = HttpRequest.newBuilder()
+                        .POST(HttpRequest.BodyPublishers.noBody())
+                        .timeout(Duration.ofSeconds(30))
+                        .uri(URI.create("http://$backendAddress/heartbeat/$skadiInstance"))
+                        .build()
+                    client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenAccept {
+                        logger.info("heartbeat send")
+                        println("heartbeat send: $it")
+
+                    }.join()
+                } catch (e: Exception) {
+                    logger.error("error sending heartbeat", e)
+                }
+            } else {
+                logger.warn("no clients connected, not sending heartbeat.")
             }
-        } else {
-            logger.info("no clients connected, not sending heartbeat.")
         }
     }
 }

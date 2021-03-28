@@ -14,6 +14,7 @@ import io.ktor.routing.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -71,7 +72,10 @@ fun Application.containerApi() = routing {
         }
 
         if (canStartContainer(container)) {
-            transaction { container.status = ContainerStatus.Deploying }
+            transaction {
+                container.status = ContainerStatus.Deploying
+                container.lastHeartBeat = LocalDateTime.now()
+            }
             startContainer(container.id.value)
         }
         call.respondRedirect(HOME_PATH)
@@ -140,7 +144,8 @@ fun getPodStatus(id: UUID): ContainerStatus {
         return ContainerStatus.Stopped
     }
 
-    val pod = client.pods().withLabels(id.appLabel()).list(newListOptions { limit = 1 }).items.firstOrNull() ?: return ContainerStatus.Error
+    val pod = client.pods().withLabels(id.appLabel()).list(newListOptions { limit = 1 }).items.firstOrNull()
+        ?: return ContainerStatus.Error
     val state = pod.status.containerStatuses.firstOrNull() ?: return ContainerStatus.Deploying
 
     if (state.state.waiting != null) {

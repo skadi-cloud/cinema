@@ -43,26 +43,11 @@ fun Application.installInternalApi(registry: PrometheusMeterRegistry) = routing 
 
     post("/heartbeat/{containerId}") {
         call.internalApiOnly {
-            val containerId = call.parameters["id"]!!
+            val containerId = call.parameters["containerId"]!!
             val container = getContainerById(containerId)
             if (container == null) {
                 log.error("container with $containerId not found!")
                 call.respond(HttpStatusCode.NotFound)
-                return@internalApiOnly
-            }
-            val host = call.request.origin.host
-            val podIp = client.pods().withLabels(container.id.value.appLabel())
-                .list(newListOptions { limit = 1 }).items.firstOrNull()?.status?.podIP
-
-            if (podIp == null) {
-                log.error("no ip found for pods of container: $containerId")
-                call.respond(HttpStatusCode.NotFound)
-                return@internalApiOnly
-            }
-
-            if(podIp != host) {
-                log.error("ip of the request and the container don't match: $host != $podIp ")
-                call.respond(HttpStatusCode.Forbidden)
                 return@internalApiOnly
             }
 
