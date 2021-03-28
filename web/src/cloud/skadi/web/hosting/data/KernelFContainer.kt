@@ -1,4 +1,4 @@
-package ws.logv.hosting.data
+package cloud.skadi.web.hosting.data
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass

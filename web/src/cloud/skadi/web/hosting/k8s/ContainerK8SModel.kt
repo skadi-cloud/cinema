@@ -1,4 +1,4 @@
-package ws.logv.hosting.k8s
+package cloud.skadi.web.hosting.k8s
 
 import com.fkorotkov.kubernetes.*
 import com.fkorotkov.kubernetes.apps.metadata
@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.Quantity
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress
-import ws.logv.hosting.HOST_URL
+import cloud.skadi.web.hosting.HOST_URL
 import java.util.*
 
 

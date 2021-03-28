@@ -1,7 +1,8 @@
-package ws.logv.hosting
+package cloud.skadi.web.hosting
 
+import cloud.skadi.web.hosting.data.*
 import com.fasterxml.jackson.databind.*
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
+import com.fkorotkov.kubernetes.extensions.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
@@ -13,26 +14,14 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.jackson.*
 import io.ktor.locations.*
+import io.ktor.metrics.micrometer.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.sessions.*
-import io.ktor.util.*
-import kotlinx.coroutines.*
-import kotlinx.css.*
-import kotlinx.html.*
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.kohsuke.github.GitHub
-import org.kohsuke.github.GitHubBuilder
-import java.util.*
-import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
-import kotlin.time.toDuration
-import com.fkorotkov.kubernetes.extensions.*
-import io.fabric8.kubernetes.api.model.IntOrString
-import io.ktor.metrics.micrometer.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.sessions.*
+import io.ktor.util.*
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
@@ -42,11 +31,14 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
+import kotlinx.css.*
+import kotlinx.html.*
 import org.jetbrains.exposed.sql.*
-import ws.logv.hosting.data.*
-import java.lang.IllegalArgumentException
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
+import kotlin.time.ExperimentalTime
 
 
 fun getEnvOfFail(env: String): String {
@@ -163,7 +155,7 @@ fun Application.mainModule(testing: Boolean = false) {
 
     containerApi()
     installAuth()
-    installInternalApi()
+    installInternalApi(prometheusMeterRegistry)
 
     routing {
         get("/") {

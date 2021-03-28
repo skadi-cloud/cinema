@@ -1,4 +1,4 @@
-package ws.logv.hosting.data
+package cloud.skadi.web.hosting.data
 
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.dao.id.EntityID
@@ -35,7 +35,7 @@ fun userExists(email: String): Boolean {
 fun createUser(emailAddress: String){
     val now = LocalDateTime.now()
     transaction() { 
-        User.new { 
+        User.new {
             email = emailAddress
             regDate = now
             lastLogin = now

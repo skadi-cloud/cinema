@@ -1,4 +1,4 @@
-rootProject.name = "skandi-cloud"
+rootProject.name = "skadi-cloud"
 
 include ':web'
 include ':ide-plugin'

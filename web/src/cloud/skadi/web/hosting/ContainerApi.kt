@@ -1,5 +1,7 @@
-package ws.logv.hosting
+package cloud.skadi.web.hosting
 
+import cloud.skadi.web.hosting.data.*
+import cloud.skadi.web.hosting.k8s.*
 import com.fkorotkov.kubernetes.*
 import com.fkorotkov.kubernetes.apps.*
 import com.fkorotkov.kubernetes.networking.v1beta1.*
@@ -12,9 +14,6 @@ import io.ktor.routing.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.transactions.transaction
-import ws.logv.hosting.data.*
-import ws.logv.hosting.k8s.*
-import ws.logv.hosting.ws.logv.hosting.getName
 import java.util.*
 
 

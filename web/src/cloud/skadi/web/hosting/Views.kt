@@ -1,11 +1,11 @@
-package ws.logv.hosting
+package cloud.skadi.web.hosting
 
 import io.ktor.html.*
 import kotlinx.html.*
-import ws.logv.hosting.data.ContainerStatus
-import ws.logv.hosting.data.KernelFContainer
-import ws.logv.hosting.data.canCreateContainer
-import ws.logv.hosting.data.containers
+import cloud.skadi.web.hosting.data.ContainerStatus
+import cloud.skadi.web.hosting.data.KernelFContainer
+import cloud.skadi.web.hosting.data.canCreateContainer
+import cloud.skadi.web.hosting.data.containers
 
 class IndexTemplate(private val pageName: String) : Template<HTML> {
     val content = Placeholder<HtmlBlockTag>()

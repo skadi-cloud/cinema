@@ -1,4 +1,4 @@
-package ws.logv.hosting.ws.logv.hosting
+package cloud.skadi.web.hosting
 
 import kotlin.random.Random
 

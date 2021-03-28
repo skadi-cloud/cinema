@@ -1,4 +1,4 @@
-package ws.logv.hosting
+package cloud.skadi.web.hosting
 
 import com.fkorotkov.kubernetes.newListOptions
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
@@ -11,8 +11,8 @@ import io.ktor.routing.*
 import io.ktor.util.pipeline.*
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.jetbrains.exposed.sql.transactions.transaction
-import ws.logv.hosting.data.getContainerById
-import ws.logv.hosting.k8s.appLabel
+import cloud.skadi.web.hosting.data.getContainerById
+import cloud.skadi.web.hosting.k8s.appLabel
 import java.time.LocalDateTime
 
 suspend fun ApplicationCall.internalApiOnly(body: suspend (ApplicationCall) -> Unit) {
