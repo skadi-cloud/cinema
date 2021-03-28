@@ -14,10 +14,10 @@ import com.intellij.util.io.ZipUtil
 import java.io.File
 import java.util.function.Supplier
 
-private const val ZIP_NAME = "kernelf-samples.zip"
-private const val SAMPLE_FOLDER = "kernelf-samples"
+private const val ZIP_NAME = "community-samples.zip"
+private const val SAMPLE_FOLDER = "community-samples"
 
-class KernelFSamplesAction : AnAction() {
+class CommunitySamplesAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
         val file = File(PathManager.getHomePath(), ZIP_NAME)
         if (!file.exists()) {
@@ -29,11 +29,11 @@ class KernelFSamplesAction : AnAction() {
     }
 }
 
-private class SamplesExtractionTask(val zipFile: File) : Task.Modal(null, "Extract KernelF Samples", false) {
+private class SamplesExtractionTask(val zipFile: File) : Task.Modal(null, "Extract Community Samples", false) {
     override fun run(indicator: ProgressIndicator) {
         indicator.isIndeterminate = true
 
-        val temp = FileUtil.createTempDirectory("KernelF Samples", null)
+        val temp = FileUtil.createTempDirectory("Community Samples", null)
         indicator.text2 = "Extracting samples"
         ZipUtil.extract(zipFile.toPath(), temp.toPath(), null)
         val from = File(temp, SAMPLE_FOLDER)

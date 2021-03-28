@@ -18,8 +18,8 @@
 
     <actions>
         <!-- Add your actions here -->
-        <action id="ws.logv.kernelf-on-k8s.KernelFSamplesAction" class="ws.logv.kernelf-on-k8s.KernelFSamplesAction"
-                text="Kernel F Samples" description="Installs the Kernel F Samples"
+        <action id="cloud.skadi.ide.plugin.CommunitySamplesAction" class="cloud.skadi.ide.plugin.CommunitySamplesAction"
+                text="Community Samples" description="Installs the Community F Samples"
         >
             <add-to-group group-id="WelcomeScreen.QuickStart" anchor="last"/>
         </action>
