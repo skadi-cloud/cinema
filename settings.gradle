@@ -1,5 +1,6 @@
 rootProject.name = "skadi-cloud"
 
+
 include ':web'
 include ':ide-plugin'
 includeBuild ('projector-server') {

@@ -1,26 +1,36 @@
 plugins {
-    id 'org.jetbrains.intellij' version '0.7.2'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.31'
+    id 'org.jetbrains.intellij'
+    id 'org.jetbrains.kotlin.jvm'
 }
+
 
 group 'cloud.skadi.ide.plugin'
 version '1.0'
 
 repositories {
     mavenCentral()
+    maven {
+        url = 'https://projects.itemis.de/nexus/content/repositories/mbeddr'
+    }
 }
+
+def mpsVersion = "2020.3.+"
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     compileOnly "org.jetbrains.projector-server:projector-agent:1.2.1"
+    compileOnly "com.jetbrains:mps-workbench:$mpsVersion"
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version '2020.3.3'
 }
+
 patchPluginXml {
     changeNotes """
       Add change notes here.<br>
       <em>most HTML tags may be used</em>"""
 }
+
+buildSearchableOptions.enabled(false)
