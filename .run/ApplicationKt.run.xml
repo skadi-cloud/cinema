@@ -16,7 +16,7 @@
       <env name="COOKIE_SALT" value="6819b57a326945c1968f45236589" />
       <env name="SQL_PASSWORD" value="mysecretpassword" />
       <env name="SQL_USER" value="postgres" />
-      <env name="KUBECONFIG" value="$USER_HOME$/Downloads/kubeconfig-k8s-kernelf-f-staging.yaml" />
+      <env name="KUBECONFIG" value="kubeconfig-k8s-kernelf-f-staging.yaml" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />

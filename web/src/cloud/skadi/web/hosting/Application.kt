@@ -81,6 +81,7 @@ fun main(args: Array<String>): Unit {
         module {
             mainModule(false)
         }
+        watchPaths = listOf("classes", "resources")
         connector {
             host = "0.0.0.0"
             port = 8080
@@ -90,7 +91,7 @@ fun main(args: Array<String>): Unit {
             port = INTERNAL_API_PORT
         }
     }
-    embeddedServer(Netty, env).start(true)
+    embeddedServer(Netty,  env).start(true)
 }
 
 @ObsoleteCoroutinesApi

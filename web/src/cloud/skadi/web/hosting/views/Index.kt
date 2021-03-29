@@ -69,7 +69,7 @@ fun FlowContent.indexPage() {
     div {
         id = "faq"
         h2 {
-            id="faq-header"
+            id = "faq-header"
             +"faq"
         }
         div(classes = "faq-item") {
@@ -109,17 +109,111 @@ fun FlowContent.indexPage() {
         }
         div(classes = "faq-item") {
             div {
-                h3 { +"Should I use this for real projects?" }
+                h3 { +"What’s that name?" }
                 p {
-                    +"Definitely "
-                    b { +"NOT" }
-                    +"."
-                    +"""This playground is more of a prove of concept to show what is possible with Projector, 
-                    |Kubernetes and MPS. Your data might get deleted and any time and the playground might be shutdown. 
-                    |Do not store anything important in it.""".trimMargin()
+                    +"Skadi is the "
+                    a {
+                        href = "https://www.gods-and-goddesses.com/norse/skadi/"
+                        +"Norse"
+                    }
+                    +" Norse giant goddess of winter, hunting, and skiing."
                 }
             }
         }
+        div(classes = "faq-item") {
+            div {
+                h3 { +"Can I use this on my iPad/Phone/Tablet?" }
+                p {
+                    +"""Yes you can. There is special links in you dashboard for mobile devices with no keyboard. 
+                        |If you have a keyboard attached feel free to use the desktop links. Key mappings can get weird 
+                        |though and might now work as expected. """.trimMargin()
+                }
+            }
+        }
+
+        div(classes = "faq-item") {
+            div {
+                h3 { +"Are there bugs?" }
+                p {
+                    +"""Most probably. This is a prove of concept and implemented like that. Projector, the underlying 
+                        |technology used to give you access to the IDE, is very young technology and most probably also
+                        | contains bugs. Expect this service to be a playground for experimenting with none sensitive 
+                        | data that you can afford to loose.""".trimMargin()
+                }
+            }
+        }
+        div(classes = "faq-item") {
+            div {
+                h3 { +"Is my connection to the IDE safe?" }
+                p {
+                    +"""While the connection is encrypted there is no additional authentication in place. If the link 
+                        |to your instance gets leaked anyone with the link can connect to it. Projector has support for 
+                        |token based authentication but this is not being used at the moment. """.trimMargin()
+                }
+            }
+        }
+        div(classes = "faq-item") {
+            div {
+                h3 { +"Can I access Github?" }
+                p {
+                    +"""Yes you can, but the IDE plugins for Github won’t work. The authentication workflow will fail 
+                        |because it assumes that you are on your machine and not in your browser. You could of course 
+                        |use personal access tokens. Keep in mind if somebody gains access to the IDE instance they 
+                        |also gain access to your Github token. Since this is a playground I wouldn’t recommend adding 
+                        |authentication information into the container.""".trimMargin()
+                }
+            }
+        }
+        div(classes = "faq-item") {
+            div {
+                h3 { +"My instance is stuck in “deploying”!" }
+                p {
+                    +"""When the underlying infrastructure gets busy it might add more computing resources on demand. 
+                        |Adding new resources to instratructure requires provisioning them which can take some time. 
+                        |Usually containers should be up wihtin a minute but it can sometimes take 5+ minutes when new 
+                        |resources are added to the infrastructure. """.trimMargin()
+                }
+            }
+        }
+        div(classes = "faq-item") {
+            div {
+                h3 { +"How big can my project get?" }
+                p {
+                    style = "display:inline"
+                    +"You get 10GB of persistent storage in you user directory "
+                }
+                pre {
+                    style = "display:inline"
+                    +"/home/projector-user" }
+                p {
+                    style = "display:inline"
+                    +""" everything else is not persisted and will get deleted if the instance is shutdown or restarted.
+                        | 10GB should be plenty of space for playing around with MPS. Other resources like CPU and 
+                        | memory are limited as well but should be enough for even larger experiments. You won’t be 
+                        | able to use the playground to work with really large project like mbeddr.""".trimMargin()
+                }
+            }
+        }
+        div(classes = "faq-item") {
+            div {
+                h3 { +"What is that skadi-cloud plugin in my IDE?" }
+                p {
+                    +"""The plugin is responsible for detecting if you are connected to the IDE or not. In case there is
+                        | no connection to an instance for more than 30 minutes the IDE is shutdown. You can restart it
+                        | from the instance overview and reconnect. If you disable the plugin your instance will shutdown
+                        | automatically after 30 minutes.""".trimMargin()
+                }
+            }
+        }
+        div(classes = "faq-item") {
+            div {
+                h3 { +"How long is my data stored? " }
+                p {
+                    +"Your playground is kept for 30 day after its been showdown. After 30 days of inactivity the playground is delete entirely. This might change at any time."
+                }
+            }
+        }
+
 
     }
 
