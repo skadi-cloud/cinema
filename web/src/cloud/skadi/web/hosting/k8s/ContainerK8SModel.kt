@@ -1,10 +1,6 @@
 package cloud.skadi.web.hosting.k8s
 
 import com.fkorotkov.kubernetes.*
-import com.fkorotkov.kubernetes.apps.metadata
-import com.fkorotkov.kubernetes.apps.selector
-import com.fkorotkov.kubernetes.apps.spec
-import com.fkorotkov.kubernetes.apps.template
 import com.fkorotkov.kubernetes.networking.v1beta1.*
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
@@ -13,8 +9,12 @@ import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress
 import cloud.skadi.web.hosting.HOST_URL
+import com.fkorotkov.kubernetes.apps.*
 import java.util.*
 
+
+private val containerRegistry = "rg.nl-ams.scw.cloud/cloud-skadi-mps"
+private val containerImageName = ""
 
 fun UUID.appLabel() = mapOf("app" to "mps-instance-$this")
 
@@ -62,6 +62,9 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment() {
         }
         spec {
             replicas = 1
+            strategy = newDeploymentStrategy {
+                type = "Recreate"
+            }
             selector {
                 matchLabels = id.appLabel()
             }
