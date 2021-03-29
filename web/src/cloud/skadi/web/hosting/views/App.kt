@@ -37,9 +37,19 @@ fun TBODY.containerRow(container: KernelFContainer) {
         }
         td {
             a {
-                val url = "https://${container.id._value}.$HOST_URL"
+                val url = "https://${container.id._value}.$HOST_URL?token=${container.rwToken}"
                 href = url
-                +url
+                target ="_blank"
+                +"Full Access"
+            }
+
+            br
+
+            a {
+                val url = "https://${container.id._value}.$HOST_URL?token=${container.roToken}"
+                href = url
+                target ="_blank"
+                +"Read Only"
             }
         }
         td {

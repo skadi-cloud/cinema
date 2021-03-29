@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
+import io.seruco.encoding.base62.Base62
+import java.nio.ByteBuffer
 
 
 enum class MPSVersion(private val year: Int, private val major: Int, patch: Int) {
@@ -59,10 +61,19 @@ fun Application.containerApi() = routing {
             call.respond(HttpStatusCode.ServiceUnavailable, "You can't create more containers!")
             return@post
         }
+        val base62 = Base62.createInstance()
 
-        val container = createContainer(getName(), user, CONTAINER_LATEST.tag)
+        val roId = UUID.randomUUID()
+        val roToken = base62.encode(
+            ByteBuffer.allocate(16).putLong(roId.mostSignificantBits).putLong(roId.leastSignificantBits).array()
+        ).decodeToString()
+        val rwId = UUID.randomUUID()
+        val rwToken = base62.encode(
+            ByteBuffer.allocate(16).putLong(rwId.mostSignificantBits).putLong(rwId.leastSignificantBits).array()
+        ).decodeToString()
+        val container = createContainer(getName(), user, CONTAINER_LATEST.tag, rwToken, roToken)
         transaction { container.status = ContainerStatus.Deploying }
-        deployContainer(container.id.value, CONTAINER_LATEST.tag)
+        deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
         call.respondRedirect(HOME_PATH)
     }
 
@@ -146,9 +157,9 @@ fun startContainer(id: UUID) = GlobalScope.launch {
     client.apps().deployments().withName(deploymentName(id)).scale(1)
 }
 
-fun deployContainer(id: UUID, kernelFVersion: String) = GlobalScope.launch {
+fun deployContainer(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) = GlobalScope.launch {
     client.persistentVolumeClaims().create(MPSInstancePVC(id))
-    client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion))
+    client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
     client.services().create(MPSInstanceService(id))
     client.network().ingresses().create(MPSInstanceIngress(id))
 }
@@ -156,7 +167,7 @@ fun deployContainer(id: UUID, kernelFVersion: String) = GlobalScope.launch {
 fun undeployContainer(id: UUID) = GlobalScope.launch {
     client.network().ingresses().delete(MPSInstanceIngress(id))
     client.services().delete(MPSInstanceService(id))
-    client.apps().deployments().delete(MPSInstanceDeployment(id, ""))
+    client.apps().deployments().delete(MPSInstanceDeployment(id, "", "", ""))
     client.persistentVolumeClaims().delete(MPSInstancePVC(id))
 }
 

@@ -53,8 +53,8 @@ class MPSInstanceService(id: UUID) : Service() {
     }
 }
 
-fun deploymentName(id:UUID) = "mps-instance-$id"
-class MPSInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment() {
+fun deploymentName(id: UUID) = "mps-instance-$id"
+class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) : Deployment() {
     init {
         metadata {
             name = deploymentName(id)
@@ -81,7 +81,16 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String) : Deployment() {
                             newEnvVar {
                                 name = "SKADI_INSTANCE_ID"
                                 value = id.toString()
+                            },
+                            newEnvVar {
+                                name = "ORG_JETBRAINS_PROJECTOR_SERVER_HANDSHAKE_TOKEN"
+                                value = rwToken
+                            },
+                            newEnvVar {
+                                name = "ORG_JETBRAINS_PROJECTOR_SERVER_RO_HANDSHAKE_TOKEN"
+                                value = roToken
                             }
+
                         )
                         resources {
                             requests = mapOf(

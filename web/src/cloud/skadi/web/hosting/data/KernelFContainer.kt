@@ -28,6 +28,8 @@ object KernelFContainers : UUIDTable() {
     val lastHeartBeat = datetime("heartbeat")
     val user = reference("user", Users)
     val status = enumeration("status", ContainerStatus::class)
+    val rwToken = varchar("rw-token",128)
+    val roToken = varchar("ro-token",128)
 }
 
 class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -40,6 +42,8 @@ class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
     var lastHeartBeat by KernelFContainers.lastHeartBeat
     var user by User referencedOn KernelFContainers.user
     var status by KernelFContainers.status
+    var roToken by KernelFContainers.roToken
+    var rwToken by KernelFContainers.rwToken
 }
 
 fun canCreateContainer(email: String): Boolean {
@@ -61,7 +65,13 @@ fun getContainerById(id: String): KernelFContainer? {
 fun containerWithNameExists(name: String) =
     !transaction() { KernelFContainer.find { KernelFContainers.name eq name }.empty() }
 
-fun createContainer(name: String, userEmail: String, kernelFVersion: String): KernelFContainer {
+fun createContainer(
+    name: String,
+    userEmail: String,
+    kernelFVersion: String,
+    rwToken: String,
+    roToken: String
+): KernelFContainer {
     return transaction {
         val user = User.find {
             Users.email eq userEmail
@@ -74,6 +84,8 @@ fun createContainer(name: String, userEmail: String, kernelFVersion: String): Ke
             lastHeartBeat = LocalDateTime.now()
             started = LocalDateTime.now()
             status = ContainerStatus.Created
+            this.roToken = roToken
+            this.rwToken = rwToken
         }
     }
 }

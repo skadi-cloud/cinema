@@ -147,8 +147,8 @@ fun FlowContent.indexPage() {
                 h3 { +"Is my connection to the IDE safe?" }
                 p {
                     +"""While the connection is encrypted there is no additional authentication in place. If the link 
-                        |to your instance gets leaked anyone with the link can connect to it. Projector has support for 
-                        |token based authentication but this is not being used at the moment. """.trimMargin()
+                        |to your instance gets leaked including the token anyone with the link can connect to it. The
+                        | playground list gives your two links one that grants full access and one that is read only.""".trimMargin()
                 }
             }
         }
