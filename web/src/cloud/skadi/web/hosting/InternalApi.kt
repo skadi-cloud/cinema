@@ -1,5 +1,6 @@
 package cloud.skadi.web.hosting
 
+import cloud.skadi.web.hosting.data.ContainerStatus
 import com.fkorotkov.kubernetes.newListOptions
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.ktor.application.*
@@ -13,6 +14,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.jetbrains.exposed.sql.transactions.transaction
 import cloud.skadi.web.hosting.data.getContainerById
 import cloud.skadi.web.hosting.k8s.appLabel
+import io.ktor.util.*
 import java.time.LocalDateTime
 
 suspend fun ApplicationCall.internalApiOnly(body: suspend (ApplicationCall) -> Unit) {
@@ -50,7 +52,17 @@ fun Application.installInternalApi(registry: PrometheusMeterRegistry) = routing 
                 call.respond(HttpStatusCode.NotFound)
                 return@internalApiOnly
             }
-
+            if (container.status != ContainerStatus.Running) {
+                log.error("container isn't running but got heartbeat: $containerId")
+                call.respond(HttpStatusCode.Forbidden)
+                return@internalApiOnly
+            }
+            val token = call.receiveText()
+            if (token != container.rwToken) {
+                log.error("token did not match expected: ${container.rwToken} but got $token")
+                call.respond(HttpStatusCode.Forbidden)
+                return@internalApiOnly
+            }
             transaction { container.lastHeartBeat = LocalDateTime.now() }
             call.respond(HttpStatusCode.OK)
         }

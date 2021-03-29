@@ -3,11 +3,7 @@ package cloud.skadi.ide.plugin
 import com.intellij.openapi.application.PreloadingActivity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.channels.ticker
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import org.jetbrains.projector.agent.AgentLauncher
 import java.net.URI
 import java.net.http.HttpClient
@@ -37,17 +33,22 @@ class SkadiHeartbeat : PreloadingActivity() {
             return
         }
 
-        timer.scheduleAtFixedRate(Task(address, id), 0, 60_000)
+        val token = System.getenv("ORG_JETBRAINS_PROJECTOR_SERVER_HANDSHAKE_TOKEN")
+        if (token == null) {
+            logger.error("can't get token")
+        }
+
+        timer.scheduleAtFixedRate(Task(address, id, token), 0, 60_000)
     }
 
-    private class Task(val backendAddress: String, val skadiInstance: String) : TimerTask() {
+    private class Task(val backendAddress: String, val skadiInstance: String, val token: String) : TimerTask() {
         private val logger = Logger.getInstance(this::class.java)
         override fun run() {
             if (AgentLauncher.getClientList().isNotEmpty()) {
                 try {
                     val client = HttpClient.newHttpClient()
                     val request = HttpRequest.newBuilder()
-                        .POST(HttpRequest.BodyPublishers.noBody())
+                        .POST(HttpRequest.BodyPublishers.ofString(token))
                         .timeout(Duration.ofSeconds(30))
                         .uri(URI.create("http://$backendAddress/heartbeat/$skadiInstance"))
                         .build()
