@@ -1,6 +1,9 @@
 package cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.data.*
+import cloud.skadi.web.hosting.views.IndexTemplate
+import cloud.skadi.web.hosting.views.appHome
+import cloud.skadi.web.hosting.views.indexPage
 import com.fasterxml.jackson.databind.*
 import com.fkorotkov.kubernetes.extensions.*
 import io.ktor.application.*
@@ -181,7 +184,13 @@ fun Application.mainModule(testing: Boolean = false) {
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
-        static("/static") {
+        static("assets") {
+            static("webfonts") {
+                resources("webfonts")
+            }
+            static("styles") {
+                resources("styles")
+            }
             resources("static")
         }
     }

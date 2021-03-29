@@ -1,5 +1,8 @@
-package cloud.skadi.web.hosting
+package cloud.skadi.web.hosting.views
 
+import cloud.skadi.web.hosting.HOST_URL
+import cloud.skadi.web.hosting.canStartContainer
+import cloud.skadi.web.hosting.canStopContainer
 import io.ktor.html.*
 import kotlinx.html.*
 import cloud.skadi.web.hosting.data.ContainerStatus
@@ -7,25 +10,9 @@ import cloud.skadi.web.hosting.data.KernelFContainer
 import cloud.skadi.web.hosting.data.canCreateContainer
 import cloud.skadi.web.hosting.data.containers
 
-class IndexTemplate(private val pageName: String) : Template<HTML> {
-    val content = Placeholder<HtmlBlockTag>()
-    override fun HTML.apply() {
-        head { title { +pageName } }
-        body {
-            div {
-                h1 { +pageName }
-                div { insert(content) }
-            }
-        }
-    }
-}
 
-fun FlowContent.indexPage() {
-    a {
-        href = "/login/github"
-        +"Log in with Github"
-    }
-}
+
+
 
 fun TBODY.containerRow(container: KernelFContainer) {
     tr {
