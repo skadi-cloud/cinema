@@ -1,0 +1,105 @@
+<!--
+  ~ Copyright 2019-2020 JetBrains s.r.o.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<application>
+    <component name="DebuggerSettings">
+        <filter>
+            <option name="PATTERN" value="com.sun.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="java.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="javax.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="org.omg.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="sun.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="jdk.internal.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="junit.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="com.intellij.rt.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="com.yourkit.runtime.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="com.springsource.loaded.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="org.springsource.loaded.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="javassist.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="org.apache.webbeans.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="com.ibm.ws.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+        <filter>
+            <option name="PATTERN" value="kotlin.*"/>
+            <option name="ENABLED" value="true"/>
+            <option name="INCLUDE" value="true"/>
+        </filter>
+    </component>
+    <component name="XDebuggerSettings">
+        <data-views/>
+        <general/>
+        <debuggers>
+            <debugger id="kotlin_debugger">
+                <configuration>
+                    <option name="DEBUG_IS_FILTER_FOR_STDLIB_ALREADY_ADDED" value="true"/>
+                </configuration>
+            </debugger>
+        </debuggers>
+    </component>
+</application>
