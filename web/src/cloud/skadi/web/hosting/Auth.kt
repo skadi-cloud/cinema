@@ -41,11 +41,13 @@ fun Application.installAuth() {
     }
 
     install(Sessions) {
-        cookie<UserSession>("KernelFSession") {
+        cookie<UserSession>("SkadiSession") {
             val salt = hex(COOKIE_SALT)
             transform(SessionTransportTransformerMessageAuthentication(salt))
             cookie.httpOnly = true
-            cookie.maxAge = 30.toDuration(DurationUnit.DAYS)
+            cookie.maxAge = null
+            //cookie.secure = true
+            cookie.extensions["SameSite"] = "strict"
         }
     }
 
@@ -74,7 +76,7 @@ fun Application.installAuth() {
                     )
 
                     call.sessions.set(session)
-                    call.respondRedirect(HOME_PATH)
+                    call.loginSuccess(HOME_PATH)
                 }
             }
         }
@@ -100,6 +102,21 @@ private suspend fun ApplicationCall.loginFailedPage(errors: List<String>) {
                 p {
                     +e
                 }
+            }
+        }
+    }
+}
+
+private suspend fun ApplicationCall.loginSuccess(target: String) {
+    respondHtml {
+        head {
+            title { +"Login Successful" }
+            meta { httpEquiv="refresh"
+            content ="0; url=$target"}
+        }
+        body {
+            h1 {
+                +"Login Successful"
             }
         }
     }
