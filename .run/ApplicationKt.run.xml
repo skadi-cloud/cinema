@@ -1,0 +1,25 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ApplicationKt" type="KtorApplicationConfigurationType" factoryName="Ktor">
+    <module name="skadi-cloud.web.main" />
+    <option name="alternativeJrePath" />
+    <option name="alternativeJrePathEnabled" value="false" />
+    <option name="includeProvidedScope" value="true" />
+    <option name="mainClass" value="cloud.skadi.web.hosting.ApplicationKt" />
+    <option name="passParentEnvs" value="true" />
+    <option name="programParameters" value="" />
+    <option name="shortenCommandLine" />
+    <option name="vmParameters" value="" />
+    <option name="workingDirectory" value="" />
+    <envs>
+      <env name="GITHUB_SECRET" value="c34ba52e88df5bcd79588427aadc770312630d3d" />
+      <env name="GITHUB_ID" value="2e42cbb49e1ef57ae0db" />
+      <env name="COOKIE_SALT" value="6819b57a326945c1968f45236589" />
+      <env name="SQL_PASSWORD" value="mysecretpassword" />
+      <env name="SQL_USER" value="postgres" />
+      <env name="KUBECONFIG" value="$USER_HOME$/Downloads/kubeconfig-k8s-kernelf-f-staging.yaml" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
