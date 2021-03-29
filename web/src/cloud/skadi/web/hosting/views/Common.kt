@@ -7,6 +7,10 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
     val content = Placeholder<HtmlBlockTag>()
     override fun HTML.apply() {
         head {
+            meta {
+                name = "viewport"
+                content = "width=device-width, initial-scale=1.0"
+            }
             title { +pageName }
             styleLink("/assets/styles/styles.css")
         }
