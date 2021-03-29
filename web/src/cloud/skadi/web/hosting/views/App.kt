@@ -1,5 +1,6 @@
 package cloud.skadi.web.hosting.views
 
+import cloud.skadi.web.hosting.ContainerVersion
 import cloud.skadi.web.hosting.HOST_URL
 import cloud.skadi.web.hosting.canStartContainer
 import cloud.skadi.web.hosting.canStopContainer
@@ -9,9 +10,7 @@ import cloud.skadi.web.hosting.data.ContainerStatus
 import cloud.skadi.web.hosting.data.KernelFContainer
 import cloud.skadi.web.hosting.data.canCreateContainer
 import cloud.skadi.web.hosting.data.containers
-
-
-
+import java.time.format.DateTimeFormatter
 
 
 fun TBODY.containerRow(container: KernelFContainer) {
@@ -23,7 +22,8 @@ fun TBODY.containerRow(container: KernelFContainer) {
             +container.kernelFVersion
         }
         td {
-            +container.created.toString()
+            val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+            +formatter.format(container.created)
         }
         td {
             when (container.status) {
@@ -39,7 +39,7 @@ fun TBODY.containerRow(container: KernelFContainer) {
             a {
                 val url = "https://${container.id._value}.$HOST_URL?token=${container.rwToken}"
                 href = url
-                target ="_blank"
+                target = "_blank"
                 +"Full Access"
             }
 
@@ -48,7 +48,7 @@ fun TBODY.containerRow(container: KernelFContainer) {
             a {
                 val url = "https://${container.id._value}.$HOST_URL?token=${container.roToken}"
                 href = url
-                target ="_blank"
+                target = "_blank"
                 +"Read Only"
             }
         }
@@ -92,14 +92,32 @@ fun FlowContent.appHome(email: String, name: String) {
     }
     div {
         form {
+
+            select() {
+                this.name = "version"
+                enumValues<ContainerVersion>().mapIndexed { i, version ->
+                    option {
+                        value = version.name
+                        if(i == 0) {
+                            selected = true
+                        }
+                        if (version.buildNumber != null && version.commit != null) {
+                            +"MPS ${version.mpsVersion.fullVersion} KernelF ${version.buildNumber}"
+                        } else {
+                            +"MPS ${version.mpsVersion.fullVersion}"
+                        }
+
+                    }
+                }
+            }
+
             button {
                 type = ButtonType.submit
                 disabled = !canCreateContainer(email)
                 id = "new-containers"
                 formAction = "/new-container"
                 formMethod = ButtonFormMethod.post
-                +"New KernelF Instance"
-
+                +"New Playground"
             }
         }
 
@@ -113,7 +131,7 @@ fun FlowContent.appHome(email: String, name: String) {
                 }
                 th {
                     scope = ThScope.col
-                    +"Kernel F Version"
+                    +"Version"
                 }
                 th {
                     scope = ThScope.col

@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.ktor.application.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.coroutines.GlobalScope
@@ -17,6 +18,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
 import io.seruco.encoding.base62.Base62
+import java.awt.event.ContainerListener
 import java.nio.ByteBuffer
 
 
@@ -36,7 +38,7 @@ enum class MPSVersion(private val year: Int, private val major: Int, patch: Int)
 }
 
 @Suppress("EnumEntryName")
-enum class ContainerVersion(private val mpsVersion: MPSVersion, buildNumber: Int? = null, commit: String? = null) {
+enum class ContainerVersion(val mpsVersion: MPSVersion, val buildNumber: Int? = null, val commit: String? = null) {
     V2020_3_4731_f5286c0(MPSVersion.V2020_3_1, 4731, "f5286c0");
 
     val tag =
@@ -61,6 +63,15 @@ fun Application.containerApi() = routing {
             call.respond(HttpStatusCode.ServiceUnavailable, "You can't create more containers!")
             return@post
         }
+
+        val params = call.receiveParameters()
+        val versionParam = params["version"]
+
+        var version = CONTAINER_LATEST
+        if(versionParam != null) {
+            version = enumValueOf<ContainerVersion>(versionParam)
+        }
+
         val base62 = Base62.createInstance()
 
         val roId = UUID.randomUUID()
@@ -71,7 +82,7 @@ fun Application.containerApi() = routing {
         val rwToken = base62.encode(
             ByteBuffer.allocate(16).putLong(rwId.mostSignificantBits).putLong(rwId.leastSignificantBits).array()
         ).decodeToString()
-        val container = createContainer(getName(), user, CONTAINER_LATEST.tag, rwToken, roToken)
+        val container = createContainer(getName(), user, version.tag, rwToken, roToken)
         transaction { container.status = ContainerStatus.Deploying }
         deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
         call.respondRedirect(HOME_PATH)
