@@ -21,8 +21,13 @@ body {
         width: 90%;
         margin: 0 auto;
     }
+
     body {
         font-size: 18px;
+    }
+
+    .faq-item {
+        width: 50%;
     }
 }
 
@@ -34,8 +39,12 @@ body {
     }
 
     body {
-        text-align: center;
+        text-align: left;
         font-size: 24px;
+    }
+
+    .faq-item {
+        width: 33%;
     }
 
 }
@@ -45,10 +54,59 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     color: #00cc99;
     text-transform: uppercase;
+    text-align: center;
 }
 
 a, a:visited {
     color: #00cc99;
 }
+
+#login {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+#login a.loginbox {
+    color: white;
+    background: #0c9;
+    text-decoration: none;
+    padding: 7px;
+    border-radius: 2px;
+}
+
+#login .smaller {
+    font-weight: 100;
+    font-size: 0.75em;
+}
+
+#login a.loginbox i {
+    padding-right: 7px;
+}
+
+#faq-header {
+    width: 100%;
+}
+
+#faq {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.faq-item div {
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.faq-item h3 {
+    font-size: 1em;
+    font-weight: normal;
+}
+
+.faq-item {
+    flex-grow: 3;
+}
+
 
 
