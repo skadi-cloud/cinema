@@ -55,8 +55,8 @@ fun getEnvOrDefault(env: String, default: String): String {
 
 val SQL_PASSWORD = getEnvOfFail("SQL_PASSWORD")
 val SQL_USER = getEnvOfFail("SQL_USER")
-val SQL_DB = getEnvOrDefault("SQL_DB", "kernelf")
-val SQL_HOST = getEnvOrDefault("SQL_HOST", "localhost:5432")
+val SQL_DB = getEnvOfFail("SQL_DB")
+val SQL_HOST = getEnvOfFail("SQL_HOST")
 val GITHUB_SECRET = getEnvOfFail("GITHUB_SECRET")
 val GITHUB_ID = getEnvOfFail("GITHUB_ID")
 val COOKIE_SALT = getEnvOfFail("COOKIE_SALT")

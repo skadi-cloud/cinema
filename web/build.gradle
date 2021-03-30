@@ -54,7 +54,12 @@ dependencies {
 
     implementation "io.seruco.encoding:base62:0.1.3"
 
-    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
+    testImplementation("io.ktor:ktor-server-tests:$ktor_version") {
+        exclude group: 'junit', module: 'junit'
+    }
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
 }
 
 compileKotlin {
@@ -65,4 +70,8 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.useIR = true
     kotlinOptions.jvmTarget = targetJvm
+}
+
+test {
+    useJUnitPlatform()
 }
