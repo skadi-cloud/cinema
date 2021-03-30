@@ -63,3 +63,9 @@ jobs:
         GITHUB_ID: ${{ secrets.OAUTH_ID }}
         COOKIE_SALT: ${{ secrets.COOKIE_SALT }}
 
+    - name: Archive test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: web/build/reports
+
