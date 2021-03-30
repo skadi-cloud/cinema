@@ -41,7 +41,7 @@ dependencies {
     implementation 'org.jetbrains.exposed:exposed-java-time:0.29.1'
     implementation "org.postgresql:postgresql:42.2.2"
 
-    implementation group: 'org.kohsuke', name: 'github-api', version: '1.124'
+    implementation group: 'org.kohsuke', name: 'github-api', version: '1.125'
 
     implementation "com.fkorotkov:kubernetes-dsl:2.8.1"
     implementation "io.fabric8:kubernetes-client:4.11.2"
