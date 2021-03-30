@@ -150,16 +150,17 @@ fun Application.mainModule(testing: Boolean = false) {
 
         }
     }
-
-    GlobalScope.launch {
-        updateNewContainers()
-    }
-    GlobalScope.launch {
-        updateRunningContainers()
+    if(!testing) {
+        GlobalScope.launch {
+            updateNewContainers()
+        }
+        GlobalScope.launch {
+            updateRunningContainers()
+        }
     }
 
     containerApi()
-    installAuth()
+    installAuth(testing)
     installInternalApi(prometheusMeterRegistry)
 
     routing {

@@ -15,12 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.html.*
 import org.kohsuke.github.GitHubBuilder
-import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
-import kotlin.time.toDuration
 
 @ExperimentalTime
-fun Application.installAuth() {
+fun Application.installAuth(testing: Boolean) {
     val loginProviders = listOf(
         OAuthServerSettings.OAuth2ServerSettings(
             name = "github",
@@ -52,6 +50,17 @@ fun Application.installAuth() {
     }
 
     routing {
+        if(testing) {
+            post("/testlogin") {
+                val session = UserSession(
+                    username = "testuser",
+                    email = "test@test.de",
+                    idToken = "accessToken"
+                )
+                call.sessions.set(session)
+                call.loginSuccess(HOME_PATH)
+            }
+        }
         authenticate("gitHubOAuth") {
             location<Login>() {
                 param("error") {
