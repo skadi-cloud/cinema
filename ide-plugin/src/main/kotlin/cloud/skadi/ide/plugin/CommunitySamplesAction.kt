@@ -57,7 +57,7 @@ private class SamplesExtractionTask(val zipFile: File) : Task.Modal(null, "Extra
 
         val temp = FileUtil.createTempDirectory("Community Samples", null)
         indicator.text2 = "Extracting samples"
-        ZipUtil.extract(zipFile.toPath(), temp.toPath(), null)
+        ZipUtil.extract(zipFile, temp, null)
         val from = File(temp, SAMPLE_FOLDER)
         val to = samplesPathInUserHome
         if (!FileUtil.moveDirWithContent(from, to) && !to.exists()) {
