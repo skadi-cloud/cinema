@@ -30,6 +30,9 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
 
     steps:
     - uses: actions/checkout@v2
@@ -55,7 +58,7 @@ jobs:
         SQL_PASSWORD: mysecretpassword
         SQL_USER: postgres
         SQL_DB: skadi
-        SQL_HOST: "postgres:5432"
+        SQL_HOST: "localhost:5432"
         GITHUB_SECRET: ${{ secrets.OAUTH_SECRET }}
         GITHUB_ID: ${{ secrets.OAUTH_ID }}
         COOKIE_SALT: ${{ secrets.COOKIE_SALT }}
