@@ -57,9 +57,9 @@ val SQL_PASSWORD = getEnvOfFail("SQL_PASSWORD")
 val SQL_USER = getEnvOfFail("SQL_USER")
 val SQL_DB = getEnvOfFail("SQL_DB")
 val SQL_HOST = getEnvOfFail("SQL_HOST")
-val GITHUB_SECRET = getEnvOfFail("GITHUB_SECRET")
-val GITHUB_ID = getEnvOfFail("GITHUB_ID")
-val COOKIE_SALT = getEnvOfFail("COOKIE_SALT")
+val GITHUB_SECRET = getEnvOrDefault("GITHUB_SECRET", "")
+val GITHUB_ID = getEnvOrDefault("GITHUB_ID", "")
+val COOKIE_SALT = getEnvOrDefault("COOKIE_SALT", "")
 
 const val HOST_URL = "kernelf-staging.logv.ws"
 const val HOME_PATH = "/home"
@@ -105,6 +105,25 @@ val runningContainerStatusTicker = ticker(60_000)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.mainModule(testing: Boolean = false) {
+
+
+    if(!testing) {
+        if(GITHUB_ID.isEmpty()) {
+            log.error("GITHUB_ID is empty!")
+            throw IllegalArgumentException("GITHUB_ID is empty!")
+        }
+
+        if(GITHUB_SECRET.isEmpty()) {
+            log.error("GITHUB_SECRET is empty!")
+            throw IllegalArgumentException("GITHUB_ID is empty!")
+        }
+        if(COOKIE_SALT.isEmpty()) {
+            log.error("COOKIE_SALT is empty!")
+            throw IllegalArgumentException("GITHUB_ID is empty!")
+        }
+        
+    }
+
     install(Compression) {
         gzip {
             priority = 1.0
