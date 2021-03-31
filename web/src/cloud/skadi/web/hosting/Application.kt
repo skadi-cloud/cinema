@@ -50,7 +50,12 @@ fun getEnvOfFail(env: String): String {
 }
 
 fun getEnvOrDefault(env: String, default: String): String {
-    return System.getenv(env) ?: default
+    val value = System.getenv(env) ?: return default
+    if(value.isEmpty()) {
+        return default
+    } else  {
+        return value
+    }
 }
 
 val SQL_PASSWORD = getEnvOfFail("SQL_PASSWORD")
