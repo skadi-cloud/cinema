@@ -59,7 +59,7 @@ val SQL_DB = getEnvOfFail("SQL_DB")
 val SQL_HOST = getEnvOfFail("SQL_HOST")
 val GITHUB_SECRET = getEnvOrDefault("GITHUB_SECRET", "")
 val GITHUB_ID = getEnvOrDefault("GITHUB_ID", "")
-val COOKIE_SALT = getEnvOrDefault("COOKIE_SALT", "")
+val COOKIE_SALT = getEnvOrDefault("COOKIE_SALT", "this is a dumy value")
 
 const val HOST_URL = "kernelf-staging.logv.ws"
 const val HOME_PATH = "/home"
