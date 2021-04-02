@@ -8,7 +8,6 @@ import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.awt.Container
 import java.time.LocalDateTime
 import java.util.*
 
@@ -91,8 +90,8 @@ fun deleteContainerByName(name: String) {
     transaction { KernelFContainers.deleteWhere { KernelFContainers.name eq name } }
 }
 
-fun deleteContainerById(id: String) {
-    transaction { KernelFContainer.findById(UUID.fromString(id))?.delete() }
+fun deleteContainerById(id: UUID) {
+    transaction { KernelFContainer.findById(id)?.delete() }
 }
 
 fun containers(email: String): List<KernelFContainer> {

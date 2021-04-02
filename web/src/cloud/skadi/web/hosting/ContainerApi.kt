@@ -3,7 +3,6 @@ package cloud.skadi.web.hosting
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.k8s.*
 import cloud.skadi.web.hosting.views.IndexTemplate
-import cloud.skadi.web.hosting.views.appHome
 import cloud.skadi.web.hosting.views.confirmDelete
 import com.fkorotkov.kubernetes.*
 import com.fkorotkov.kubernetes.apps.*
@@ -22,129 +21,118 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
 import io.seruco.encoding.base62.Base62
-import java.awt.event.ContainerListener
 import java.nio.ByteBuffer
 
 val CONTAINER_LATEST = ContainerVersion.V2020_3_4731_f5286c0
 
+suspend fun ApplicationCall.authenticated(body: suspend () -> Unit) {
+    if (this.session == null) {
+        this.respondRedirect("/")
+        return
+    }
+    body()
+}
+
+suspend fun ApplicationCall.withUserContainerViaParam(body: suspend (KernelFContainer) -> Unit) {
+    val containerId = this.parameters["id"]!!
+    val container = getContainerById(containerId)
+    if (container == null) {
+        this.respond(HttpStatusCode.NotFound)
+        return
+    }
+
+    val isUsersContainer = transaction {
+        this@withUserContainerViaParam.session?.email == container.user.email
+    }
+    if (!isUsersContainer) {
+        this.respond(HttpStatusCode.Forbidden)
+        return
+    }
+    body(container)
+}
+
 fun Application.containerApi() = routing {
     post("/new-container") {
-        if (call.session == null) {
-            call.respondRedirect("/")
-            return@post
+        call.authenticated {
+            val user = call.session!!.email
+            if (!canCreateContainer(user)) {
+                call.respond(HttpStatusCode.ServiceUnavailable, "You can't create more containers!")
+                return@authenticated
+            }
+
+            val params = call.receiveParameters()
+            val versionParam = params["version"]
+
+            var version = CONTAINER_LATEST
+            if (versionParam != null) {
+                version = enumValueOf(versionParam)
+            }
+
+            val base62 = Base62.createInstance()
+
+            val roId = UUID.randomUUID()
+            val roToken = base62.encode(
+                ByteBuffer.allocate(16).putLong(roId.mostSignificantBits).putLong(roId.leastSignificantBits).array()
+            ).decodeToString()
+            val rwId = UUID.randomUUID()
+            val rwToken = base62.encode(
+                ByteBuffer.allocate(16).putLong(rwId.mostSignificantBits).putLong(rwId.leastSignificantBits).array()
+            ).decodeToString()
+            val container = createContainer(getName(), user, version, rwToken, roToken)
+            transaction { container.status = ContainerStatus.Deploying }
+            deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
+            call.respondRedirect(HOME_PATH)
         }
-        val user = call.session!!.email
-        if (!canCreateContainer(user)) {
-            call.respond(HttpStatusCode.ServiceUnavailable, "You can't create more containers!")
-            return@post
-        }
 
-        val params = call.receiveParameters()
-        val versionParam = params["version"]
-
-        var version = CONTAINER_LATEST
-        if (versionParam != null) {
-            version = enumValueOf(versionParam)
-        }
-
-        val base62 = Base62.createInstance()
-
-        val roId = UUID.randomUUID()
-        val roToken = base62.encode(
-            ByteBuffer.allocate(16).putLong(roId.mostSignificantBits).putLong(roId.leastSignificantBits).array()
-        ).decodeToString()
-        val rwId = UUID.randomUUID()
-        val rwToken = base62.encode(
-            ByteBuffer.allocate(16).putLong(rwId.mostSignificantBits).putLong(rwId.leastSignificantBits).array()
-        ).decodeToString()
-        val container = createContainer(getName(), user, version, rwToken, roToken)
-        transaction { container.status = ContainerStatus.Deploying }
-        deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
-        call.respondRedirect(HOME_PATH)
     }
 
     get("/container/confirm/delete/{id}") {
-
-        if (call.session == null) {
-            call.respondRedirect("/")
-            return@get
-        }
-        val containerId = call.parameters["id"]!!
-        val container = getContainerById(containerId)
-        if (container == null) {
-            call.respond(HttpStatusCode.NotFound)
-            return@get
-        }
-
-        val isUsersContainer = transaction {
-            call.session?.email == container.user.email
-        }
-        if (!isUsersContainer) {
-            call.respond(HttpStatusCode.Forbidden)
-            return@get
-        }
-
-        call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
-            content { confirmDelete(container) }
+        call.authenticated {
+            call.withUserContainerViaParam { container ->
+                call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
+                    content { confirmDelete(container) }
+                }
+            }
         }
     }
     post("/container/{id}/delete") {
-        if (call.session == null) {
-            call.respondRedirect("/")
-            return@post
+        call.authenticated {
+            call.withUserContainerViaParam { container ->
+                undeployContainer(container.id.value)
+                deleteContainerById(container.id.value)
+                call.respondRedirect(HOME_PATH)
+            }
         }
-
-        val containerId = call.parameters["id"]!!
-        val container = getContainerById(containerId)
-        if (container == null) {
-            call.respond(HttpStatusCode.NotFound)
-            return@post
-        }
-        undeployContainer(container.id.value)
-        deleteContainerById(containerId)
-        call.respondRedirect(HOME_PATH)
     }
     post("/container/{id}/start") {
-        if (call.session == null) {
-            call.respondRedirect("/")
-            return@post
-        }
-        val containerId = call.parameters["id"]!!
-        val container = getContainerById(containerId)
-        if (container == null) {
-            call.respond(HttpStatusCode.NotFound, "unknown container")
-            return@post
-        }
-
-        if (canStartContainer(container)) {
-            transaction {
-                container.status = ContainerStatus.Deploying
-                container.lastHeartBeat = LocalDateTime.now()
+        call.authenticated {
+            call.withUserContainerViaParam { container ->
+                if (canStartContainer(container)) {
+                    transaction {
+                        container.status = ContainerStatus.Deploying
+                        container.lastHeartBeat = LocalDateTime.now()
+                    }
+                    startContainer(container.id.value)
+                }
+                call.respondRedirect(HOME_PATH)
             }
-            startContainer(container.id.value)
         }
-        call.respondRedirect(HOME_PATH)
     }
     post("/container/{id}/stop") {
+        call.authenticated {
+            call.withUserContainerViaParam { container ->
+                if (canStopContainer(container)) {
+                    transaction { container.status = ContainerStatus.Stopping }
+                    pauseContainer(container.id.value)
+                }
+
+                call.respondRedirect(HOME_PATH)
+            }
+        }
         if (call.session == null) {
             call.respondRedirect("/")
             return@post
         }
-
-        val containerId = call.parameters["id"]!!
-        val container = getContainerById(containerId)
-
-        if (container == null) {
-            call.respond(HttpStatusCode.NotFound, "unknown container")
-            return@post
-        }
-
-        if (canStopContainer(container)) {
-            transaction { container.status = ContainerStatus.Stopping }
-            pauseContainer(container.id.value)
-        }
-
-        call.respondRedirect(HOME_PATH)
     }
 }
 
