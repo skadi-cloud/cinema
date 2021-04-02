@@ -1,40 +1,60 @@
 package cloud.skadi.web.hosting.views
 
-import cloud.skadi.web.hosting.ContainerVersion
 import cloud.skadi.web.hosting.HOST_URL
 import cloud.skadi.web.hosting.canStartContainer
 import cloud.skadi.web.hosting.canStopContainer
-import io.ktor.html.*
+import cloud.skadi.web.hosting.data.*
+import io.ktor.http.*
 import kotlinx.html.*
-import cloud.skadi.web.hosting.data.ContainerStatus
-import cloud.skadi.web.hosting.data.KernelFContainer
-import cloud.skadi.web.hosting.data.canCreateContainer
-import cloud.skadi.web.hosting.data.containers
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 
 fun TBODY.containerRow(container: KernelFContainer) {
     tr {
+        id = "instance-status-${container.id.value}"
         td {
-            +container.name
-        }
-        td {
-            +container.kernelFVersion
-        }
-        td {
-            val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-            +formatter.format(container.created)
-        }
-        td {
-            when (container.status) {
-                ContainerStatus.Stopped -> +"stopped"
-                ContainerStatus.Stopping -> +"stopping"
-                ContainerStatus.Running -> +"running"
-                ContainerStatus.Error -> +"error"
-                ContainerStatus.Deploying -> +"deploying"
-                ContainerStatus.Created -> +"created"
+            div(classes = "tooltip") {
+                fun classFromStatus(): String {
+                    return when (container.status) {
+                        ContainerStatus.Stopped -> "stopped"
+                        ContainerStatus.Stopping -> "working"
+                        ContainerStatus.Running -> "running"
+                        ContainerStatus.Error -> "error"
+                        ContainerStatus.Deploying -> "working"
+                        ContainerStatus.Created -> "working"
+                    }
+                }
+
+                span(classes = "dot ${classFromStatus()}") { }
+                span(classes = "tooltiptext") {
+                    when (container.status) {
+                        ContainerStatus.Stopped -> +"stopped"
+                        ContainerStatus.Stopping -> +"stopping"
+                        ContainerStatus.Running -> +"running"
+                        ContainerStatus.Error -> +"error"
+                        ContainerStatus.Deploying -> +"deploying"
+                        ContainerStatus.Created -> +"created"
+                    }
+                }
             }
         }
+        td(classes = "container-name") {
+            +container.name
+            p {
+                if (container.version.buildNumber != null && container.version.commit != null) {
+                    +"MPS: ${container.version.mpsVersion.fullVersion} KernelF: ${container.version.buildNumber}.${container.version.commit}"
+                } else {
+                    +"MPS: ${container.version.mpsVersion.fullVersion}"
+                }
+            }
+        }
+        td(classes = "date-relative") {
+            val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+            attributes["data-date"] = "${container.created.toEpochSecond(ZoneOffset.UTC) * 1000}"
+            +formatter.format(container.created)
+        }
+
         td {
             a {
                 val url = "https://${container.id._value}.$HOST_URL?token=${container.rwToken}"
@@ -92,13 +112,12 @@ fun FlowContent.appHome(email: String, name: String) {
     }
     div {
         form {
-
             select() {
                 this.name = "version"
                 enumValues<ContainerVersion>().mapIndexed { i, version ->
                     option {
                         value = version.name
-                        if(i == 0) {
+                        if (i == 0) {
                             selected = true
                         }
                         if (version.buildNumber != null && version.commit != null) {
@@ -122,39 +141,39 @@ fun FlowContent.appHome(email: String, name: String) {
         }
 
     }
-    table {
-        thead {
-            tr {
-                th {
-                    scope = ThScope.col
-                    +"Container"
-                }
-                th {
-                    scope = ThScope.col
-                    +"Version"
-                }
-                th {
-                    scope = ThScope.col
-                    +"Created"
-                }
-                th {
-                    scope = ThScope.col
-                    +"Status"
-                }
-                th {
-                    scope = ThScope.col
-                    +"Url"
-                }
-                th {
-                    scope = ThScope.col
-                    +"Actions"
+    div(classes = "instances") {
+        table {
+            thead {
+                tr {
+                    th {
+                        scope = ThScope.col
+                        +"Status"
+                    }
+                    th {
+                        scope = ThScope.col
+                        +"Container"
+                    }
+                    th {
+                        scope = ThScope.col
+                        +"Created"
+                    }
+
+                    th {
+                        scope = ThScope.col
+                        +"Url"
+                    }
+                    th {
+                        scope = ThScope.col
+                        +"Actions"
+                    }
                 }
             }
-        }
-        tbody {
-            containers(email).forEach { container ->
-                containerRow(container)
+            tbody {
+                containers(email).forEach { container ->
+                    containerRow(container)
+                }
             }
         }
     }
+
 }

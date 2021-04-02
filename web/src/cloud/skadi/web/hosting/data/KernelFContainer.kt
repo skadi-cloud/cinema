@@ -1,17 +1,14 @@
 package cloud.skadi.web.hosting.data
 
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.postgresql.util.PGobject
+import java.awt.Container
 import java.time.LocalDateTime
 import java.util.*
 
@@ -22,7 +19,7 @@ enum class ContainerStatus {
 
 object KernelFContainers : UUIDTable() {
     val name = varchar("name", 1024)
-    val kernelFVersion = varchar("kernelf", 128)
+    val version = enumeration("version", ContainerVersion::class)
     val created = datetime("created")
     val started = datetime("started")
     val lastHeartBeat = datetime("heartbeat")
@@ -36,7 +33,7 @@ class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<KernelFContainer>(KernelFContainers)
 
     var name by KernelFContainers.name
-    var kernelFVersion by KernelFContainers.kernelFVersion
+    var version by KernelFContainers.version
     var created by KernelFContainers.created
     var started by KernelFContainers.started
     var lastHeartBeat by KernelFContainers.lastHeartBeat
@@ -68,7 +65,7 @@ fun containerWithNameExists(name: String) =
 fun createContainer(
     name: String,
     userEmail: String,
-    kernelFVersion: String,
+    kernelFVersion: ContainerVersion,
     rwToken: String,
     roToken: String
 ): KernelFContainer {
@@ -79,7 +76,7 @@ fun createContainer(
         KernelFContainer.new {
             this.name = name
             this.user = user
-            this.kernelFVersion = kernelFVersion
+            this.version = kernelFVersion
             created = LocalDateTime.now()
             lastHeartBeat = LocalDateTime.now()
             started = LocalDateTime.now()

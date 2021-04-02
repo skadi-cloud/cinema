@@ -21,35 +21,6 @@ import io.seruco.encoding.base62.Base62
 import java.awt.event.ContainerListener
 import java.nio.ByteBuffer
 
-
-enum class MPSVersion(private val year: Int, private val major: Int, patch: Int) {
-    V2020_3_3(2020, 3, 3),
-    V2020_3_2(2020, 3, 2),
-    V2020_3_1(2020, 3, 1),
-    V2020_3(2020, 3, 0),
-    V2020_2_3(2020, 2, 3),
-    V2020_2_2(2020, 2, 2),
-    V2020_2_1(2020, 2, 1),
-    V2020_2(2020, 2, 0);
-
-    val fullVersion = if (patch != 0) "$year.$major.$patch" else "$year.$major"
-    fun isUpgrade(current: MPSVersion) = current.year < this.year || current.major < this.major
-    fun isDowngrade(current: MPSVersion) = current.year > this.year || current.major > this.major
-}
-
-@Suppress("EnumEntryName")
-enum class ContainerVersion(val mpsVersion: MPSVersion, val buildNumber: Int? = null, val commit: String? = null) {
-    V2020_3_4731_f5286c0(MPSVersion.V2020_3_1, 4731, "f5286c0");
-
-    val tag =
-        if (buildNumber != null && commit != null)
-            "${mpsVersion.fullVersion}-$buildNumber.$commit"
-        else mpsVersion.fullVersion
-
-    fun isUpgrade(current: ContainerVersion) = this.mpsVersion.isUpgrade(current.mpsVersion)
-    fun isDowngrade(current: ContainerVersion) = this.mpsVersion.isDowngrade(current.mpsVersion)
-}
-
 val CONTAINER_LATEST = ContainerVersion.V2020_3_4731_f5286c0
 
 fun Application.containerApi() = routing {
@@ -82,7 +53,7 @@ fun Application.containerApi() = routing {
         val rwToken = base62.encode(
             ByteBuffer.allocate(16).putLong(rwId.mostSignificantBits).putLong(rwId.leastSignificantBits).array()
         ).decodeToString()
-        val container = createContainer(getName(), user, version.tag, rwToken, roToken)
+        val container = createContainer(getName(), user, version, rwToken, roToken)
         transaction { container.status = ContainerStatus.Deploying }
         deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
         call.respondRedirect(HOME_PATH)

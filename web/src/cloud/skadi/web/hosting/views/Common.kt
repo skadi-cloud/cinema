@@ -13,6 +13,7 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
             }
             title { +pageName }
             styleLink("/assets/styles/styles.css")
+            script(src = "/assets/js/script.js") {}
         }
         body {
             div(classes = "container") {

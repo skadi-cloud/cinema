@@ -64,7 +64,7 @@ val SQL_DB = getEnvOfFail("SQL_DB")
 val SQL_HOST = getEnvOfFail("SQL_HOST")
 val GITHUB_SECRET = getEnvOrDefault("GITHUB_SECRET", "")
 val GITHUB_ID = getEnvOrDefault("GITHUB_ID", "")
-val SALT_DEFAULT =  "6819b57a326945c1968f45236589"
+const val SALT_DEFAULT =  "6819b57a326945c1968f45236589"
 val COOKIE_SALT = getEnvOrDefault("COOKIE_SALT", SALT_DEFAULT)
 
 const val HOST_URL = "kernelf-staging.logv.ws"
@@ -87,7 +87,7 @@ fun main(args: Array<String>): Unit {
         module {
             mainModule(false)
         }
-        watchPaths = listOf("classes", "resources")
+        //watchPaths = listOf("classes", "resources")
         connector {
             host = "0.0.0.0"
             port = 8080
@@ -125,7 +125,7 @@ fun Application.mainModule(testing: Boolean = false) {
         }
         if(COOKIE_SALT == SALT_DEFAULT) {
             log.error("COOKIE_SALT not set!")
-            throw IllegalArgumentException("COOKIE_SALT is empty!")
+            throw IllegalArgumentException("COOKIE_SALT is default value!")
         }
         
     }
@@ -217,6 +217,9 @@ fun Application.mainModule(testing: Boolean = false) {
             }
             static("styles") {
                 resources("styles")
+            }
+            static("js") {
+                resources("js")
             }
             resources("static")
         }
