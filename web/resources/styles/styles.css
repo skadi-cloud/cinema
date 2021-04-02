@@ -3,7 +3,6 @@
 
 body {
     font-family: Raleway, sans-serif;
-    text-align: justify;
     font-size: 16px;
 }
 
@@ -157,7 +156,7 @@ thead th {
 }
 
 .error {
-    background-color: #CC0033;
+    background-color: #CC5033;
 }
 
 .running {
@@ -221,4 +220,56 @@ thead th {
     visibility: visible;
     opacity: 1;
 }
+
+.instance-controls {
+}
+
+.instance-controls button {
+    border: none;
+    background: none;
+    font-size: 1.25em;
+}
+
+button.start:not(:disabled) {
+    color: #00cc99;
+}
+
+button.pause:not(:disabled) {
+    color: #cc9900;
+}
+
+button.delete, a.cancel {
+    color: #CC3033;
+}
+
+.confirm-delete p {
+    display: inline-block;
+    text-align: center;
+    line-height: 1.5em;
+}
+.confirm-delete a {
+    font-size: 2em;
+}
+
+.confirm-delete button {
+    border: none;
+    background: none;
+    font-size: 2em;
+}
+
+.confirm-delete form {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+div.confirm-delete {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button.confirm {
+    color: #00cc99;
+}
+
 

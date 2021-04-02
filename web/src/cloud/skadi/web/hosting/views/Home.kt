@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 
 fun TBODY.containerRow(container: KernelFContainer) {
     tr {
-        id = "instance-status-${container.id.value}"
+        id = instanceRowId(container)
         td {
             div(classes = "tooltip") {
                 fun classFromStatus(): String {
@@ -29,7 +29,7 @@ fun TBODY.containerRow(container: KernelFContainer) {
                 span(classes = "dot ${classFromStatus()}") { }
                 span(classes = "tooltiptext") {
                     when (container.status) {
-                        ContainerStatus.Stopped -> +"stopped"
+                        ContainerStatus.Stopped -> +"paused"
                         ContainerStatus.Stopping -> +"stopping"
                         ContainerStatus.Running -> +"running"
                         ContainerStatus.Error -> +"error"
@@ -72,39 +72,41 @@ fun TBODY.containerRow(container: KernelFContainer) {
                 +"Read Only"
             }
         }
-        td {
+        td(classes = "instance-controls") {
             form {
-                button {
+                button(classes = "start") {
                     type = ButtonType.submit
-                    id = "delete-${container.name}"
+                    id = "start-${container.name}"
                     formAction = "/container/${container.id._value}/start"
                     formMethod = ButtonFormMethod.post
                     disabled = !canStartContainer(container)
-                    +"Start"
+                    i(classes = "far fa-play-circle")
                 }
             }
             form {
-                button {
+                button(classes = "pause") {
                     type = ButtonType.submit
-                    id = "delete-${container.name}"
+                    id = "pause-${container.name}"
                     formAction = "/container/${container.id._value}/stop"
                     formMethod = ButtonFormMethod.post
                     disabled = !canStopContainer(container)
-                    +"Stop"
+                    i(classes = "far fa-pause-circle")
                 }
             }
+
             form {
-                button {
+                button(classes = "delete") {
                     type = ButtonType.submit
                     id = "delete-${container.name}"
-                    formAction = "/container/${container.id._value}/delete"
-                    formMethod = ButtonFormMethod.post
-                    +"Delete"
+                    formAction = "/container/confirm/delete/${container.id._value}"
+                    i(classes = "far fa-trash-alt")
                 }
             }
         }
     }
 }
+
+
 
 fun FlowContent.appHome(email: String, name: String) {
     p {
@@ -141,39 +143,9 @@ fun FlowContent.appHome(email: String, name: String) {
         }
 
     }
-    div(classes = "instances") {
-        table {
-            thead {
-                tr {
-                    th {
-                        scope = ThScope.col
-                        +"Status"
-                    }
-                    th {
-                        scope = ThScope.col
-                        +"Container"
-                    }
-                    th {
-                        scope = ThScope.col
-                        +"Created"
-                    }
-
-                    th {
-                        scope = ThScope.col
-                        +"Url"
-                    }
-                    th {
-                        scope = ThScope.col
-                        +"Actions"
-                    }
-                }
-            }
-            tbody {
-                containers(email).forEach { container ->
-                    containerRow(container)
-                }
-            }
+    instanceTable {
+        containers(email).forEach { container ->
+            containerRow(container)
         }
     }
-
 }

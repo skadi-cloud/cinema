@@ -2,12 +2,16 @@ package cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.k8s.*
+import cloud.skadi.web.hosting.views.IndexTemplate
+import cloud.skadi.web.hosting.views.appHome
+import cloud.skadi.web.hosting.views.confirmDelete
 import com.fkorotkov.kubernetes.*
 import com.fkorotkov.kubernetes.apps.*
 import com.fkorotkov.kubernetes.networking.v1beta1.*
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.ktor.application.*
 import io.ktor.client.request.*
+import io.ktor.html.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -39,8 +43,8 @@ fun Application.containerApi() = routing {
         val versionParam = params["version"]
 
         var version = CONTAINER_LATEST
-        if(versionParam != null) {
-            version = enumValueOf<ContainerVersion>(versionParam)
+        if (versionParam != null) {
+            version = enumValueOf(versionParam)
         }
 
         val base62 = Base62.createInstance()
@@ -59,6 +63,31 @@ fun Application.containerApi() = routing {
         call.respondRedirect(HOME_PATH)
     }
 
+    get("/container/confirm/delete/{id}") {
+
+        if (call.session == null) {
+            call.respondRedirect("/")
+            return@get
+        }
+        val containerId = call.parameters["id"]!!
+        val container = getContainerById(containerId)
+        if (container == null) {
+            call.respond(HttpStatusCode.NotFound)
+            return@get
+        }
+
+        val isUsersContainer = transaction {
+            call.session?.email == container.user.email
+        }
+        if (!isUsersContainer) {
+            call.respond(HttpStatusCode.Forbidden)
+            return@get
+        }
+
+        call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
+            content { confirmDelete(container) }
+        }
+    }
     post("/container/{id}/delete") {
         if (call.session == null) {
             call.respondRedirect("/")

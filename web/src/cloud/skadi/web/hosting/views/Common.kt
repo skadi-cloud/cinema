@@ -1,6 +1,9 @@
 package cloud.skadi.web.hosting.views
 
+import cloud.skadi.web.hosting.data.KernelFContainer
+import cloud.skadi.web.hosting.data.containers
 import io.ktor.html.*
+import kotlinx.css.thead
 import kotlinx.html.*
 
 class IndexTemplate(private val pageName: String) : Template<HTML> {
@@ -23,6 +26,47 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
                     p { +"An experiment with JetBrains MPS and Projector" }
                 }
                 insert(content)
+            }
+        }
+    }
+}
+
+fun instanceRowId(container: KernelFContainer) =
+    "playground-status-${container.id.value}"
+
+fun FlowContent.instanceTable(block: TBODY.() -> Unit) {
+    div(classes = "instances") {
+        table {
+            instanceTableHeader()
+            tbody {
+                block()
+            }
+        }
+    }
+}
+
+fun TABLE.instanceTableHeader() {
+    thead {
+        tr {
+            th {
+                scope = ThScope.col
+                +"Status"
+            }
+            th {
+                scope = ThScope.col
+                +"Playground"
+            }
+            th {
+                scope = ThScope.col
+                +"Created"
+            }
+            th {
+                scope = ThScope.col
+                +"Url"
+            }
+            th {
+                scope = ThScope.col
+                +"Actions"
             }
         }
     }
