@@ -130,7 +130,38 @@ fun FlowContent.instanceStatusFrameContent(container: KernelFContainer) {
             }
         }
     }
+}
 
+fun FlowContent.instanceControls(container: KernelFContainer) {
+    form {
+        button(classes = "start") {
+            type = ButtonType.submit
+            id = "start-${container.name}"
+            formAction = "/container/${container.id._value}/start"
+            formMethod = ButtonFormMethod.post
+            disabled = !canStartContainer(container)
+            i(classes = "far fa-play-circle")
+        }
+    }
+    form {
+        button(classes = "pause") {
+            type = ButtonType.submit
+            id = "pause-${container.name}"
+            formAction = "/container/${container.id._value}/stop"
+            formMethod = ButtonFormMethod.post
+            disabled = !canStopContainer(container)
+            i(classes = "far fa-pause-circle")
+        }
+    }
+
+    form {
+        button(classes = "delete") {
+            type = ButtonType.submit
+            id = "delete-${container.name}"
+            formAction = "/container/confirm/delete/${container.id._value}"
+            i(classes = "far fa-trash-alt")
+        }
+    }
 }
 
 fun TBODY.containerRow(container: KernelFContainer) {
@@ -175,35 +206,8 @@ fun TBODY.containerRow(container: KernelFContainer) {
             }
         }
         td(classes = "instance-controls") {
-            form {
-                button(classes = "start") {
-                    type = ButtonType.submit
-                    id = "start-${container.name}"
-                    formAction = "/container/${container.id._value}/start"
-                    formMethod = ButtonFormMethod.post
-                    disabled = !canStartContainer(container)
-                    i(classes = "far fa-play-circle")
-                }
-            }
-            form {
-                button(classes = "pause") {
-                    type = ButtonType.submit
-                    id = "pause-${container.name}"
-                    formAction = "/container/${container.id._value}/stop"
-                    formMethod = ButtonFormMethod.post
-                    disabled = !canStopContainer(container)
-                    i(classes = "far fa-pause-circle")
-                }
-            }
-
-            form {
-                button(classes = "delete") {
-                    type = ButtonType.submit
-                    id = "delete-${container.name}"
-                    formAction = "/container/confirm/delete/${container.id._value}"
-                    i(classes = "far fa-trash-alt")
-                }
-            }
+            id = "controls-${container.id.value}"
+            instanceControls(container)
         }
     }
 
