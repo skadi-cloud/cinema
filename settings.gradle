@@ -2,6 +2,7 @@ rootProject.name = "skadi-cloud"
 
 
 include ':web'
+include ':web-js'
 include ':ide-plugin'
 includeBuild ('projector-server') {
     dependencySubstitution {
