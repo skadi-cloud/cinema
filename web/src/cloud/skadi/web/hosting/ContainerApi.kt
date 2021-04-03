@@ -79,10 +79,10 @@ fun Application.containerApi() = routing {
             val rwToken = base62.encode(
                 ByteBuffer.allocate(16).putLong(rwId.mostSignificantBits).putLong(rwId.leastSignificantBits).array()
             ).decodeToString()
-            val container = createContainer(getName(), user, version, rwToken, roToken)
+            val container = createContainer(user, version, rwToken, roToken)
             transaction { container.status = ContainerStatus.Deploying }
             deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
-            call.respondRedirect(HOME_PATH)
+            call.respondSeeOther(HOME_PATH)
         }
 
     }
@@ -101,7 +101,7 @@ fun Application.containerApi() = routing {
             call.withUserContainerViaParam { container ->
                 undeployContainer(container.id.value)
                 deleteContainerById(container.id.value)
-                call.respondRedirect(HOME_PATH)
+                call.respondSeeOther(HOME_PATH)
             }
         }
     }
@@ -115,7 +115,7 @@ fun Application.containerApi() = routing {
                     }
                     startContainer(container.id.value)
                 }
-                call.respondRedirect(HOME_PATH)
+                call.respondSeeOther(HOME_PATH)
             }
         }
     }
@@ -126,13 +126,8 @@ fun Application.containerApi() = routing {
                     transaction { container.status = ContainerStatus.Stopping }
                     pauseContainer(container.id.value)
                 }
-
-                call.respondRedirect(HOME_PATH)
+                call.respondSeeOther(HOME_PATH)
             }
-        }
-        if (call.session == null) {
-            call.respondRedirect("/")
-            return@post
         }
     }
 }

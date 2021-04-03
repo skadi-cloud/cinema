@@ -268,3 +268,8 @@ private fun createUserIfNotExists(email: String) {
 
 val ApplicationCall.session: UserSession?
     get() = sessions.get<UserSession>()
+
+public suspend fun ApplicationCall.respondSeeOther(url: String) {
+    response.headers.append(HttpHeaders.Location, url)
+    respond(HttpStatusCode.SeeOther)
+}
