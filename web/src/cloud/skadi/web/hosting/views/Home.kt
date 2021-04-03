@@ -16,6 +16,7 @@ fun FlowContent.appHome(email: String, name: String) {
     div {
         form {
             attributes["data-turbo-frame"] = "instances"
+            id = "new-playground"
             method = FormMethod.post
             action = "/new-container"
             select() {
@@ -31,7 +32,6 @@ fun FlowContent.appHome(email: String, name: String) {
                         } else {
                             +"MPS ${version.mpsVersion.fullVersion}"
                         }
-
                     }
                 }
             }
@@ -39,8 +39,11 @@ fun FlowContent.appHome(email: String, name: String) {
             button {
                 type = ButtonType.submit
                 disabled = !canCreateContainer(email)
-                id = "new-containers"
-                +"New Playground"
+                id = "create-new-playground"
+                i(classes = "fas fa-plus")
+                p {
+                    +"Create Playground"
+                }
             }
         }
 

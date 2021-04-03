@@ -20,13 +20,15 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
             }
             title { +pageName }
             styleLink("/assets/styles/styles.css")
-            script(src = "/assets/js/script.js") {}
         }
         body {
             div(classes = "container") {
                 div {
                     id = "header"
-                    h1 { +"skadi cloud" }
+                    div {
+                        img { src = "/assets/icon.png" }
+                        h1 { +"skadi cloud" }
+                    }
                     p { +"An experiment with JetBrains MPS and Projector" }
                 }
                 insert(content)
@@ -52,7 +54,10 @@ class AppTemplate(private val pageName: String) : Template<HTML> {
             div(classes = "container") {
                 div {
                     id = "header"
-                    h1 { +"skadi cloud" }
+                    div {
+                        img { src = "/assets/icon.png" }
+                        h1 { +"skadi cloud" }
+                    }
                     p { +"An experiment with JetBrains MPS and Projector" }
                 }
                 insert(content)
