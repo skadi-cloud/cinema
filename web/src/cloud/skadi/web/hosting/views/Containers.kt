@@ -1,21 +1,26 @@
 package cloud.skadi.web.hosting.views
 
 import cloud.skadi.web.hosting.HOME_PATH
-import cloud.skadi.web.hosting.canStopContainer
 import cloud.skadi.web.hosting.data.KernelFContainer
-import cloud.skadi.web.hosting.data.containers
+import cloud.skadi.web.hosting.data.User
 import kotlinx.html.*
 
-fun FlowContent.confirmDelete(container: KernelFContainer) {
+fun FlowContent.confirmDelete(user: User, containerToDelete: KernelFContainer) {
     h1 {
-        +"Confirm Delete ${container.name}"
+        +"Confirm Delete ${containerToDelete.name}"
     }
     instanceTable {
-        confirmDeleteTBody(container)
+        user.containers.forEach { container ->
+            if(container.id.value == containerToDelete.id.value) {
+                confirmDeleteRow(container)
+            } else {
+                containerRow(container)
+            }
+        }
     }
 }
 
-private fun TBODY.confirmDeleteTBody(container: KernelFContainer) {
+private fun TBODY.confirmDeleteRow(container: KernelFContainer) {
     tr {
         id = instanceRowId(container)
         td {
@@ -44,8 +49,6 @@ private fun TBODY.confirmDeleteTBody(container: KernelFContainer) {
                 }
 
             }
-
-
         }
     }
 }

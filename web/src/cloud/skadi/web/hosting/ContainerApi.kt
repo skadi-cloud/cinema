@@ -91,7 +91,7 @@ fun Application.containerApi() = routing {
         call.authenticated {
             call.withUserContainerViaParam { container ->
                 call.respondHtmlTemplate(AppTemplate("Skadi Cloud")) {
-                    content { confirmDelete(container) }
+                    content { transaction { confirmDelete(container.user, container) }  }
                 }
             }
         }
