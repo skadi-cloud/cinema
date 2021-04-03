@@ -7,14 +7,17 @@ const application = Application.start()
 const context = require.context("./controllers", true, /\.js$/)
 application.load(definitionsFromContext(context))
 
-window.onload = function() {
-    var es = new WebSocket("ws://localhost:8080/home/stream");
-    connectStreamSource(es)
-    for (let element of document.getElementsByClassName("date-relative")) {
-        calcDateDiff(element)
-    }
+var es = new WebSocket("ws://localhost:8080/home/stream");
+connectStreamSource(es)
+
+es.onmessage = function (ev) {
+    console.log(ev)
 }
 
-function calcDateDiff(element) {
+es.onclose = function (ev) {
+    console.log("closed")
+}
 
+es.onerror = function (ev) {
+    console.log("error")
 }

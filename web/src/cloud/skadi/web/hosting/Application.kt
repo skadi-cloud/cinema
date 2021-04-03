@@ -1,10 +1,7 @@
 package cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.data.*
-import cloud.skadi.web.hosting.views.AppTemplate
-import cloud.skadi.web.hosting.views.IndexTemplate
-import cloud.skadi.web.hosting.views.appHome
-import cloud.skadi.web.hosting.views.indexPage
+import cloud.skadi.web.hosting.views.*
 import com.fasterxml.jackson.databind.*
 import com.fkorotkov.kubernetes.extensions.*
 import io.ktor.application.*
@@ -42,6 +39,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.ticker
 import kotlinx.html.*
+import kotlinx.html.stream.createHTML
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -112,6 +110,14 @@ val containerStatusTicker = ticker(10_000)
 val runningContainerStatusTicker = ticker(60_000)
 
 val userStreams = ConcurrentHashMap<Int, SendChannel<Frame>>()
+
+fun getChannelToUser(id: Int): SendChannel<Frame>? {
+    return userStreams.get(id)
+}
+
+fun setChannelForUser(id: Int, channel: SendChannel<Frame>) {
+
+}
 
 @KtorExperimentalLocationsAPI
 @ExperimentalTime
@@ -217,8 +223,13 @@ fun Application.mainModule(testing: Boolean = false) {
             }
             val user = getUserById(call.session!!.email)!!
             log.info("streaming events for user ${user.id.value}")
-            userStreams.putIfAbsent(user.id.value, outgoing)
-
+            val old = userStreams.put(user.id.value, outgoing)
+            try {
+                log.info("old value is $old")
+                old?.close()
+            } catch (e: Throwable) {
+                log.error("can't close old client connection", e)
+            }
             try {
                 for (frame in incoming) {
                     val text = (frame as Frame.Text).readText()
@@ -264,19 +275,30 @@ private suspend fun updateNewContainers() {
                 }
             }.filter { it.first.status != it.second }.map {
                 it.first.status = it.second
-                Pair(it.first.user.id.value, "")
+                Pair(it.first.user.id.value, instanceStatusUpdate(it.first))
             }
         }
         updatesToSend.forEach {
             try {
-                val channel = userStreams[it.first] ?: return@forEach
+                println("trying to send updates to user ${it.first}")
+                val channel = getChannelToUser(it.first) ?: return@forEach
+                print("sending update to user ${it.first}")
                 channel.send(Frame.Text(it.second))
             } catch (e: Throwable) {
-
+                println("error sending update ${e.message}")
             }
         }
     }
 }
+
+private fun instanceStatusUpdate(it: KernelFContainer) =
+    createHTML().turboStream {
+        target = "status-${it.id.value}"
+        action = "update"
+        template {
+            instanceStatusFrameContent(it)
+        }
+    }
 
 private suspend fun updateRunningContainers() {
     for (tick in runningContainerStatusTicker) {
@@ -294,7 +316,7 @@ private suspend fun updateRunningContainers() {
                 }
             }.filter { it.first.status != it.second }.map {
                 it.first.status = it.second
-                Pair(it.first.user.id.value, "")
+                Pair(it.first.user.id.value, instanceStatusUpdate(it.first))
             }
         }
         updatesToSend = updatesToSend + transaction {
@@ -304,15 +326,15 @@ private suspend fun updateRunningContainers() {
             }.map {
                 it.status = ContainerStatus.Stopping
                 pauseContainer(it.id.value)
-                Pair(it.user.id.value, "")
+                Pair(it.user.id.value, instanceStatusUpdate(it))
             }
         }
         updatesToSend.forEach {
             try {
-                val channel = userStreams[it.first] ?: return@forEach
+                val channel = getChannelToUser(it.first) ?: return@forEach
                 channel.send(Frame.Text(it.second))
             } catch (e: Throwable) {
-
+                println("error sending update ${e.message}")
             }
         }
     }

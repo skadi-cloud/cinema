@@ -105,35 +105,39 @@ fun TABLE.instanceTableHeader() {
     }
 }
 
-fun TBODY.containerRow(container: KernelFContainer) {
-    id = instanceRowId(container)
-    tr {
-
-        td {
-            div(classes = "tooltip") {
-                fun classFromStatus(): String {
-                    return when (container.status) {
-                        ContainerStatus.Stopped -> "stopped"
-                        ContainerStatus.Stopping -> "working"
-                        ContainerStatus.Running -> "running"
-                        ContainerStatus.Error -> "error"
-                        ContainerStatus.Deploying -> "working"
-                        ContainerStatus.Created -> "working"
-                    }
-                }
-
-                span(classes = "dot ${classFromStatus()}") { }
-                span(classes = "tooltiptext") {
-                    when (container.status) {
-                        ContainerStatus.Stopped -> +"paused"
-                        ContainerStatus.Stopping -> +"stopping"
-                        ContainerStatus.Running -> +"running"
-                        ContainerStatus.Error -> +"error"
-                        ContainerStatus.Deploying -> +"deploying"
-                        ContainerStatus.Created -> +"created"
-                    }
-                }
+fun FlowContent.instanceStatusFrameContent(container: KernelFContainer) {
+    div(classes = "tooltip") {
+        fun classFromStatus(): String {
+            return when (container.status) {
+                ContainerStatus.Stopped -> "stopped"
+                ContainerStatus.Stopping -> "working"
+                ContainerStatus.Running -> "running"
+                ContainerStatus.Error -> "error"
+                ContainerStatus.Deploying -> "working"
+                ContainerStatus.Created -> "working"
             }
+        }
+
+        span(classes = "dot ${classFromStatus()}") { }
+        span(classes = "tooltiptext") {
+            when (container.status) {
+                ContainerStatus.Stopped -> +"paused"
+                ContainerStatus.Stopping -> +"stopping"
+                ContainerStatus.Running -> +"running"
+                ContainerStatus.Error -> +"error"
+                ContainerStatus.Deploying -> +"deploying"
+                ContainerStatus.Created -> +"created"
+            }
+        }
+    }
+
+}
+
+fun TBODY.containerRow(container: KernelFContainer) {
+    tr {
+        td {
+            id = "status-${container.id.value}"
+            instanceStatusFrameContent(container)
         }
         td(classes = "container-name") {
             +container.name
