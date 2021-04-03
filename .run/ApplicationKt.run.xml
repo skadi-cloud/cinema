@@ -13,10 +13,12 @@
     <envs>
       <env name="GITHUB_SECRET" value="c34ba52e88df5bcd79588427aadc770312630d3d" />
       <env name="GITHUB_ID" value="2e42cbb49e1ef57ae0db" />
-      <env name="COOKIE_SALT" value="6819b57a326945c1968f45236589" />
+      <env name="COOKIE_SALT" value="57a326945c1968f45236589" />
       <env name="SQL_PASSWORD" value="mysecretpassword" />
       <env name="SQL_USER" value="postgres" />
       <env name="KUBECONFIG" value="kubeconfig-k8s-kernelf-f-staging.yaml" />
+      <env name="SQL_DB" value="skadi" />
+      <env name="SQL_HOST" value="localhost:5432" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />

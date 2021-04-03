@@ -15,6 +15,9 @@ fun FlowContent.appHome(email: String, name: String) {
     }
     div {
         form {
+            attributes["data-turbo-frame"] = "instances"
+            method = FormMethod.post
+            action = "/new-container"
             select() {
                 this.name = "version"
                 enumValues<ContainerVersion>().mapIndexed { i, version ->
@@ -37,8 +40,6 @@ fun FlowContent.appHome(email: String, name: String) {
                 type = ButtonType.submit
                 disabled = !canCreateContainer(email)
                 id = "new-containers"
-                formAction = "/new-container"
-                formMethod = ButtonFormMethod.post
                 +"New Playground"
             }
         }
