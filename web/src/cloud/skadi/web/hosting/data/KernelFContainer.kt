@@ -102,7 +102,5 @@ fun deleteContainerById(id: UUID) {
 }
 
 fun containers(email: String): List<KernelFContainer> {
-    return transaction { User.find { Users.email eq email }.firstOrNull()?.containers?.toList() } ?: emptyList()
+    return transaction { User.find { Users.email eq email }.firstOrNull()?.containers?.sortedBy { it.name }?.toList() } ?: emptyList()
 }
-
-
