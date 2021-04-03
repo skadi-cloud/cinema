@@ -1,5 +1,6 @@
 package cloud.skadi.web.hosting.data
 
+import cloud.skadi.web.hosting.getName
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -62,7 +63,6 @@ fun containerWithNameExists(name: String) =
     !transaction() { KernelFContainer.find { KernelFContainers.name eq name }.empty() }
 
 fun createContainer(
-    name: String,
     userEmail: String,
     kernelFVersion: ContainerVersion,
     rwToken: String,
@@ -72,6 +72,13 @@ fun createContainer(
         val user = User.find {
             Users.email eq userEmail
         }.first()
+
+        var name = getName()
+
+        while (!KernelFContainer.find { (KernelFContainers.user eq user.id) and (KernelFContainers.name eq name) }.empty()) {
+            name = getName()
+        }
+
         KernelFContainer.new {
             this.name = name
             this.user = user
