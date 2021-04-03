@@ -52,6 +52,8 @@ fun TBODY.containerRow(container: KernelFContainer) {
         td(classes = "date-relative") {
             val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
             attributes["data-date"] = "${container.created.toEpochSecond(ZoneOffset.UTC) * 1000}"
+            attributes["data-controller"] = "relative-date"
+            attributes["data-relative-date-target"] = "date"
             +formatter.format(container.created)
         }
 

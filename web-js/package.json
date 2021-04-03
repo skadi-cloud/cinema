@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "@hotwired/turbo": "*",
+    "@stimulus/webpack-helpers": "^2.0.0",
+    "stimulus": "^2.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.14",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/preset-env": "^7.13.12",
+    "babel-loader": "^8.2.2",
+    "webpack": "^5.30.0",
+    "webpack-cli": "^4.6.0"
+  }
+}

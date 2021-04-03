@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.nullableTransactionScope
 import org.jetbrains.exposed.sql.`java-time`.*
 import java.time.*
+import java.util.*
 
 
 object Users : IntIdTable() {
@@ -18,6 +19,7 @@ object Users : IntIdTable() {
 
 class User(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<User>(Users)
+
     var email by Users.email
     var regDate by Users.regDate
     var lastLogin by Users.lastLogin
@@ -29,24 +31,34 @@ fun userExists(email: String): Boolean {
         User.find {
             Users.email eq email
         }.empty()
-     }
+    }
 }
 
-fun createUser(emailAddress: String){
+fun getUserById(email: String): User? {
+    return transaction {
+        User.find {
+            Users.email eq email
+        }.firstOrNull()
+    }
+}
+
+fun createUser(emailAddress: String) {
     val now = LocalDateTime.now()
-    transaction() { 
+    transaction() {
         User.new {
             email = emailAddress
             regDate = now
             lastLogin = now
-         }
-     }
+        }
+    }
 }
 
 fun loginUser(email: String) {
-    val user = transaction() { User.find{
-        Users.email eq email
-    } }
+    val user = transaction() {
+        User.find {
+            Users.email eq email
+        }
+    }
 
     transaction() { user.first().lastLogin = LocalDateTime.now() }
 }

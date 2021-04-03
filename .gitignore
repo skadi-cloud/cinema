@@ -6,3 +6,4 @@
 *.ipr
 *.iws
 /kubeconfig-*.yaml
+/web-js/node_modules/

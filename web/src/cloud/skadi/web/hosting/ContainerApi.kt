@@ -2,6 +2,7 @@ package cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.k8s.*
+import cloud.skadi.web.hosting.views.AppTemplate
 import cloud.skadi.web.hosting.views.IndexTemplate
 import cloud.skadi.web.hosting.views.confirmDelete
 import com.fkorotkov.kubernetes.*
@@ -89,7 +90,7 @@ fun Application.containerApi() = routing {
     get("/container/confirm/delete/{id}") {
         call.authenticated {
             call.withUserContainerViaParam { container ->
-                call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
+                call.respondHtmlTemplate(AppTemplate("Skadi Cloud")) {
                     content { confirmDelete(container) }
                 }
             }

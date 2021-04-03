@@ -4,7 +4,6 @@ import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.canStopContainer
 import cloud.skadi.web.hosting.data.KernelFContainer
 import cloud.skadi.web.hosting.data.containers
-import kotlinx.css.tr
 import kotlinx.html.*
 
 fun FlowContent.confirmDelete(container: KernelFContainer) {

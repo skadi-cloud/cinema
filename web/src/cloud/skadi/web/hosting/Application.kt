@@ -1,6 +1,7 @@
 package cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.data.*
+import cloud.skadi.web.hosting.views.AppTemplate
 import cloud.skadi.web.hosting.views.IndexTemplate
 import cloud.skadi.web.hosting.views.appHome
 import cloud.skadi.web.hosting.views.indexPage
@@ -14,8 +15,8 @@ import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.html.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
-import io.ktor.jackson.*
 import io.ktor.locations.*
 import io.ktor.metrics.micrometer.*
 import io.ktor.request.*
@@ -25,6 +26,8 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.util.*
+import io.ktor.util.collections.*
+import io.ktor.websocket.*
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
@@ -35,13 +38,15 @@ import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.ticker
-import kotlinx.css.*
 import kotlinx.html.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 
 
@@ -51,9 +56,9 @@ fun getEnvOfFail(env: String): String {
 
 fun getEnvOrDefault(env: String, default: String): String {
     val value = System.getenv(env) ?: return default
-    if(value.isEmpty()) {
+    if (value.isEmpty()) {
         return default
-    } else  {
+    } else {
         return value
     }
 }
@@ -64,7 +69,7 @@ val SQL_DB = getEnvOfFail("SQL_DB")
 val SQL_HOST = getEnvOfFail("SQL_HOST")
 val GITHUB_SECRET = getEnvOrDefault("GITHUB_SECRET", "")
 val GITHUB_ID = getEnvOrDefault("GITHUB_ID", "")
-const val SALT_DEFAULT =  "6819b57a326945c1968f45236589"
+const val SALT_DEFAULT = "6819b57a326945c1968f45236589"
 val COOKIE_SALT = getEnvOrDefault("COOKIE_SALT", SALT_DEFAULT)
 
 const val HOST_URL = "kernelf-staging.logv.ws"
@@ -97,7 +102,7 @@ fun main(args: Array<String>): Unit {
             port = INTERNAL_API_PORT
         }
     }
-    embeddedServer(Netty,  env).start(true)
+    embeddedServer(Netty, env).start(true)
 }
 
 @ObsoleteCoroutinesApi
@@ -106,28 +111,27 @@ val containerStatusTicker = ticker(10_000)
 @ObsoleteCoroutinesApi
 val runningContainerStatusTicker = ticker(60_000)
 
+val userStreams = ConcurrentHashMap<Int, SendChannel<Frame>>()
+
 @KtorExperimentalLocationsAPI
 @ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.mainModule(testing: Boolean = false) {
-
-
-    if(!testing) {
-        if(GITHUB_ID.isEmpty()) {
+    if (!testing) {
+        if (GITHUB_ID.isEmpty()) {
             log.error("GITHUB_ID is empty!")
             throw IllegalArgumentException("GITHUB_ID is empty!")
         }
 
-        if(GITHUB_SECRET.isEmpty()) {
+        if (GITHUB_SECRET.isEmpty()) {
             log.error("GITHUB_SECRET is empty!")
             throw IllegalArgumentException("GITHUB_SECRET is empty!")
         }
-        if(COOKIE_SALT == SALT_DEFAULT) {
+        if (COOKIE_SALT == SALT_DEFAULT) {
             log.error("COOKIE_SALT not set!")
             throw IllegalArgumentException("COOKIE_SALT is default value!")
         }
-        
     }
 
     install(Compression) {
@@ -143,11 +147,7 @@ fun Application.mainModule(testing: Boolean = false) {
     install(ForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
     install(XForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
     install(Locations)
-    install(ContentNegotiation) {
-        jackson {
-            enable(SerializationFeature.INDENT_OUTPUT)
-        }
-    }
+
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     install(MicrometerMetrics) {
         registry = prometheusMeterRegistry
@@ -161,6 +161,7 @@ fun Application.mainModule(testing: Boolean = false) {
             UptimeMetrics()
         )
     }
+    install(WebSockets)
 
 
     Database.connect(
@@ -175,7 +176,7 @@ fun Application.mainModule(testing: Boolean = false) {
 
         }
     }
-    if(!testing) {
+    if (!testing) {
         GlobalScope.launch {
             updateNewContainers()
         }
@@ -190,7 +191,7 @@ fun Application.mainModule(testing: Boolean = false) {
 
     routing {
         get("/") {
-            call.respondHtmlTemplate(IndexTemplate("KernelF Playground")) {
+            call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
                 content {
                     indexPage()
                 }
@@ -205,8 +206,29 @@ fun Application.mainModule(testing: Boolean = false) {
             val email = call.session!!.email
             val name = call.session!!.username
             createUserIfNotExists(email)
-            call.respondHtmlTemplate(IndexTemplate("KernelF Playground")) {
+            call.respondHtmlTemplate(AppTemplate("Skadi Cloud")) {
                 content { appHome(email, name) }
+            }
+        }
+        webSocket("$HOME_PATH/stream") {
+            if (call.session == null) {
+                call.respondRedirect("/")
+                return@webSocket
+            }
+            val user = getUserById(call.session!!.email)!!
+            log.info("streaming events for user ${user.id.value}")
+            userStreams.putIfAbsent(user.id.value, outgoing)
+
+            try {
+                for (frame in incoming) {
+                    val text = (frame as Frame.Text).readText()
+                }
+            } catch (e: ClosedReceiveChannelException) {
+                userStreams.remove(user.id.value)
+                log.info("connection closed for user ${user.id.value}")
+            } catch (e: Throwable) {
+                userStreams.remove(user.id.value)
+                log.error("websocket error for user ${user.id.value}", e)
             }
         }
 
@@ -228,10 +250,10 @@ fun Application.mainModule(testing: Boolean = false) {
 
 private suspend fun updateNewContainers() {
     for (tick in containerStatusTicker) {
-        transaction {
+        val updatesToSend = transaction {
             KernelFContainer.find {
                 (KernelFContainers.status eq ContainerStatus.Stopping) or (KernelFContainers.status eq ContainerStatus.Deploying)
-            }.map {
+            }.mapNotNull {
                 when (it.status) {
                     ContainerStatus.Created -> null
                     ContainerStatus.Error -> null
@@ -240,17 +262,28 @@ private suspend fun updateNewContainers() {
                     ContainerStatus.Deploying -> Pair(it, getPodStatus(it.id.value))
                     ContainerStatus.Running -> null
                 }
-            }.filterNotNull().filter { it.first.status != it.second }.forEach { it.first.status = it.second }
+            }.filter { it.first.status != it.second }.map {
+                it.first.status = it.second
+                Pair(it.first.user.id.value, "")
+            }
+        }
+        updatesToSend.forEach {
+            try {
+                val channel = userStreams[it.first] ?: return@forEach
+                channel.send(Frame.Text(it.second))
+            } catch (e: Throwable) {
+
+            }
         }
     }
 }
 
 private suspend fun updateRunningContainers() {
     for (tick in runningContainerStatusTicker) {
-        transaction {
+        var updatesToSend = transaction {
             KernelFContainer.find {
                 (KernelFContainers.status eq ContainerStatus.Running)
-            }.map {
+            }.mapNotNull {
                 when (it.status) {
                     ContainerStatus.Created -> null
                     ContainerStatus.Error -> null
@@ -259,15 +292,27 @@ private suspend fun updateRunningContainers() {
                     ContainerStatus.Deploying -> null
                     ContainerStatus.Running -> Pair(it, getPodStatus(it.id.value))
                 }
-            }.filterNotNull().filter { it.first.status != it.second }.forEach { it.first.status = it.second }
+            }.filter { it.first.status != it.second }.map {
+                it.first.status = it.second
+                Pair(it.first.user.id.value, "")
+            }
         }
-        transaction {
+        updatesToSend = updatesToSend + transaction {
             KernelFContainer.find {
                 (KernelFContainers.lastHeartBeat less (LocalDateTime.now()
                     .minusMinutes(30))) and (KernelFContainers.status eq ContainerStatus.Running)
-            }.forEach {
+            }.map {
                 it.status = ContainerStatus.Stopping
                 pauseContainer(it.id.value)
+                Pair(it.user.id.value, "")
+            }
+        }
+        updatesToSend.forEach {
+            try {
+                val channel = userStreams[it.first] ?: return@forEach
+                channel.send(Frame.Text(it.second))
+            } catch (e: Throwable) {
+
             }
         }
     }
@@ -277,6 +322,8 @@ private suspend fun updateRunningContainers() {
 private fun createUserIfNotExists(email: String) {
     if (!userExists(email)) {
         createUser(email)
+    } else {
+        loginUser(email)
     }
 }
 
