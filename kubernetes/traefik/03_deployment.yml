@@ -130,10 +130,6 @@ spec:
       port: 443
       protocol: TCP
       targetPort: 443
-    - name: admin
-      port: 8100
-      protocol: TCP
-      targetPort: 8100
   selector:
     app: traefik
     release: traefik
@@ -141,3 +137,22 @@ spec:
   type: LoadBalancer
 status:
   loadBalancer: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: traefik
+    release: traefik
+  name: traefik-admin
+  namespace: kube-system
+spec:
+  ports:
+    - name: admin
+      port: 8100
+      protocol: TCP
+      targetPort: 8100
+  selector:
+    app: traefik
+    release: traefik

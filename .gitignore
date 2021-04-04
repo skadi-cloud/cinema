@@ -7,4 +7,4 @@
 *.iws
 /kubeconfig-*.yaml
 /web-js/node_modules/
-/kubernetes/traefik/00_secrets.yml
+00_secrets.yml
