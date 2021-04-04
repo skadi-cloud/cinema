@@ -1,0 +1,18 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: app-deploy
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: web-app
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: web-app

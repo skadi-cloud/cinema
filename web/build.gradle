@@ -5,7 +5,7 @@ apply plugin: 'application'
 
 group 'cloud.skadi.hosting'
 version '0.0.1'
-mainClassName = "io.ktor.server.netty.EngineMain"
+mainClassName = "cloud.skadi.web.hosting.ApplicationKt"
 
 sourceSets {
     main.kotlin.srcDirs = main.java.srcDirs = ['src']
