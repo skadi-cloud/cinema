@@ -17,7 +17,7 @@ enum class MPSVersion(private val year: Int, private val major: Int, patch: Int)
 
 @Suppress("EnumEntryName")
 enum class ContainerVersion(val mpsVersion: MPSVersion, val buildNumber: Int? = null, val commit: String? = null) {
-    V2020_3_4731_f5286c0(MPSVersion.V2020_3_1, 4731, "f5286c0");
+    V2020_3_4731_f5286c0(MPSVersion.V2020_3_3, 4731, "f5286c0");
 
     val tag =
         if (buildNumber != null && commit != null)

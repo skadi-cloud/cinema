@@ -74,7 +74,7 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
                     securityContext { fsGroup = 1024 }
                     containers = listOf(newContainer {
                         name = "mps-instance-$id"
-                        image = "rg.nl-ams.scw.cloud/kernelf-logv-ws/kernelf:$kernelFVersion"
+                        image = "$containerRegistry/$kernelFVersion:latest"
                         imagePullPolicy = "Always"
                         ports = listOf(newContainerPort { containerPort = 8887 })
                         env = listOf(
