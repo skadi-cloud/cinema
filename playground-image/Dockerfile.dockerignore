@@ -2,6 +2,7 @@
 
 **
 
-!/projector-client/**
 !/projector-server/**
-!/projector-docker/static/**
+!/playground-image/static/**
+!/playground-image/samples/**
+!/ide-plugin/**

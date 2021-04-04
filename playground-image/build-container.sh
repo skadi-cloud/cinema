@@ -19,8 +19,8 @@
 set -e # Any command which returns non-zero exit code will cause this shell script to exit immediately
 set -x # Activate debugging to show execution details: all commands will be printed before execution
 
-containerName=${1:-projector-idea-c}
-downloadUrl=${2:-https://download.jetbrains.com/idea/ideaIC-2019.3.5.tar.gz}
+containerName=${1}
+downloadUrl=${2}
 pluginUrl=${3}
 
 # build container:

@@ -1,0 +1,42 @@
+
+def mpsVersion = System.getenv("MPS_VERSION")
+def kernelFVersion = System.getenv("KERNELF_VERSION")
+def registryName = System.getenv("DOCKER_REGISTRY")
+
+String imageTag
+String kernelFDownloadUrl
+
+if(mpsVersion == null) {
+    mpsVersion = "2020.3.3"
+}
+
+def includesKernelF = kernelFVersion != null && !kernelFVersion.isEmpty()
+
+String mpsShortVersion = mpsVersion.substring(0, 6)
+
+if(registryName == null) {
+    registryName = ""
+} else if (!registryName.endsWith("/")) {
+    registryName += "/"
+}
+
+if(includesKernelF) {
+    imageTag = "$registryName$mpsVersion-$kernelFVersion"
+    kernelFDownloadUrl = "https://github.com/IETS3/iets3.opensource/releases/download/nightly-${mpsShortVersion}.${kernelFVersion}/org.iets3.opensource-with-dependencies-${mpsShortVersion}.${kernelFVersion}.zip"
+} else {
+    imageTag = "$registryName$mpsVersion"
+}
+
+String mpsDownloadUrl = "https://download.jetbrains.com/mps/${mpsShortVersion}/MPS-${mpsVersion}.tar.gz"
+
+task buildImage(type:Exec, dependsOn: ":ide-plugin:buildPlugin") {
+    if(includesKernelF) {
+        commandLine './build-container.sh', imageTag, mpsDownloadUrl, kernelFDownloadUrl
+    } else {
+        commandLine './build-container.sh', imageTag, mpsDownloadUrl
+    }
+}
+
+task pushImage(type:Exec, dependsOn: buildImage) {
+    commandLine "docker", "push", imageTag
+}

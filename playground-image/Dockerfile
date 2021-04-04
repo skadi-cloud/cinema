@@ -33,8 +33,9 @@ RUN apt-get install wget bsdtar -y
 # download IDE to the /ide dir:
 WORKDIR /download
 ARG pluginUrl
-RUN wget -qO- $pluginUrl | bsdtar -xvf- -C .
-RUN find . -maxdepth 1 -type d -name * -execdir mv {} /plugins \;
+RUN mkdir /plugins
+RUN if [ ! -z "$pluginUrl" ]; then wget -qO- $pluginUrl | bsdtar -xvf- -C .; fi
+RUN if [ ! -z "$pluginUrl" ]; then find . -maxdepth 1 -type d -name * -execdir mv {} /plugins \;; fi
 
 FROM amazoncorretto:11 as projectorGradleBuilder
 
@@ -60,7 +61,7 @@ COPY --from=ideDownloader /ide $PROJECTOR_DIR/ide
 # copy plugins:
 COPY --from=pluginDownloader /plugins $PROJECTOR_DIR/ide/plugins
 # copy projector files to the container:
-ADD projector-docker/static $PROJECTOR_DIR
+ADD playground-image/static $PROJECTOR_DIR
 # copy projector:
 COPY --from=projectorGradleBuilder $PROJECTOR_DIR/projector-server/projector-server/build/distributions/projector-server-1.0-SNAPSHOT.zip $PROJECTOR_DIR
 # prepare IDE - apply projector-server:
@@ -69,6 +70,11 @@ RUN rm $PROJECTOR_DIR/projector-server-1.0-SNAPSHOT.zip
 RUN mv projector-server-1.0-SNAPSHOT $PROJECTOR_DIR/ide/projector-server
 RUN mv $PROJECTOR_DIR/ide-projector-launcher.sh $PROJECTOR_DIR/ide/bin
 RUN chmod 644 $PROJECTOR_DIR/ide/projector-server/lib/*
+
+ADD ide-plugin/build/distributions/ide-plugin-1.0.zip $PROJECTOR_DIR
+RUN unzip $PROJECTOR_DIR/ide-plugin-1.0.zip
+RUN rm $PROJECTOR_DIR/ide-plugin-1.0.zip
+RUN mv ide-plugin $PROJECTOR_DIR/ide/plugins/skadi-cloud
 
 FROM debian:10
 
@@ -90,20 +96,6 @@ RUN true \
     && rm -rf /var/cache/apt
 
 ARG downloadUrl
-
-RUN true \
-# Any command which returns non-zero exit code will cause this shell script to exit immediately:
-    && set -e \
-# Activate debugging to show execution details: all commands will be printed before execution
-    && set -x \
-# install specific packages for IDEs:
-    && apt-get update \
-    && if [ "${downloadUrl#*CLion}" != "$downloadUrl" ]; then apt-get install build-essential clang -y; else echo "Not CLion"; fi \
-    && if [ "${downloadUrl#*pycharm}" != "$downloadUrl" ]; then apt-get install python2 python3 python3-distutils python3-pip python3-setuptools -y; else echo "Not pycharm"; fi \
-    && if [ "${downloadUrl#*rider}" != "$downloadUrl" ]; then apt install apt-transport-https dirmngr gnupg ca-certificates -y && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && echo "deb https://download.mono-project.com/repo/debian stable-buster main" | tee /etc/apt/sources.list.d/mono-official-stable.list && apt update && apt install mono-devel -y && apt install wget -y && wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb && apt-get update && apt-get install -y apt-transport-https && apt-get update && apt-get install -y dotnet-sdk-3.1 aspnetcore-runtime-3.1; else echo "Not rider"; fi \
-# clean apt to reduce image size:
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/cache/apt
 
 # copy the Projector dir:
 ENV PROJECTOR_DIR /projector
