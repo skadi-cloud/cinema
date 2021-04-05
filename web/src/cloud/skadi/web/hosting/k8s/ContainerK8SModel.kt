@@ -83,6 +83,10 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
                                 value = id.toString()
                             },
                             newEnvVar {
+                                name = "SKADI_BACKEND_ADDRESS"
+                                value = "http://heartbeat"
+                            },
+                            newEnvVar {
                                 name = "ORG_JETBRAINS_PROJECTOR_SERVER_HANDSHAKE_TOKEN"
                                 value = rwToken
                             },

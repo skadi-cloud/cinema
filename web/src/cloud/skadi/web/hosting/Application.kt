@@ -34,9 +34,11 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.sentry.Sentry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.TickerMode
 import kotlinx.coroutines.channels.ticker
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
@@ -104,10 +106,10 @@ fun main(args: Array<String>): Unit {
 }
 
 @ObsoleteCoroutinesApi
-val containerStatusTicker = ticker(10_000)
+val containerStatusTicker = ticker(10_000, mode = TickerMode.FIXED_DELAY)
 
 @ObsoleteCoroutinesApi
-val runningContainerStatusTicker = ticker(60_000)
+val runningContainerStatusTicker = ticker(60_000, mode = TickerMode.FIXED_DELAY)
 
 val userStreams = ConcurrentHashMap<Int, SendChannel<Frame>>()
 
@@ -138,6 +140,8 @@ fun Application.mainModule(testing: Boolean = false) {
             log.error("COOKIE_SALT not set!")
             throw IllegalArgumentException("COOKIE_SALT is default value!")
         }
+    } else {
+        Sentry.init { config -> config.dsn = "" }
     }
 
     install(Compression) {

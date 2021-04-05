@@ -1,4 +1,4 @@
-package ws.logv.hosting
+package test.cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.getEnvOfFail
 import cloud.skadi.web.hosting.getEnvOrDefault

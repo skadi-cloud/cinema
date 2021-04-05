@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 
 suspend fun ApplicationCall.internalApiOnly(body: suspend (ApplicationCall) -> Unit) {
     if (this.request.local.port != INTERNAL_API_PORT) {
-        application.log.warn("request to internal api over external port")
+        application.log.warn("request to internal api over external port on ${this.request.uri}")
         this.respond(HttpStatusCode.Forbidden)
         return
     }

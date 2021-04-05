@@ -1,4 +1,4 @@
-package ws.logv.hosting
+package test.cloud.skadi.web.hosting
 
 import io.ktor.http.*
 import io.ktor.server.testing.*
