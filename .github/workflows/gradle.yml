@@ -77,7 +77,7 @@ jobs:
         registry: rg.nl-ams.scw.cloud/cloud-skadi-mps
         username: nologin
         password: ${{ secrets.SCALEWAY_TOKEN }}
-    - name: Build with distZip
+    - name: Build with installDist
       if: ${{ github.event_name == 'workflow_dispatch' }}
       run: ./gradlew :web:distZip
     - name: build docker images
