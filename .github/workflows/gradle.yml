@@ -79,7 +79,7 @@ jobs:
         password: ${{ secrets.SCALEWAY_TOKEN }}
     - name: Build with installDist
       if: ${{ github.event_name == 'workflow_dispatch' }}
-      run: ./gradlew :web:distZip
+      run: ./gradlew :web:installDist
     - name: build docker images
       if: ${{ github.event_name == 'workflow_dispatch' }}
       uses: docker/build-push-action@v2
