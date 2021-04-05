@@ -8,6 +8,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -63,11 +64,25 @@ jobs:
         GITHUB_SECRET: ${{ secrets.OAUTH_SECRET }}
         GITHUB_ID: ${{ secrets.OAUTH_ID }}
         COOKIE_SALT: ${{ secrets.COOKIE_SALT }}
-
     - name: Archive test results
       uses: actions/upload-artifact@v2
       if: ${{ always() }}
       with:
         name: test-results
         path: web/build/reports
+    - name: Login to Scaleway Container Registry
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: docker/login-action@v1
+      with:
+        registry: rg.nl-ams.scw.cloud/cloud-skadi-mps
+        username: nologin
+        password: ${{ secrets.SCALEWAY_TOKEN }}
+    - name: build docker images
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      run: echo This event is a pull request that had an assignee removed.
+      uses: docker/build-push-action@v2
+      with:
+        context: web
+        push: true
+        tags: rg.nl-ams.scw.cloud/cloud-skadi-mps/web:latest
 
