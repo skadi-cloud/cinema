@@ -91,7 +91,7 @@ fun Application.containerApi() = routing {
         call.authenticated {
             call.withUserContainerViaParam { container ->
                 call.respondHtmlTemplate(AppTemplate("Skadi Cloud")) {
-                    content { transaction { confirmDelete(container.user, container) }  }
+                    content { transaction { confirmDelete(container.user, container) } }
                 }
             }
         }
@@ -167,7 +167,7 @@ fun undeployContainer(id: UUID) = GlobalScope.launch {
 }
 
 fun getPodStatus(id: UUID): ContainerStatus {
-    val deployment = client.apps().deployments().withName(deploymentName(id)).get()
+    val deployment = client.apps().deployments().withName(deploymentName(id)).get() ?: return ContainerStatus.Deploying
 
     if (deployment.spec.replicas == 0 && deployment.status.replicas == null) {
         return ContainerStatus.Stopped

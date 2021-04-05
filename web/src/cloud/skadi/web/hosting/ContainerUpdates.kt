@@ -12,9 +12,11 @@ import kotlinx.html.stream.createHTML
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
 suspend fun updateNewContainers() {
+    val logger = LoggerFactory.getLogger("updateNewContainers")
     for (tick in containerStatusTicker) {
         val updatesToSend = transaction {
             KernelFContainer.find {
@@ -24,8 +26,18 @@ suspend fun updateNewContainers() {
                     ContainerStatus.Created -> null
                     ContainerStatus.Error -> null
                     ContainerStatus.Stopped -> null
-                    ContainerStatus.Stopping -> Pair(it, getPodStatus(it.id.value))
-                    ContainerStatus.Deploying -> Pair(it, getPodStatus(it.id.value))
+                    ContainerStatus.Stopping -> try {
+                        Pair(it, getPodStatus(it.id.value))
+                    } catch (e: Exception) {
+                        logger.error("error updating pod status for ${it.id.value}", e)
+                        null
+                    }
+                    ContainerStatus.Deploying -> try {
+                        Pair(it, getPodStatus(it.id.value))
+                    } catch (e: Exception) {
+                        logger.error("error updating pod status for ${it.id.value}", e)
+                        null
+                    }
                     ContainerStatus.Running -> null
                 }
             }.filter { it.first.status != it.second }.map {
@@ -38,15 +50,16 @@ suspend fun updateNewContainers() {
 }
 
 private suspend fun sendUpdatesTo(user: Int, updates: List<String>) {
+    val logger = LoggerFactory.getLogger("sendUpdatesTo")
     try {
-        println("trying to send updates to user $user")
+        logger.info("trying to send updates to user $user")
         val channel = getChannelToUser(user) ?: return
-        print("sending update to user $user")
+        logger.info("sending update to user $user")
         updates.forEach {
             channel.send(Frame.Text(it))
         }
     } catch (e: Throwable) {
-        println("error sending update ${e.message}")
+        logger.error("error sending update ${e.message}", e)
     }
 }
 
@@ -69,6 +82,7 @@ private fun instanceControlsUpdate(it: KernelFContainer) =
     }
 
 suspend fun updateRunningContainers() {
+    val logger = LoggerFactory.getLogger("updateRunningContainers")
     for (tick in runningContainerStatusTicker) {
         var updatesToSend = transaction {
             KernelFContainer.find {
@@ -80,7 +94,12 @@ suspend fun updateRunningContainers() {
                     ContainerStatus.Stopped -> null
                     ContainerStatus.Stopping -> null
                     ContainerStatus.Deploying -> null
-                    ContainerStatus.Running -> Pair(it, getPodStatus(it.id.value))
+                    ContainerStatus.Running -> try {
+                        Pair(it, getPodStatus(it.id.value))
+                    } catch (e: Exception) {
+                        logger.error("error updating pod status for ${it.id.value}", e)
+                        null
+                    }
                 }
             }.filter { it.first.status != it.second }.map {
                 it.first.status = it.second
