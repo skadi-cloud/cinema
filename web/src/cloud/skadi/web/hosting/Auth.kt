@@ -15,6 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.html.*
 import org.kohsuke.github.GitHubBuilder
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.*
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
@@ -50,7 +54,7 @@ fun Application.installAuth(testing: Boolean) {
     }
 
     routing {
-        if(testing) {
+        if (testing) {
             post("/testlogin") {
                 val session = UserSession(
                     username = "testuser",
@@ -77,6 +81,10 @@ fun Application.installAuth(testing: Boolean) {
                             GitHubBuilder().withOAuthToken(accessToken).build()
                         }
                     val myself = github.myself
+                    val createdDate = LocalDateTime.ofInstant(myself.createdAt.toInstant(), ZoneId.systemDefault())
+                    if (createdDate.isAfter(LocalDateTime.now().minusDays(30))) {
+                        log.warn("Very recent github account logged in! user: ${myself.login} (${myself.email}) created: $createdDate")
+                    }
 
                     val session = UserSession(
                         username = myself.name,
@@ -120,8 +128,10 @@ private suspend fun ApplicationCall.loginSuccess(target: String) {
     respondHtml {
         head {
             title { +"Login Successful" }
-            meta { httpEquiv="refresh"
-            content ="0; url=$target"}
+            meta {
+                httpEquiv = "refresh"
+                content = "0; url=$target"
+            }
         }
         body {
             h1 {
