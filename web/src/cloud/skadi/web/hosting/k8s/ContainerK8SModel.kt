@@ -8,7 +8,7 @@ import io.fabric8.kubernetes.api.model.Quantity
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress
-import cloud.skadi.web.hosting.HOST_URL
+import cloud.skadi.web.hosting.INSTANCE_HOST
 import com.fkorotkov.kubernetes.apps.*
 import java.util.*
 
@@ -149,7 +149,7 @@ class MPSInstanceIngress(id: UUID) : Ingress() {
         metadata { name = ingressName(id) }
         spec {
             rules = listOf(newIngressRule {
-                host = "$id.$HOST_URL"
+                host = "$id.$INSTANCE_HOST"
                 http = newHTTPIngressRuleValue {
                     paths = listOf(newHTTPIngressPath {
                         path = "/"
