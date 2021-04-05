@@ -2,12 +2,12 @@ package cloud.skadi.ide.plugin.impl
 
 import cloud.skadi.ide.plugin.SkadiHeartbeatService
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.CommandEvent
+import com.intellij.openapi.command.CommandListener
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.CaretEvent
-import com.intellij.openapi.editor.event.CaretListener
-import com.intellij.openapi.editor.event.DocumentEvent
-import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.editor.event.*
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -45,8 +45,27 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
             }
         }
 
+        val selectionListener = object : SelectionListener {
+            override fun selectionChanged(e: SelectionEvent) {
+                wasActive = true
+            }
+        }
+
+        ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(CommandListener.TOPIC,
+            object : CommandListener {
+
+                override fun commandFinished(event: CommandEvent) {
+                    wasActive = true
+                }
+
+                override fun undoTransparentActionFinished() {
+                    wasActive = true
+                }
+            })
+
         multicaster.addCaretListener(caretListener, this)
         multicaster.addDocumentListener(documentListener, this)
+        multicaster.addSelectionListener(selectionListener, this)
         installHeartbeat()
     }
 
@@ -78,9 +97,7 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
     }
 
     override fun dispose() {
-        val multicaster = EditorFactory.getInstance().eventMulticaster
-        multicaster.removeCaretListener(caretListener)
-        multicaster.removeDocumentListener(documentListener)
+        logger.warn("disposed")
     }
 
     private class Task(
