@@ -34,8 +34,8 @@ RUN apt-get install wget bsdtar -y
 WORKDIR /download
 ARG pluginUrl
 RUN mkdir /plugins
-RUN if [ ! -z "$pluginUrl" ]; then wget -qO- $pluginUrl | bsdtar -xvf- -C .; fi
-RUN if [ ! -z "$pluginUrl" ]; then find . -maxdepth 1 -type d -name * -execdir mv {} /plugins \;; fi
+RUN if [ ! -z "$pluginUrl" ]; then wget -qO- $pluginUrl | bsdtar --strip-components=1 -xvf- -C .; fi
+RUN if [ ! -z "$pluginUrl" ]; then mv * /plugins; fi
 
 FROM amazoncorretto:11 as projectorGradleBuilder
 
