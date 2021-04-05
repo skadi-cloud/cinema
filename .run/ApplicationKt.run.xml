@@ -21,6 +21,7 @@
       <env name="SQL_HOST" value="localhost:5432" />
       <env name="ENV" value="local" />
       <env name="INSTANCE_HOST" value="staging.skadi.cloud" />
+      <env name="SENTRY_ENVIRONMENT" value="local" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />

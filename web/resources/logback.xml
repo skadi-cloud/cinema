@@ -4,8 +4,15 @@
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+    <appender name="Sentry" class="io.sentry.logback.SentryAppender">
+        <options>
+            <dsn>https://371b6597eb0643b38c4fb68ee55fe1d1@o76671.ingest.sentry.io/5706294</dsn>
+        </options>
+        <minimumEventLevel>WARN</minimumEventLevel>
+    </appender>
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="Sentry" />
     </root>
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>

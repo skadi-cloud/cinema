@@ -35,6 +35,8 @@ spec:
               value: "skadi"
             - name: INSTANCE_HOST
               value: "wolves.skadi.cloud"
+            - name: SENTRY_ENVIRONMENT
+              value: production
             - name: SQL_PASSWORD
               valueFrom:
                 secretKeyRef:

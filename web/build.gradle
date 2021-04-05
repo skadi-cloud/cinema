@@ -62,6 +62,8 @@ dependencies {
 
     implementation "io.seruco.encoding:base62:0.1.3"
 
+    implementation 'io.sentry:sentry-logback:4.3.0'
+
     testImplementation("io.ktor:ktor-server-tests:$ktor_version") {
         exclude group: 'junit', module: 'junit'
     }
