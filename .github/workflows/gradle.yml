@@ -79,7 +79,6 @@ jobs:
         password: ${{ secrets.SCALEWAY_TOKEN }}
     - name: build docker images
       if: ${{ github.event_name == 'workflow_dispatch' }}
-      run: echo This event is a pull request that had an assignee removed.
       uses: docker/build-push-action@v2
       with:
         context: web
