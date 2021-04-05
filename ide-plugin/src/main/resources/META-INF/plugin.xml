@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>cloud.skadi.ide.plugin</id>
-    <name>Plugin display name here</name>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+    <name>Skadi Cloud</name>
+    <vendor email="kolja@hey.com" url="https://skadi.cloud">Skadi Cloud</vendor>
 
     <description><![CDATA[
     Enter short description for your plugin here.<br>
@@ -13,7 +13,8 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <preloadingActivity implementation="cloud.skadi.ide.plugin.SkadiHeartbeat"/>
+        <applicationService serviceInterface="cloud.skadi.ide.plugin.SkadiHeartbeatService"
+                        serviceImplementation="cloud.skadi.ide.plugin.impl.SkadiHeartbeatServiceImpl"/>
     </extensions>
 
 

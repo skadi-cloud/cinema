@@ -17,8 +17,7 @@ repositories {
 def mpsVersion = "2020.3.+"
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    compileOnly "org.jetbrains.projector-server:projector-agent:1.2.1"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
     compileOnly "com.jetbrains:mps-workbench:$mpsVersion"
 }
 
