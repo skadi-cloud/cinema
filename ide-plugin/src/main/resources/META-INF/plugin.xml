@@ -13,6 +13,7 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <preloadingActivity implementation="cloud.skadi.ide.plugin.SkadiInit"/>
         <applicationService serviceInterface="cloud.skadi.ide.plugin.SkadiHeartbeatService"
                         serviceImplementation="cloud.skadi.ide.plugin.impl.SkadiHeartbeatServiceImpl"/>
     </extensions>
