@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -59,10 +58,9 @@ private class SamplesExtractionTask(val zipFile: File) : Task.Modal(null, "Extra
         temp.mkdirs()
         indicator.text2 = "Extracting samples"
         ZipUtil.extract(zipFile, temp, null)
-        val from = File(temp, SAMPLE_FOLDER)
         val to = samplesPathInUserHome
-        if (!FileUtil.moveDirWithContent(from, to) && !to.exists()) {
-            FileUtil.copyDir(from, to)
+        if (!FileUtil.moveDirWithContent(temp, to) && !to.exists()) {
+            FileUtil.copyDir(temp, to)
         }
         indicator.cancel()
     }
