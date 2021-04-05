@@ -6,3 +6,4 @@
 !/playground-image/static/**
 !/playground-image/samples/**
 !/ide-plugin/**
+!/skadi-community-samples/build/dist/**

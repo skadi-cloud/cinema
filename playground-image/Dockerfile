@@ -62,6 +62,7 @@ COPY --from=ideDownloader /ide $PROJECTOR_DIR/ide
 COPY --from=pluginDownloader /plugins $PROJECTOR_DIR/ide/plugins
 # copy projector files to the container:
 ADD playground-image/static $PROJECTOR_DIR
+ADD skadi-community-samples/build/dist/community-samples.zip $PROJECTOR_DIR/ide
 # copy projector:
 COPY --from=projectorGradleBuilder $PROJECTOR_DIR/projector-server/projector-server/build/distributions/projector-server-1.0-SNAPSHOT.zip $PROJECTOR_DIR
 # prepare IDE - apply projector-server:

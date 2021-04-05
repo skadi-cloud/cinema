@@ -30,6 +30,7 @@ if(includesKernelF) {
 String mpsDownloadUrl = "https://download.jetbrains.com/mps/${mpsShortVersion}/MPS-${mpsVersion}.tar.gz"
 
 task buildImage(type:Exec, dependsOn: ":ide-plugin:buildPlugin") {
+    dependsOn gradle.includedBuild('skadi-community-samples').task(':createZip')
     if(includesKernelF) {
         commandLine './build-container.sh', imageTag, mpsDownloadUrl, kernelFDownloadUrl
     } else {

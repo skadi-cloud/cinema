@@ -10,6 +10,6 @@ includeBuild ('projector-server') {
         substitute module("org.jetbrains.projector-server:projector-agent") with project(':projector-agent')
     }
 }
-
+includeBuild('skadi-community-samples')
 
 
