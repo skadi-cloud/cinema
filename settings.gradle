@@ -5,11 +5,6 @@ include ':web'
 include ':web-js'
 include ':ide-plugin'
 include ':playground-image'
-includeBuild ('projector-server') {
-    dependencySubstitution {
-        substitute module("org.jetbrains.projector-server:projector-agent") with project(':projector-agent')
-    }
-}
 includeBuild('skadi-community-samples')
 
 
