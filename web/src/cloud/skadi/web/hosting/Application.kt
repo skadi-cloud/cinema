@@ -70,7 +70,7 @@ val GITHUB_ID = getEnvOrDefault("GITHUB_ID", "")
 const val SALT_DEFAULT = "6819b57a326945c1968f45236589"
 val COOKIE_SALT = getEnvOrDefault("COOKIE_SALT", SALT_DEFAULT)
 
-val INSTANCE_HOST = getEnvOfFail("INSTANCE_HOST") // "staging.skadi.cloud"
+val INSTANCE_HOST = getEnvOrDefault("INSTANCE_HOST", "localhost") // "staging.skadi.cloud"
 const val HOME_PATH = "/home"
 const val INTERNAL_API_PORT = 9090
 
