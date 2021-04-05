@@ -55,7 +55,8 @@ private class SamplesExtractionTask(val zipFile: File) : Task.Modal(null, "Extra
     override fun run(indicator: ProgressIndicator) {
         indicator.isIndeterminate = true
 
-        val temp = FileUtil.createTempDirectory("Community Samples", null)
+        val temp = FileUtil.createTempDirectory("community-samples", null)
+        temp.mkdirs()
         indicator.text2 = "Extracting samples"
         ZipUtil.extract(zipFile, temp, null)
         val from = File(temp, SAMPLE_FOLDER)
