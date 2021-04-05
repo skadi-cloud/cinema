@@ -16,9 +16,11 @@
       <env name="COOKIE_SALT" value="57a326945c1968f45236589" />
       <env name="SQL_PASSWORD" value="mysecretpassword" />
       <env name="SQL_USER" value="postgres" />
-      <env name="KUBECONFIG" value="kubeconfig-k8s-kernelf-f-staging.yaml" />
+      <env name="KUBECONFIG" value="kubeconfig-staging.yaml" />
       <env name="SQL_DB" value="skadi" />
       <env name="SQL_HOST" value="localhost:5432" />
+      <env name="ENV" value="local" />
+      <env name="INSTANCE_HOST" value="staging.skadi.cloud" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />

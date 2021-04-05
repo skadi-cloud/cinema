@@ -1,6 +1,6 @@
 package cloud.skadi.web.hosting.views
 
-import cloud.skadi.web.hosting.HOST_URL
+import cloud.skadi.web.hosting.INSTANCE_HOST
 import cloud.skadi.web.hosting.canStartContainer
 import cloud.skadi.web.hosting.canStopContainer
 import cloud.skadi.web.hosting.data.ContainerStatus
@@ -195,7 +195,7 @@ fun TBODY.containerRow(container: KernelFContainer) {
 
         td {
             a {
-                val url = "https://${container.id._value}.$HOST_URL?token=${container.rwToken}"
+                val url = "https://${container.id._value}.$INSTANCE_HOST?token=${container.rwToken}"
                 href = url
                 target = "_blank"
                 +"Full Access"
@@ -204,7 +204,7 @@ fun TBODY.containerRow(container: KernelFContainer) {
             br
 
             a {
-                val url = "https://${container.id._value}.$HOST_URL?token=${container.roToken}"
+                val url = "https://${container.id._value}.$INSTANCE_HOST?token=${container.roToken}"
                 href = url
                 target = "_blank"
                 +"Read Only"

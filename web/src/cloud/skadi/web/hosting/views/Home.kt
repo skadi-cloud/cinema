@@ -1,13 +1,7 @@
 package cloud.skadi.web.hosting.views
 
-import cloud.skadi.web.hosting.HOST_URL
-import cloud.skadi.web.hosting.canStartContainer
-import cloud.skadi.web.hosting.canStopContainer
 import cloud.skadi.web.hosting.data.*
-import io.ktor.http.*
 import kotlinx.html.*
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 fun FlowContent.appHome(email: String, name: String) {
     p {
