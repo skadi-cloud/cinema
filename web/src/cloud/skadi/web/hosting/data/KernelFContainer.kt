@@ -43,11 +43,16 @@ class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
     var rwToken by KernelFContainers.rwToken
 }
 
-fun canCreateContainer(email: String): Boolean {
+
+const val MAX_CONTAINERS = 3
+
+fun remainingContainers(email: String): Int {
     val usersContainers =
-        transaction() { User.find { Users.email eq email }.firstOrNull()?.containers?.count() } ?: return false
-    return usersContainers < 10
+        transaction() { User.find { Users.email eq email }.firstOrNull()?.containers?.count() } ?: return 0
+    return (MAX_CONTAINERS - usersContainers).toInt()
 }
+
+fun canCreateContainer(email: String): Boolean = remainingContainers(email) > 0
 
 fun getContainerByName(name: String, user: User): KernelFContainer? {
     return transaction {

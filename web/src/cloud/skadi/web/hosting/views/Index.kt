@@ -3,6 +3,51 @@ package cloud.skadi.web.hosting.views
 import kotlinx.html.*
 
 fun FlowContent.indexPage() {
+
+    div {
+        id = "header-featured"
+        div {
+            id="feature-bg-color"
+        }
+        div {
+            id="header-featured-name"
+            img {
+                id = "header-logo"
+                src = "/assets/icon.png"
+            }
+            h1 { +"skadi cloud" }
+            p { +"An experiment with Projector to put JetBrains MPS into the browser." }
+        }
+        div {
+            id="scroll-down"
+            div {
+                i(classes = "fas fa-chevron-circle-down")
+            }
+        }
+
+        img {
+            id = "featured-bg"
+            src = "/assets/featured.png"
+        }
+    }
+
+    div {
+        id = "login"
+        a(classes = "loginbox") {
+            href = "/login/github"
+            i(classes = "fab fa-github-square") {}
+            +"Login with Github"
+        }
+        p(classes = "smaller") {
+            +"By logging in you agree with this website using cookies and storing personal information see "
+            a {
+                href = "#legal"
+                +"here"
+            }
+            +" for more details."
+        }
+    }
+
     div {
         id = "about"
         p {
@@ -25,47 +70,6 @@ fun FlowContent.indexPage() {
         }
     }
 
-    div {
-        id = "login"
-        a(classes = "loginbox") {
-            href = "/login/github"
-            i(classes = "fab fa-github-square") {}
-            +"Login with Github"
-        }
-        p(classes = "smaller") {
-            +"By logging in you agree with this website using cookies and storing personal information see "
-            a {
-                href = "#legal"
-                +"here"
-            }
-            +" for more details."
-        }
-    }
-
-    div {
-        id = "getting-started"
-        h2 {
-            +"Getting Started"
-        }
-        p {
-            +"""To get started you need a Github account. To sign in click the button below. Once you are signed in you
-                | can create a playground by default the playground uses the latest available version of MPS with 
-                | KernelF preinstalled but you can choose other versions if you like:""".trimMargin()
-        }
-        p {
-            +"""Once you created a playground it will get deployed, you can see the status of the playground in the list. 
-                |When the status changes to “running” you can connect via the link in the list. It will open a connection 
-                |to the IDE in a new window. Alternatively you can also use the native client applications for projector. 
-                |The native applications will give you better performance than the browser client and also allow you to 
-                |use all keyboard shortcuts because some aren’t available in the browser. """.trimMargin()
-        }
-        p {
-            +"""Once you connect for the first time you will have to go through the usual first start process of any 
-                |JetBrains IDE. After you accepted the privacy policy you get to the new project dialog from where you 
-                |can also access the samples. The “samples” include the regular MPS samples while the “community samples” 
-                |are samples from various community tutorials including KernelF examples. """.trimMargin()
-        }
-    }
     div {
         id = "faq"
         h2 {
@@ -184,7 +188,8 @@ fun FlowContent.indexPage() {
                 }
                 pre {
                     style = "display:inline"
-                    +"/home/projector-user" }
+                    +"/home/projector-user"
+                }
                 p {
                     style = "display:inline"
                     +""" everything else is not persisted and will get deleted if the instance is shutdown or restarted.

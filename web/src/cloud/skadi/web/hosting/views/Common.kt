@@ -23,14 +23,6 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
         }
         body {
             div(classes = "container") {
-                div {
-                    id = "header"
-                    div {
-                        img { src = "/assets/icon.png" }
-                        h1 { +"skadi cloud" }
-                    }
-                    p { +"An experiment with JetBrains MPS and Projector" }
-                }
                 insert(content)
             }
         }
