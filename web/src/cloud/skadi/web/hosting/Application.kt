@@ -89,6 +89,7 @@ data class UserSession(
 fun main(args: Array<String>): Unit {
     val env = applicationEngineEnvironment {
         developmentMode = getEnvOrDefault("ENV", "production") != "production"
+
         module {
             mainModule(false)
         }

@@ -38,7 +38,14 @@ fun Application.installAuth(testing: Boolean) {
         oauth("gitHubOAuth") {
             client = HttpClient(Apache)
             providerLookup = { loginProviders[application.locations.resolve<Login>(Login::class, this).type] }
-            urlProvider = { url(Login(it.name)) }
+            urlProvider = {
+                val path = application.locations.href(Login(it.name))
+                if(!application.developmentMode) {
+                    "https://skadi.cloud/$path"
+                } else {
+                    url(Login(it.name)) {}
+                }
+            }
         }
     }
 
