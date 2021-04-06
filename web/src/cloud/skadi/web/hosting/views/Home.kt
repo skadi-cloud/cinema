@@ -83,7 +83,7 @@ fun FlowContent.appHome(email: String, name: String) {
                 target = "_blank"
                 +"native client applications"
             }
-            +"""for projector.
+            +""" for projector.
             |The native applications will give you better performance than the browser client and also allow you to
             |use all keyboard shortcuts because some aren’t available in the browser. """.trimMargin()
         }
@@ -121,15 +121,15 @@ fun FlowContent.appHome(email: String, name: String) {
             }
         }
         p {
-            """You can access these samples from the same locations as the MPS samples: the welcome screen.""".trimMargin()
+            +"""You can access these samples from the same locations as the MPS samples: the welcome screen.""".trimMargin()
         }
         div {
             id = "samples-img-container"
             img {
-
+                src = "/assets/samples1.png"
             }
             img {
-
+                src = "/assets/samples2.png"
             }
         }
         p {
