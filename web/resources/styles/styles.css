@@ -50,18 +50,22 @@ body {
     max-width: 100%;
     max-height: 100%;
     left: 0;
-    top: -4em;
+    top: 1em;
 }
+
+
 
 #header-featured-name {
     display: flex;
-    justify-content: left;
+    justify-content: center;
     align-items: center;
     position: relative;
     flex-wrap: wrap;
-    top: 264px;
     z-index: 3;
     max-width: 410px;
+    top: 74px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #scroll-down {
@@ -70,9 +74,11 @@ body {
     width: 100%;
     left: 0;
     bottom: 100px;
+    z-index: 4;
 }
 
 #scroll-down i {
+    display: none;
     color: var(--main-color);
 }
 
@@ -85,7 +91,7 @@ body {
 
 #feature-bg-color {
     position: absolute;
-    height: 100%;
+    height: 50%;
     width: 100%;
     left: 0;
     background: #e8f7f7;
@@ -99,6 +105,10 @@ body {
     margin-right: 8px;
     margin-top: 3px;
     display: none;
+}
+
+#header-featured {
+    min-height: 50vh;
 }
 
 #header-featured h1 {
@@ -119,17 +129,31 @@ body {
         width: 90%;
         margin: 0 auto;
     }
-
     .faq-item {
-        width: 50%;
+        max-width: 48%;
     }
-    .faq-item div {
-        padding-left: 25px;
-        padding-right: 25px;
-    }
+
     #header-logo {
         display: block;
     }
+
+    #header-featured-name {
+        justify-content: left;
+    }
+
+    #featured-bg {
+        top: -4em;
+    }
+}
+
+@media (min-width: 992px) {
+    #header-featured {
+        min-height: 100vh;
+    }
+    #scroll-down i {
+        display: block;
+    }
+
 }
 
 @media (min-width: 1200px) {
@@ -144,6 +168,10 @@ body {
 
     .faq-item {
         text-align: justify;
+    }
+    #header-featured-name {
+        top: 264px;
+        margin: 0;
     }
 
 }
@@ -190,7 +218,7 @@ a, a:visited {
 #faq {
     display: flex;
     flex-wrap: wrap;
-    align-items: stretch;
+    justify-content: space-between;
 }
 
 .faq-item h3 {

@@ -32,24 +32,8 @@ fun FlowContent.indexPage() {
     }
 
     div {
-        id = "login"
-        a(classes = "loginbox") {
-            href = "/login/github"
-            i(classes = "fab fa-github-square") {}
-            +"Login with Github"
-        }
-        p(classes = "smaller") {
-            +"By logging in you agree with this website using cookies and storing personal information see "
-            a {
-                href = "#legal"
-                +"here"
-            }
-            +" for more details."
-        }
-    }
-
-    div {
         id = "about"
+        h2 { +"about" }
         p {
             +"""This is a MPS playground in the browser. It’s build by Kolja as a demo of what is possible with 
                     |projector and MPS. This isn’t a real service like codespaces by Github or similar services it’s a 
@@ -69,6 +53,25 @@ fun FlowContent.indexPage() {
             +"."
         }
     }
+
+    div {
+        id = "login"
+        a(classes = "loginbox") {
+            href = "/login/github"
+            i(classes = "fab fa-github-square") {}
+            +"Login with Github"
+        }
+        p(classes = "smaller") {
+            +"By logging in you agree with this website using cookies and storing personal information see "
+            a {
+                href = "#legal"
+                +"here"
+            }
+            +" for more details."
+        }
+    }
+
+
 
     div {
         id = "faq"
