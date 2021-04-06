@@ -4,53 +4,57 @@ import cloud.skadi.web.hosting.data.*
 import kotlinx.html.*
 
 fun FlowContent.appHome(email: String, name: String) {
-    p {
-        +"""Hello $name, welcome to Skadi cloud. Below you find a list of your playgrounds where you can create new ones or 
+    div {
+        id = "top"
+        p {
+            +"""Hello $name, welcome to Skadi cloud. Below you find a list of your playgrounds where you can create new ones or 
             |manage existing ones. You have currently 
         """.trimMargin()
-        b { +"${remainingContainers(email)}" }
-        +" playground slots remaining."
-    }
-    div {
-        form {
-            attributes["data-turbo-frame"] = "instances"
-            id = "new-playground"
-            method = FormMethod.post
-            action = "/new-container"
-            select() {
-                this.name = "version"
-                enumValues<ContainerVersion>().mapIndexed { i, version ->
-                    option {
-                        value = version.name
-                        if (i == 0) {
-                            selected = true
+            b { +"${remainingContainers(email)}" }
+            +" playground slots remaining."
+        }
+        div {
+            form {
+                attributes["data-turbo-frame"] = "instances"
+                id = "new-playground"
+                method = FormMethod.post
+                action = "/new-container"
+                select() {
+                    this.name = "version"
+                    enumValues<ContainerVersion>().mapIndexed { i, version ->
+                        option {
+                            value = version.name
+                            if (i == 0) {
+                                selected = true
+                            }
+                            if (version.buildNumber != null && version.commit != null) {
+                                +"MPS ${version.mpsVersion.fullVersion} KernelF ${version.buildNumber}"
+                            } else {
+                                +"MPS ${version.mpsVersion.fullVersion}"
+                            }
                         }
-                        if (version.buildNumber != null && version.commit != null) {
-                            +"MPS ${version.mpsVersion.fullVersion} KernelF ${version.buildNumber}"
-                        } else {
-                            +"MPS ${version.mpsVersion.fullVersion}"
-                        }
+                    }
+                }
+
+                button {
+                    type = ButtonType.submit
+                    disabled = !canCreateContainer(email)
+                    id = "create-new-playground"
+                    i(classes = "fas fa-plus")
+                    p {
+                        +"Create Playground"
                     }
                 }
             }
 
-            button {
-                type = ButtonType.submit
-                disabled = !canCreateContainer(email)
-                id = "create-new-playground"
-                i(classes = "fas fa-plus")
-                p {
-                    +"Create Playground"
-                }
+        }
+        instanceTable {
+            containers(email).forEach { container ->
+                containerRow(container)
             }
         }
+    }
 
-    }
-    instanceTable {
-        containers(email).forEach { container ->
-            containerRow(container)
-        }
-    }
     div {
         id = "getting-started"
         h2 {
@@ -95,7 +99,7 @@ fun FlowContent.appHome(email: String, name: String) {
             }
             li {
                 a {
-                    href= "https://heavymeta.tv"
+                    href = "https://heavymeta.tv"
                     target = "_blank"
                     +"Heavy Meta TV MPS tutorial"
                 }
@@ -112,20 +116,20 @@ fun FlowContent.appHome(email: String, name: String) {
             """You can access these samples from the same locations as the MPS samples: the welcome screen.""".trimMargin()
         }
         div {
-            id="samples-img-container"
-            img{
+            id = "samples-img-container"
+            img {
 
             }
-            img{
+            img {
 
             }
         }
         p {
             +"The samples are hosted on Github and if think an important example is missing feel free to create new issue"
             a {
-                href ="https://github.com/coolya/skadi-community-samples/issues"
+                href = "https://github.com/coolya/skadi-community-samples/issues"
                 target = "_blank"
-                +"here"
+                +" here"
             }
             +"."
         }
