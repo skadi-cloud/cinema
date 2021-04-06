@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.html.*
 import org.kohsuke.github.GitHubBuilder
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -40,7 +41,7 @@ fun Application.installAuth(testing: Boolean) {
             providerLookup = { loginProviders[application.locations.resolve<Login>(Login::class, this).type] }
             urlProvider = {
                 val path = application.locations.href(Login(it.name))
-                if(!application.developmentMode) {
+                if (!application.developmentMode) {
                     "https://skadi.cloud/$path"
                 } else {
                     url(Login(it.name)) {}
@@ -88,14 +89,20 @@ fun Application.installAuth(testing: Boolean) {
                             GitHubBuilder().withOAuthToken(accessToken).build()
                         }
                     val myself = github.myself
+
+
+                    val email = myself.emails2.find { it.isPrimary && it.isVerified }?.email
+                        ?: throw IllegalArgumentException("no email provided by Github!")
+
+
                     val createdDate = LocalDateTime.ofInstant(myself.createdAt.toInstant(), ZoneId.systemDefault())
                     if (createdDate.isAfter(LocalDateTime.now().minusDays(30))) {
-                        log.warn("Very recent github account logged in! user: ${myself.login} (${myself.email}) created: $createdDate")
+                        log.warn("Very recent github account logged in! user: ${myself.login} (${email}) created: $createdDate")
                     }
 
                     val session = UserSession(
                         username = myself.name,
-                        email = myself.email,
+                        email = email,
                         idToken = accessToken
                     )
 
