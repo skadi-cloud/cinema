@@ -35,22 +35,17 @@ fun FlowContent.indexPage() {
         id = "about"
         h2 { +"about" }
         p {
-            +"""This is a MPS playground in the browser. It’s build by Kolja as a demo of what is possible with 
-                    |projector and MPS. This isn’t a real service like codespaces by Github or similar services it’s a 
-                    |tech demo and should be treated like that. You can use it to play around with KernelF inside of MPS 
-                    |without installing anything or exploring MPS with the other included samples. KernelF is a 
-                    |functional base language for building domain specific languages on top of it. The playground is 
-                    |build using JetBrains Projector, a framework for remote access to Java applications, Kubernetes and 
-                    |JetBrains Meta Programming System. For more information on how this thing was build see take a 
-                    |look this blogpost. """.trimMargin()
+            +"""Skadi is a MPS playground in the browser. It’s build as a demo of what is possible with 
+                    |JetBrains projector and MPS. This isn’t a real service like codespaces by Github or similar. It’s a 
+                    |tech demo and should be treated like that. You can use it to play around with MPS 
+                    |without installing anything. Skadi includes a bunch of samples including KernelF that you can use to 
+                    |explore MPS.""".trimMargin()
         }
         p {
-            +"If you find bugs, have ideas to add to the playground or questions feel free to reach out to me at "
-            a {
-                href = "mailto:kolja@hey.com"
-                +"kolja@hey.com"
-            }
-            +"."
+            """KernelF is a functional base language for building domain specific languages on top of it. Skadi is
+            |build using JetBrains Projector, a framework for remote access to Java applications, Kubernetes and
+            |JetBrains Meta Programming System. For more information on how this thing was build see take a
+            |look this blogpost. """.trimMargin()
         }
     }
 
@@ -83,9 +78,14 @@ fun FlowContent.indexPage() {
             div {
                 h3 { +"Why did you build this?" }
                 p {
-                    +"""As a demo to the community as an impulse to get new ideas and discussions started. 
-                    |A while back I wrote down my ideas how Projector and MPS could be used together and this is 
-                    |essentially the implementation of one of those ideas.""".trimMargin()
+                    +"""As a demo to the community, as an impulse to get new ideas and discussions started. 
+                    |A while back I """.trimMargin()
+                    a {
+                        href ="https://blog.logv.ws/2021/03/16/jetbrains-projector-a-game-changer-for-jetbrains-mps-projects/"
+                        +"wrote down"
+                    }
+                    +""" my ideas how Projector and MPS could be used together and this is
+                        |essentially the implementation of one of those ideas.""".trimMargin()
                 }
             }
 
@@ -107,9 +107,9 @@ fun FlowContent.indexPage() {
                 p {
                     +"Definitely "
                     b { +"NOT" }
-                    +"."
+                    +". "
                     +"""This playground is more of a prove of concept to show what is possible with Projector, 
-                    |Kubernetes and MPS. Your data might get deleted and any time and the playground might be shutdown. 
+                    |Kubernetes and MPS. Your data might get deleted at any time and the playground might be shutdown. 
                     |Do not store anything important in it.""".trimMargin()
                 }
             }
@@ -131,9 +131,9 @@ fun FlowContent.indexPage() {
             div {
                 h3 { +"Can I use this on my iPad/Phone/Tablet?" }
                 p {
-                    +"""Yes you can. There is special links in you dashboard for mobile devices with no keyboard. 
-                        |If you have a keyboard attached feel free to use the desktop links. Key mappings can get weird 
-                        |though and might now work as expected. """.trimMargin()
+                    +"""Yes you can. But it's highly recommended to use a physical keyboard. Although  
+                        | key mappings can get weird 
+                        | and might now work as expected. Especially on iOS keyboard shortcuts tend to behave strange. """.trimMargin()
                 }
             }
         }
@@ -142,9 +142,9 @@ fun FlowContent.indexPage() {
             div {
                 h3 { +"Are there bugs?" }
                 p {
-                    +"""Most probably. This is a prove of concept and implemented like that. Projector, the underlying 
-                        |technology used to give you access to the IDE, is very young technology and most probably also
-                        | contains bugs. Expect this service to be a playground for experimenting with none sensitive 
+                    +"""Most likely. This is a prove of concept and implemented like that. Projector, the underlying 
+                        |technology used to give you access to the IDE, is very young technology and likely also
+                        | contains bugs. Expect this to be a playground for experimenting with none sensitive 
                         | data that you can afford to loose.""".trimMargin()
                 }
             }
@@ -153,9 +153,12 @@ fun FlowContent.indexPage() {
             div {
                 h3 { +"Is my connection to the IDE safe?" }
                 p {
-                    +"""While the connection is encrypted there is no additional authentication in place. If the link 
-                        |to your instance gets leaked including the token anyone with the link can connect to it. The
-                        | playground list gives your two links one that grants full access and one that is read only.""".trimMargin()
+                    +"""Yes as long as you don't share the link. While the connection is encrypted there is no additional 
+                        |authentication in place. If the link, that includes the token, 
+                        |to your instance gets leaked anyone with the link can connect to it. The
+                        |playground list gives your two links one that grants full access and one that is read only.
+                        | Right now there is no way regenerate the token for an existing instance. If you need a new link 
+                        | you have to delete the instance and create new one.""".trimMargin()
                 }
             }
         }
@@ -163,22 +166,21 @@ fun FlowContent.indexPage() {
             div {
                 h3 { +"Can I access Github?" }
                 p {
-                    +"""Yes you can, but the IDE plugins for Github won’t work. The authentication workflow will fail 
-                        |because it assumes that you are on your machine and not in your browser. You could of course 
-                        |use personal access tokens. Keep in mind if somebody gains access to the IDE instance they 
-                        |also gain access to your Github token. Since this is a playground I wouldn’t recommend adding 
-                        |authentication information into the container.""".trimMargin()
+                    +"""Yes you can, but the JetBrains plugins for Github won’t work. The authentication workflow will fail 
+                        |because it assumes that you are on your machine and not in your browser. You can of course 
+                        |use personal access tokens. Keep in mind that if somebody gains access to the IDE instance they 
+                        |also gain access to your Github token.""".trimMargin()
                 }
             }
         }
         div(classes = "faq-item") {
             div {
-                h3 { +"My instance is stuck in “deploying”!" }
+                h3 { +"My playground is stuck in “deploying”!" }
                 p {
-                    +"""When the underlying infrastructure gets busy it might add more computing resources on demand. 
-                        |Adding new resources to instratructure requires provisioning them which can take some time. 
-                        |Usually containers should be up wihtin a minute but it can sometimes take 5+ minutes when new 
-                        |resources are added to the infrastructure. """.trimMargin()
+                    +"""When the underlying infrastructure gets busy more computing resources are added on demand. 
+                        |Adding new resources to infrastructure happens automatically but can take some time. 
+                        |Usually a playground should be up within a minute but it can sometimes take 10 minutes when new 
+                        |resources need to be added to the infrastructure. """.trimMargin()
                 }
             }
         }
@@ -187,7 +189,7 @@ fun FlowContent.indexPage() {
                 h3 { +"How big can my project get?" }
                 p {
                     style = "display:inline"
-                    +"You get 10GB of persistent storage in you user directory "
+                    +"You get 10GB of persistent storage in your user directory "
                 }
                 pre {
                     style = "display:inline"
@@ -207,8 +209,8 @@ fun FlowContent.indexPage() {
                 h3 { +"What is that skadi-cloud plugin in my IDE?" }
                 p {
                     +"""The plugin is responsible for detecting if you are connected to the IDE or not. In case there is
-                        | no connection to an instance for more than 30 minutes the IDE is shutdown. You can restart it
-                        | from the instance overview and reconnect. If you disable the plugin your instance will shutdown
+                        | no connection to a playground for more than 30 minutes the playground is shutdown. You can start it again
+                        | from the playground overview and reconnect. If you disable the plugin your playground will shutdown
                         | automatically after 30 minutes.""".trimMargin()
                 }
             }

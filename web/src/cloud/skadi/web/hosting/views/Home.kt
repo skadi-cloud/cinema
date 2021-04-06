@@ -13,6 +13,14 @@ fun FlowContent.appHome(email: String, name: String) {
             b { +"${remainingContainers(email)}" }
             +" playground slots remaining."
         }
+        p {
+            +"If you find bugs, have ideas to add to the playground or questions feel free to reach out to me at "
+            a {
+                href = "mailto:kolja@hey.com"
+                +"kolja@hey.com"
+            }
+            +"."
+        }
         div {
             form {
                 attributes["data-turbo-frame"] = "instances"
