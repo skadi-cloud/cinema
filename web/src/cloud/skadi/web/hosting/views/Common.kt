@@ -20,6 +20,12 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
             }
             title { +pageName }
             styleLink("/assets/styles/styles.css")
+            script {
+                src = "https://plausible.io/js/plausible.js"
+                defer = true
+                async = true
+                attributes["data-domain"] = "skadi.cloud"
+            }
         }
         body {
             div(classes = "container") {
