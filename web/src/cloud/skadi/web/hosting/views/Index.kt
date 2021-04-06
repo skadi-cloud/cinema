@@ -7,10 +7,10 @@ fun FlowContent.indexPage() {
     div {
         id = "header-featured"
         div {
-            id="feature-bg-color"
+            id = "feature-bg-color"
         }
         div {
-            id="header-featured-name"
+            id = "header-featured-name"
             img {
                 id = "header-logo"
                 src = "/assets/icon.png"
@@ -19,7 +19,7 @@ fun FlowContent.indexPage() {
             p { +"An experiment with Projector to put JetBrains MPS into the browser." }
         }
         div {
-            id="scroll-down"
+            id = "scroll-down"
             div {
                 i(classes = "fas fa-chevron-circle-down")
             }
@@ -81,7 +81,8 @@ fun FlowContent.indexPage() {
                     +"""As a demo to the community, as an impulse to get new ideas and discussions started. 
                     |A while back I """.trimMargin()
                     a {
-                        href ="https://blog.logv.ws/2021/03/16/jetbrains-projector-a-game-changer-for-jetbrains-mps-projects/"
+                        href =
+                            "https://blog.logv.ws/2021/03/16/jetbrains-projector-a-game-changer-for-jetbrains-mps-projects/"
                         +"wrote down"
                     }
                     +""" my ideas how Projector and MPS could be used together and this is
@@ -229,6 +230,31 @@ fun FlowContent.indexPage() {
 
     div {
         id = "legal"
+        h2 {
+            +"Legal Disclosure"
+        }
+        p {
+            +"Information in accordance with Section 5 TMG"
+            br
+            br
+            +"Kolja Dummann"
+            br
+            +"Rüderner Str. 2"
+            br
+            +"70329 Stuttgart"
+            h3{+"Contact Information"}
+            +"Email:"
+            a {
+                href = "mailto:kolja@hey.com"
+                +"kolja@hey.com"
+            }
+            br
+            +"Internet address:"
+            a{
+                href = "https://skadi.cloud"
+                +"https://skadi.cloud"
+            }
+        }
         h3 {
             +"Cookies and Personal Data"
         }
