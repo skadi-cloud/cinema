@@ -14,7 +14,7 @@ if (loc.protocol === "https:") {
     new_uri = "ws:";
 }
 new_uri += "//" + loc.host;
-new_uri += loc.pathname + "/home/stream";
+new_uri += loc.pathname + "/stream";
 
 var es = new WebSocket(new_uri);
 connectStreamSource(es)
