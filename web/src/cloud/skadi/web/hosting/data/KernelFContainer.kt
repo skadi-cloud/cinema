@@ -44,7 +44,7 @@ class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
 }
 
 
-const val MAX_CONTAINERS = 3
+const val MAX_CONTAINERS = 1
 
 fun remainingContainers(email: String): Int {
     val usersContainers =

@@ -23,7 +23,7 @@ fun FlowContent.appHome(email: String, name: String) {
         }
         div {
             form {
-                attributes["data-turbo-frame"] = "instances"
+                attributes["data-turbo-frame"] = "_top"
                 id = "new-playground"
                 method = FormMethod.post
                 action = "/new-container"
