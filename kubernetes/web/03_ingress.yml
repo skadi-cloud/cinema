@@ -14,7 +14,7 @@ spec:
                 name: web-frontend
                 port:
                   number: 80
-    - host: staging.skadi.cloud
+    - host: www.skadi.cloud
       http:
         paths:
           - path: /

@@ -411,6 +411,16 @@ button.confirm {
     margin-bottom: 74px;
 }
 
+#samples-img-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#samples-img-container img {
+    max-width: 45%;
+    max-height: 45%;
+}
+
 @media (min-width: 768px) {
     .container {
         width: 90%;

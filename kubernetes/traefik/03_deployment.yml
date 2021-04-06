@@ -40,13 +40,15 @@ spec:
             # Let's Encrypt Configurtion:
             # Please note that this is the staging Let's Encrypt server configuration.
             # Once you get things working, you should remove that following line.
-            - --certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+            - --certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
             - --certificatesresolvers.le.acme.email=kolja.dummann@logv.ws
             - --certificatesresolvers.le.acme.storage=/var/lib/traefik/acme.json
             - --certificatesresolvers.le.acme.dnschallenge=true
             - --certificatesresolvers.le.acme.dnschallenge.provider=scaleway
             - --entrypoints.websecure.http.tls.domains[0].main=skadi.cloud
-            - --entrypoints.websecure.http.tls.domains[0].sans=*.staging.skadi.cloud
+            - --entrypoints.websecure.http.tls.domains[0].sans=*.wolves.skadi.cloud,www.skadi.cloud
+            - --entrypoints.web.http.redirections.entrypoint.to=websecure"
+            - --entrypoints.web.http.redirections.entrypoint.scheme=https"
             - --ping=true
             - --providers.kubernetescrd=true
             - --providers.kubernetesingress=true
