@@ -9,6 +9,7 @@ body {
 
 :root {
     --main-color: #00cc99;
+    --disable-color: #bbcccc;
 }
 
 .container {
@@ -355,6 +356,10 @@ button.confirm {
     background: var(--main-color);
     color: white;
     padding: 9px 6px 8px 10px;
+}
+
+#create-new-playground:disabled {
+    background: var(--disable-color);
 }
 
 #create-new-playground i{
