@@ -63,5 +63,5 @@ jobs:
       with:
         environment: production
         set_commits: skip
-        version: {{ steps.vars.outputs.tag }}
+        version: ${{ steps.vars.outputs.tag }}
 
