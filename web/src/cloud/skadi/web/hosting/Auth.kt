@@ -100,8 +100,10 @@ fun Application.installAuth(testing: Boolean) {
                         log.warn("Very recent github account logged in! user: ${myself.login} (${email}) created: $createdDate")
                     }
 
+                    val name = myself.name ?: myself.login
+
                     val session = UserSession(
-                        username = myself.name,
+                        username = name,
                         email = email,
                         idToken = accessToken
                     )
