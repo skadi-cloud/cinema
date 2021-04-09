@@ -44,10 +44,22 @@ jobs:
           type=semver,pattern={{version}}
     - name: Build with installDist
       run: ./gradlew :web:installDist
+    - name: Set output
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
     - name: build docker images
       uses: docker/build-push-action@v2
       with:
         context: web
         push: true
         tags: ${{ steps.meta.outputs.tags }}
+        build-args: release=${{ steps.vars.outputs.tag }}
+    - name: Create Sentry release
+      uses: getsentry/action-release@v1
+      env:
+        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+        SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      with:
+        environment: production
 
