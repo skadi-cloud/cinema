@@ -48,12 +48,12 @@ fun Application.installInternalApi(registry: PrometheusMeterRegistry) = routing 
             val containerId = call.parameters["containerId"]!!
             val container = getContainerById(containerId)
             if (container == null) {
-                log.error("container with $containerId not found!")
+                log.warn("container with $containerId not found!")
                 call.respond(HttpStatusCode.NotFound)
                 return@internalApiOnly
             }
             if (container.status != ContainerStatus.Running) {
-                log.error("container isn't running but got heartbeat: $containerId")
+                log.warn("container isn't running but got heartbeat: $containerId")
                 call.respond(HttpStatusCode.Forbidden)
                 return@internalApiOnly
             }
