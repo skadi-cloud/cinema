@@ -88,5 +88,5 @@ jobs:
       with:
         context: web
         push: true
-        tags: rg.nl-ams.scw.cloud/cloud-skadi-mps/web:${{ GITHUB_REF }}
+        tags: rg.nl-ams.scw.cloud/cloud-skadi-mps/web:$GITHUB_REF
 
