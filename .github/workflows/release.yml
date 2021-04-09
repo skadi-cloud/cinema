@@ -62,4 +62,6 @@ jobs:
         SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
       with:
         environment: production
+        set_commits: skip
+        version: {{ steps.vars.outputs.tag }}
 
