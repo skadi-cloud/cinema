@@ -14,6 +14,7 @@ import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.util.concurrent.CancellationException
 
 suspend fun updateNewContainers() {
     val logger = LoggerFactory.getLogger("updateNewContainers")
@@ -58,6 +59,8 @@ private suspend fun sendUpdatesTo(user: Int, updates: List<String>) {
         updates.forEach {
             channel.send(Frame.Text(it))
         }
+    } catch (e: CancellationException) {
+        logger.info("Websocket was already closed.")
     } catch (e: Throwable) {
         logger.error("error sending update ${e.message}", e)
     }
