@@ -1,13 +1,15 @@
 package cloud.skadi.web.hosting
 
-import cloud.skadi.web.hosting.data.ContainerStatus
-import cloud.skadi.web.hosting.data.KernelFContainer
-import cloud.skadi.web.hosting.data.KernelFContainers
+import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.views.instanceControls
 import cloud.skadi.web.hosting.views.instanceStatusFrameContent
 import cloud.skadi.web.hosting.views.template
 import cloud.skadi.web.hosting.views.turboStream
+import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.html.stream.createHTML
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.concurrent.CancellationException
 
+@ObsoleteCoroutinesApi
 suspend fun updateNewContainers() {
     val logger = LoggerFactory.getLogger("updateNewContainers")
     for (tick in containerStatusTicker) {
@@ -84,6 +87,7 @@ private fun instanceControlsUpdate(it: KernelFContainer) =
         }
     }
 
+@ObsoleteCoroutinesApi
 suspend fun updateRunningContainers() {
     val logger = LoggerFactory.getLogger("updateRunningContainers")
     for (tick in runningContainerStatusTicker) {
@@ -116,6 +120,9 @@ suspend fun updateRunningContainers() {
             }.map {
                 it.status = ContainerStatus.Stopping
                 pauseContainer(it.id.value)
+                GlobalScope.launch {
+                    logEvent(EventType.Paused, it, data = "heartbead timeout")
+                }
                 Pair(it.user.id.value, listOf(instanceStatusUpdate(it), instanceControlsUpdate(it)))
             }
         }

@@ -3,14 +3,10 @@ package cloud.skadi.web.hosting
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.k8s.*
 import cloud.skadi.web.hosting.views.AppTemplate
-import cloud.skadi.web.hosting.views.IndexTemplate
 import cloud.skadi.web.hosting.views.confirmDelete
 import com.fkorotkov.kubernetes.*
-import com.fkorotkov.kubernetes.apps.*
-import com.fkorotkov.kubernetes.networking.v1beta1.*
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.ktor.application.*
-import io.ktor.client.request.*
 import io.ktor.html.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -80,8 +76,11 @@ fun Application.containerApi() = routing {
                 ByteBuffer.allocate(16).putLong(rwId.mostSignificantBits).putLong(rwId.leastSignificantBits).array()
             ).decodeToString()
             val container = createContainer(user, version, rwToken, roToken)
+            val dbUser = getUserById(user)
+            logEvent(EventType.Created, container, dbUser)
             transaction { container.status = ContainerStatus.Deploying }
             deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
+            logEvent(EventType.Started, container, dbUser)
             call.respondSeeOther(HOME_PATH)
         }
 
@@ -101,6 +100,7 @@ fun Application.containerApi() = routing {
             call.withUserContainerViaParam { container ->
                 undeployContainer(container.id.value)
                 deleteContainerById(container.id.value)
+                logEvent(EventType.Deleted, container, getUserById(call.session!!.email))
                 call.respondSeeOther(HOME_PATH)
             }
         }
@@ -114,6 +114,7 @@ fun Application.containerApi() = routing {
                         container.lastHeartBeat = LocalDateTime.now()
                     }
                     startContainer(container.id.value)
+                    logEvent(EventType.Started, container, getUserById(call.session!!.email))
                 }
                 call.respondSeeOther(HOME_PATH)
             }
@@ -125,6 +126,7 @@ fun Application.containerApi() = routing {
                 if (canStopContainer(container)) {
                     transaction { container.status = ContainerStatus.Stopping }
                     pauseContainer(container.id.value)
+                    logEvent(EventType.Paused, container, getUserById(call.session!!.email))
                 }
                 call.respondSeeOther(HOME_PATH)
             }
