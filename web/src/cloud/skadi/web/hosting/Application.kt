@@ -44,6 +44,7 @@ import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.lang.RuntimeException
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -76,6 +77,7 @@ val INSTANCE_HOST = getEnvOrDefault("INSTANCE_HOST", "localhost") // "staging.sk
 const val HOME_PATH = "/home"
 const val INTERNAL_API_PORT = 9090
 
+@KtorExperimentalLocationsAPI
 @Location("/login/{type?}")
 class Login(val type: String = "")
 
@@ -85,8 +87,10 @@ data class UserSession(
     val idToken: String
 )
 
+@KtorExperimentalLocationsAPI
+@ObsoleteCoroutinesApi
 @ExperimentalTime
-fun main(args: Array<String>): Unit {
+fun main() {
     val env = applicationEngineEnvironment {
         developmentMode = getEnvOrDefault("ENV", "production") != "production"
 
@@ -118,10 +122,7 @@ fun getChannelToUser(id: Int): SendChannel<Frame>? {
     return userStreams.get(id)
 }
 
-fun setChannelForUser(id: Int, channel: SendChannel<Frame>) {
-
-}
-
+@ObsoleteCoroutinesApi
 @KtorExperimentalLocationsAPI
 @ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
@@ -174,19 +175,11 @@ fun Application.mainModule(testing: Boolean = false) {
     }
     install(WebSockets)
 
-
-    Database.connect(
-        "jdbc:postgresql://$SQL_HOST/$SQL_DB", driver = "org.postgresql.Driver",
-        user = SQL_USER, password = SQL_PASSWORD
-    )
-
-    transaction {
-        try {
-            SchemaUtils.create(Users, KernelFContainers)
-        } catch (_: Throwable) {
-
-        }
+    if(!initDb("jdbc:postgresql://$SQL_HOST/$SQL_DB", SQL_USER, SQL_PASSWORD)) {
+        log.error("can't init database")
+        throw RuntimeException("failed to init db")
     }
+
     if (!testing) {
         GlobalScope.launch {
             updateNewContainers()
@@ -238,6 +231,7 @@ fun Application.mainModule(testing: Boolean = false) {
             try {
                 for (frame in incoming) {
                     val text = (frame as Frame.Text).readText()
+                    log.info("client send $text")
                 }
             } catch (e: ClosedReceiveChannelException) {
                 userStreams.remove(user.id.value)
@@ -274,7 +268,7 @@ private fun createUserIfNotExists(email: String) {
 val ApplicationCall.session: UserSession?
     get() = sessions.get<UserSession>()
 
-public suspend fun ApplicationCall.respondSeeOther(url: String) {
+suspend fun ApplicationCall.respondSeeOther(url: String) {
     response.headers.append(HttpHeaders.Location, url)
     respond(HttpStatusCode.SeeOther)
 }
