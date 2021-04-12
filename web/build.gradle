@@ -17,15 +17,14 @@ sourceSets {
 repositories {
     mavenLocal()
     jcenter()
-    maven { url 'https://kotlin.bintray.com/ktor' }
-    maven { url 'https://kotlin.bintray.com/kotlin-js-wrappers' }
+    maven { url 'https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven'}
 }
 
 configurations {
     jsFiles
 }
 
-def ktor_version = "1.5.1"
+def ktor_version = "1.5.3"
 def logback_version = "1.2.3"
 def exposed_version = '0.30.1'
 def jupiter_version = '5.7.1'
