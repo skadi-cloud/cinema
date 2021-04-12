@@ -17,8 +17,7 @@ sourceSets {
 repositories {
     mavenLocal()
     jcenter()
-    maven { url 'https://kotlin.bintray.com/ktor' }
-    maven { url 'https://kotlin.bintray.com/kotlin-js-wrappers' }
+    maven { url 'https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven'}
 }
 
 configurations {
