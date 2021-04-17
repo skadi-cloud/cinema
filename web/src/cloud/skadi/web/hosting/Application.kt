@@ -1,14 +1,10 @@
 package cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.data.*
+import cloud.skadi.web.hosting.routing.containerApi
+import cloud.skadi.web.hosting.routing.home
 import cloud.skadi.web.hosting.views.*
-import com.fasterxml.jackson.databind.*
-import com.fkorotkov.kubernetes.extensions.*
 import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.client.*
-import io.ktor.client.engine.apache.*
-import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.html.*
 import io.ktor.http.*
@@ -16,14 +12,11 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.locations.*
 import io.ktor.metrics.micrometer.*
-import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.sessions.*
-import io.ktor.util.*
-import io.ktor.util.collections.*
 import io.ktor.websocket.*
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
@@ -40,13 +33,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.TickerMode
 import kotlinx.coroutines.channels.ticker
-import kotlinx.html.*
-import kotlinx.html.stream.createHTML
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.lang.RuntimeException
-import java.time.LocalDateTime
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 
@@ -194,54 +181,7 @@ fun Application.mainModule(testing: Boolean = false) {
     installInternalApi(prometheusMeterRegistry)
 
     routing {
-        get("/") {
-            call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
-                content {
-                    indexPage()
-                }
-            }
-        }
-
-        get(HOME_PATH) {
-            if (call.session == null) {
-                call.respondRedirect("/")
-                return@get
-            }
-            val email = call.session!!.email
-            val name = call.session!!.username
-            createUserIfNotExists(email)
-            call.respondHtmlTemplate(AppTemplate("Skadi Cloud")) {
-                content { appHome(email, name) }
-            }
-        }
-        webSocket("$HOME_PATH/stream") {
-            if (call.session == null) {
-                call.respondRedirect("/")
-                return@webSocket
-            }
-            val user = getUserById(call.session!!.email)!!
-            log.info("streaming events for user ${user.id.value}")
-            val old = userStreams.put(user.id.value, outgoing)
-            try {
-                log.info("old value is $old")
-                old?.close()
-            } catch (e: Throwable) {
-                log.error("can't close old client connection", e)
-            }
-            try {
-                for (frame in incoming) {
-                    val text = (frame as Frame.Text).readText()
-                    log.info("client send $text")
-                }
-            } catch (e: ClosedReceiveChannelException) {
-                userStreams.remove(user.id.value)
-                log.info("connection closed for user ${user.id.value}")
-            } catch (e: Throwable) {
-                userStreams.remove(user.id.value)
-                log.error("websocket error for user ${user.id.value}", e)
-            }
-        }
-
+        home()
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("assets") {
             static("webfonts") {
@@ -257,13 +197,7 @@ fun Application.mainModule(testing: Boolean = false) {
         }
     }
 }
-private fun createUserIfNotExists(email: String) {
-    if (!userExists(email)) {
-        createUser(email)
-    } else {
-        loginUser(email)
-    }
-}
+
 
 val ApplicationCall.session: UserSession?
     get() = sessions.get<UserSession>()
