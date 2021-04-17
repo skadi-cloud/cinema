@@ -1,6 +1,6 @@
 package test.cloud.skadi.web.hosting
 
-import cloud.skadi.web.hosting.CONTAINER_LATEST
+import cloud.skadi.web.hosting.routing.CONTAINER_LATEST
 import cloud.skadi.web.hosting.getEnvOfFail
 import cloud.skadi.web.hosting.getEnvOrDefault
 import io.ktor.http.*

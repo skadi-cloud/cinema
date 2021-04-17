@@ -1,11 +1,12 @@
 package cloud.skadi.web.hosting
 
 import cloud.skadi.web.hosting.data.*
+import cloud.skadi.web.hosting.routing.getPodStatus
+import cloud.skadi.web.hosting.routing.pauseContainer
 import cloud.skadi.web.hosting.views.instanceControls
 import cloud.skadi.web.hosting.views.instanceStatusFrameContent
 import cloud.skadi.web.hosting.views.template
 import cloud.skadi.web.hosting.views.turboStream
-import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi

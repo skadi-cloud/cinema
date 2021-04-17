@@ -2,8 +2,9 @@ package cloud.skadi.web.hosting.views
 
 import cloud.skadi.web.hosting.data.*
 import kotlinx.html.*
+import java.util.*
 
-fun FlowContent.appHome(email: String, name: String) {
+fun FlowContent.    appHome(email: String, name: String, toEdit: UUID? = null) {
     div {
         id = "top"
         p {
@@ -27,22 +28,7 @@ fun FlowContent.appHome(email: String, name: String) {
                 id = "new-playground"
                 method = FormMethod.post
                 action = "/new-container"
-                select() {
-                    this.name = "version"
-                    enumValues<ContainerVersion>().mapIndexed { i, version ->
-                        option {
-                            value = version.name
-                            if (i == 0) {
-                                selected = true
-                            }
-                            if (version.buildNumber != null && version.commit != null) {
-                                +"MPS ${version.mpsVersion.fullVersion} KernelF ${version.buildNumber}"
-                            } else {
-                                +"MPS ${version.mpsVersion.fullVersion}"
-                            }
-                        }
-                    }
-                }
+                versionSelectBox()
 
                 button {
                     type = ButtonType.submit
@@ -58,7 +44,7 @@ fun FlowContent.appHome(email: String, name: String) {
         }
         instanceTable {
             containers(email).forEach { container ->
-                containerRow(container)
+                containerRow(container, container.id.value == toEdit)
             }
         }
     }
@@ -143,3 +129,5 @@ fun FlowContent.appHome(email: String, name: String) {
         }
     }
 }
+
+

@@ -115,7 +115,7 @@ body {
 #header-featured h1 {
     text-align: left;
     margin-top: 3px;
-    margin-bottom: 0px;
+    margin-bottom: 0;
     font-size: 48px;
 }
 
@@ -258,6 +258,24 @@ thead th {
     margin-bottom: 0;
     color: rgb(178, 182, 195);
     font-weight: 100;
+    display: inline;
+}
+
+.container-name .container-update select {
+    padding: 2px;
+    font-size: 1em;
+    border: 1px solid var(--main-color);
+    border-radius: 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-weight: 100;
+}
+
+.container-name .container-update button {
+    border: none;
+    background: none;
+    font-size: 1em;
 }
 
 .tooltip {

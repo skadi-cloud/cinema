@@ -1,7 +1,7 @@
 package test.cloud.skadi.web.hosting
 
 import cloud.skadi.shared.hmac.sign
-import cloud.skadi.web.hosting.CONTAINER_LATEST
+import cloud.skadi.web.hosting.routing.CONTAINER_LATEST
 import cloud.skadi.web.hosting.mainModule
 import io.ktor.http.*
 import io.ktor.locations.*

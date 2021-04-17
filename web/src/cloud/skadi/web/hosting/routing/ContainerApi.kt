@@ -1,10 +1,13 @@
-package cloud.skadi.web.hosting
+package cloud.skadi.web.hosting.routing
 
+import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.k8s.*
+import cloud.skadi.web.hosting.respondSeeOther
+import cloud.skadi.web.hosting.session
 import cloud.skadi.web.hosting.views.AppTemplate
 import cloud.skadi.web.hosting.views.confirmDelete
-import com.fkorotkov.kubernetes.*
+import com.fkorotkov.kubernetes.newListOptions
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.ktor.application.*
 import io.ktor.html.*
@@ -12,42 +15,15 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.seruco.encoding.base62.Base62
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import java.util.*
-import io.seruco.encoding.base62.Base62
-import java.nio.ByteBuffer
 
 val CONTAINER_LATEST = ContainerVersion.V2020_3_4731_f5286c0
-
-suspend fun ApplicationCall.authenticated(body: suspend () -> Unit) {
-    if (this.session == null) {
-        this.respondRedirect("/")
-        return
-    }
-    body()
-}
-
-suspend fun ApplicationCall.withUserContainerViaParam(body: suspend (KernelFContainer) -> Unit) {
-    val containerId = this.parameters["id"]!!
-    val container = getContainerById(containerId)
-    if (container == null) {
-        this.respond(HttpStatusCode.NotFound)
-        return
-    }
-
-    val isUsersContainer = transaction {
-        this@withUserContainerViaParam.session?.email == container.user.email
-    }
-    if (!isUsersContainer) {
-        this.respond(HttpStatusCode.Forbidden)
-        return
-    }
-    body(container)
-}
-
 fun Application.containerApi() = routing {
     post("/new-container") {
         call.authenticated {
@@ -132,6 +108,25 @@ fun Application.containerApi() = routing {
             }
         }
     }
+    post("/container/{id}/edit") {
+        call.authenticated {
+            call.withUserContainerViaParam { container ->
+                val params = call.receiveParameters()
+                val versionParam = params["version"]!!
+
+                val version = enumValueOf<ContainerVersion>(versionParam)
+                if (container.version != version) {
+                    transaction {
+                        container.version = version
+                        container.status = ContainerStatus.Deploying
+                    }
+                    logEvent(EventType.Updated, container, getUserById(call.session!!.email), "new version: $version")
+                    deployContainer(container)
+                }
+                call.respondSeeOther(HOME_PATH)
+            }
+        }
+    }
 }
 
 fun canStopContainer(container: KernelFContainer): Boolean {
@@ -154,12 +149,18 @@ fun startContainer(id: UUID) = GlobalScope.launch {
     client.apps().deployments().withName(deploymentName(id)).scale(1)
 }
 
+
 fun deployContainer(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) = GlobalScope.launch {
     client.persistentVolumeClaims().create(MPSInstancePVC(id))
     client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
     client.services().create(MPSInstanceService(id))
     client.network().ingresses().create(MPSInstanceIngress(id))
 }
+
+fun deployContainer(container: KernelFContainer) {
+    deployContainer(container.id.value, container.version.tag, container.rwToken, container.roToken)
+}
+
 
 fun undeployContainer(id: UUID) = GlobalScope.launch {
     client.network().ingresses().delete(MPSInstanceIngress(id))

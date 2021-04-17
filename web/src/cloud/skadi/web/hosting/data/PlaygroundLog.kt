@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 
 // Only add new values at the end since the ordinal value is used to serialize it in the data base
 enum class EventType {
-    Created, Paused, Deleted, Started
+    Created, Paused, Deleted, Started, Updated
 }
 
 object PlaygroundLogTable: IntIdTable() {

@@ -1,9 +1,11 @@
 package cloud.skadi.web.hosting.views
 
+import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.INSTANCE_HOST
-import cloud.skadi.web.hosting.canStartContainer
-import cloud.skadi.web.hosting.canStopContainer
+import cloud.skadi.web.hosting.routing.canStartContainer
+import cloud.skadi.web.hosting.routing.canStopContainer
 import cloud.skadi.web.hosting.data.ContainerStatus
+import cloud.skadi.web.hosting.data.ContainerVersion
 import cloud.skadi.web.hosting.data.KernelFContainer
 import io.ktor.html.*
 import kotlinx.html.*
@@ -167,21 +169,49 @@ fun FlowContent.instanceControls(container: KernelFContainer) {
     }
 }
 
-fun TBODY.containerRow(container: KernelFContainer) {
+fun TBODY.containerRow(container: KernelFContainer, edit: Boolean = false) {
     tr {
         td {
             id = "status-${container.id.value}"
             instanceStatusFrameContent(container)
         }
         td(classes = "container-name") {
-            +container.name
-            p {
-                if (container.version.buildNumber != null && container.version.commit != null) {
-                    +"MPS: ${container.version.mpsVersion.fullVersion} KernelF: ${container.version.buildNumber}.${container.version.commit}"
+            turboFrame {
+                id = "container-settings-${container.id.value}"
+                +container.name
+                if(!edit) {
+                    div {
+                        p {
+                            if (container.version.buildNumber != null && container.version.commit != null) {
+                                +"MPS: ${container.version.mpsVersion.fullVersion} KernelF: ${container.version.buildNumber}"
+                            } else {
+                                +"MPS: ${container.version.mpsVersion.fullVersion}"
+                            }
+                        }
+                        a(classes = "edit"){
+                            href = "/home/edit/${container.id.value}"
+                            i(classes = "fas fa-cog")
+                        }
+                    }
                 } else {
-                    +"MPS: ${container.version.mpsVersion.fullVersion}"
+                    form(classes = "container-update") {
+                        id = "update-${container.id.value}"
+                        method = FormMethod.post
+                        action = "/container/${container.id.value}/edit"
+                        versionSelectBox(container.version)
+                        a(classes = "cancel") {
+                            href = HOME_PATH
+                            i(classes = "far fa-times-circle")
+                        }
+                        button(classes = "confirm") {
+                            type = ButtonType.submit
+                            id = "confirm-edit-${container.name}"
+                            i(classes = "fas fa-check-circle")
+                        }
+                    }
                 }
             }
+
         }
         td(classes = "date-relative") {
             val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -213,5 +243,25 @@ fun TBODY.containerRow(container: KernelFContainer) {
             instanceControls(container)
         }
     }
+}
 
+fun FORM.versionSelectBox(toSelect: ContainerVersion? = null) {
+    select {
+        this.name = "version"
+        enumValues<ContainerVersion>().mapIndexed { i, version ->
+            option {
+                value = version.name
+                if (toSelect == null && i == 0) {
+                    selected = true
+                } else if(toSelect == version) {
+                    selected = true
+                }
+                if (version.buildNumber != null && version.commit != null) {
+                    +"MPS ${version.mpsVersion.fullVersion} KernelF ${version.buildNumber}"
+                } else {
+                    +"MPS ${version.mpsVersion.fullVersion}"
+                }
+            }
+        }
+    }
 }
