@@ -1,6 +1,7 @@
 package cloud.skadi.ide.plugin.impl
 
 import cloud.skadi.ide.plugin.SkadiHeartbeatService
+import cloud.skadi.shared.hmac.sign
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandEvent
@@ -8,12 +9,17 @@ import com.intellij.openapi.command.CommandListener
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.*
+import org.apache.http.HttpHeaders
+import org.apache.http.entity.ContentType
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.util.*
+
 
 class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
     private var wasActive = false
@@ -110,11 +116,20 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
         override fun run() {
             if (wasActive()) {
                 try {
+                    val signature = sign(token)
+
+                    val body = mapOf(Pair("nonce", signature.second), Pair("signature", signature.first))
+
                     val client = HttpClient.newHttpClient()
                     val request = HttpRequest.newBuilder()
-                        .POST(HttpRequest.BodyPublishers.ofString(token))
+                        .POST(ofFormData(body))
                         .timeout(Duration.ofSeconds(30))
                         .uri(URI.create("http://$backendAddress/heartbeat/$skadiInstance"))
+                        .header("X-Heartbeat-Version", "2")
+                        .header(
+                            HttpHeaders.CONTENT_TYPE,
+                            ContentType.APPLICATION_FORM_URLENCODED.mimeType
+                        )
                         .build()
                     client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenAccept {
                         logger.info("heartbeat send")
@@ -126,5 +141,24 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
                 logger.warn("no activity not sending heartbeat.")
             }
         }
+
+        fun ofFormData(data: Map<String, String>): HttpRequest.BodyPublisher? {
+            val result = StringBuilder()
+            for ((key, value) in data) {
+                if (result.isNotEmpty()) {
+                    result.append("&")
+                }
+                val encodedName = URLEncoder.encode(key, StandardCharsets.UTF_8)
+                val encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8)
+                result.append(encodedName)
+                if (encodedValue != null) {
+                    result.append("=")
+                    result.append(encodedValue)
+                }
+            }
+            return HttpRequest.BodyPublishers.ofString(result.toString())
+        }
     }
 }
+
+

@@ -19,6 +19,7 @@ def mpsVersion = "2020.3.+"
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
     compileOnly "com.jetbrains:mps-workbench:$mpsVersion"
+    implementation project(":shared")
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/

@@ -2,6 +2,7 @@ package test.cloud.skadi.web.hosting
 
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 
 // From https://ktor.io/servers/testing.html#preserving-cookies
 
@@ -17,6 +18,8 @@ class CookieTrackerTestApplicationEngine(
     var trackedCookies: List<Cookie> = listOf()
 )
 
+
+@KtorExperimentalAPI
 fun CookieTrackerTestApplicationEngine.handleRequest(
     method: HttpMethod,
     uri: String,

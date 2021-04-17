@@ -30,6 +30,8 @@ def exposed_version = '0.30.2'
 def jupiter_version = '5.7.1'
 
 dependencies {
+    implementation project(":shared")
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "io.ktor:ktor-server-netty:$ktor_version"
     implementation "ch.qos.logback:logback-classic:$logback_version"
@@ -63,6 +65,7 @@ dependencies {
 
     implementation 'io.sentry:sentry-logback:4.3.0'
 
+    testImplementation 'org.jsoup:jsoup:1.13.1'
     testImplementation("io.ktor:ktor-server-tests:$ktor_version") {
         exclude group: 'junit', module: 'junit'
     }
