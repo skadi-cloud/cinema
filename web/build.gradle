@@ -53,7 +53,7 @@ dependencies {
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.128'
 
     implementation "com.fkorotkov:kubernetes-dsl:2.8.1"
-    implementation "io.fabric8:kubernetes-client:4.11.2"
+    implementation "io.fabric8:kubernetes-client:5.2.1"
 
     implementation "ch.qos.logback:logback-classic:1.2.3"
 
