@@ -2,11 +2,11 @@ package cloud.skadi.web.hosting.views
 
 import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.INSTANCE_HOST
-import cloud.skadi.web.hosting.routing.canStartContainer
-import cloud.skadi.web.hosting.routing.canStopContainer
 import cloud.skadi.web.hosting.data.ContainerStatus
 import cloud.skadi.web.hosting.data.ContainerVersion
 import cloud.skadi.web.hosting.data.KernelFContainer
+import cloud.skadi.web.hosting.routing.canStartContainer
+import cloud.skadi.web.hosting.routing.canStopContainer
 import io.ktor.html.*
 import kotlinx.html.*
 import java.time.ZoneOffset
@@ -179,16 +179,12 @@ fun TBODY.containerRow(container: KernelFContainer, edit: Boolean = false) {
             turboFrame {
                 id = "container-settings-${container.id.value}"
                 +container.name
-                if(!edit) {
+                if (!edit) {
                     div {
                         p {
-                            if (container.version.buildNumber != null && container.version.commit != null) {
-                                +"MPS: ${container.version.mpsVersion.fullVersion} KernelF: ${container.version.buildNumber}"
-                            } else {
-                                +"MPS: ${container.version.mpsVersion.fullVersion}"
-                            }
+                            +container.version.description
                         }
-                        a(classes = "edit"){
+                        a(classes = "edit") {
                             href = "/home/edit/${container.id.value}"
                             i(classes = "fas fa-cog")
                         }
@@ -253,15 +249,12 @@ fun FORM.versionSelectBox(toSelect: ContainerVersion? = null) {
                 value = version.name
                 if (toSelect == null && i == 0) {
                     selected = true
-                } else if(toSelect == version) {
+                } else if (toSelect == version) {
                     selected = true
                 }
-                if (version.buildNumber != null && version.commit != null) {
-                    +"MPS ${version.mpsVersion.fullVersion} KernelF ${version.buildNumber}"
-                } else {
-                    +"MPS ${version.mpsVersion.fullVersion}"
-                }
+                +version.description
             }
         }
     }
+
 }

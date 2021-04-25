@@ -28,7 +28,18 @@ fun FlowContent.    appHome(email: String, name: String, toEdit: UUID? = null) {
                 id = "new-playground"
                 method = FormMethod.post
                 action = "/new-container"
-                versionSelectBox()
+                select() {
+                    this.name = "version"
+                    enumValues<ContainerVersion>().mapIndexed { i, version ->
+                        option {
+                            value = version.name
+                            if (i == 0) {
+                                selected = true
+                            }
+                            +version.description
+                        }
+                    }
+                }
 
                 button {
                     type = ButtonType.submit

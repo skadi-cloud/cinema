@@ -1,6 +1,6 @@
 package test.cloud.skadi.web.hosting
 
-import cloud.skadi.web.hosting.routing.CONTAINER_LATEST
+import cloud.skadi.web.hosting.data.ContainerVersion
 import cloud.skadi.web.hosting.getEnvOfFail
 import cloud.skadi.web.hosting.getEnvOrDefault
 import io.ktor.http.*
@@ -47,7 +47,7 @@ fun CookieTrackerTestApplicationEngine.withContainer(setup: (ContainerData) -> U
     }
     handleRequest(HttpMethod.Post, "/new-container") {
         addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-        setBody(listOf("version" to CONTAINER_LATEST.name).formUrlEncode())
+        setBody(listOf("version" to ContainerVersion.V2020_3_4731_f5286c0.name).formUrlEncode())
     }.apply {
         assertEquals(HttpStatusCode.SeeOther, response.status())
         assertEquals("/home", response.headers[HttpHeaders.Location])

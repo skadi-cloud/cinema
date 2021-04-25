@@ -7,7 +7,7 @@ import cloud.skadi.web.hosting.respondSeeOther
 import cloud.skadi.web.hosting.session
 import cloud.skadi.web.hosting.views.AppTemplate
 import cloud.skadi.web.hosting.views.confirmDelete
-import com.fkorotkov.kubernetes.newListOptions
+import com.fkorotkov.kubernetes.*
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.ktor.application.*
 import io.ktor.html.*
@@ -23,7 +23,7 @@ import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import java.util.*
 
-val CONTAINER_LATEST = ContainerVersion.V2020_3_4731_f5286c0
+val CONTAINER_DEFAULT = ContainerVersion.V2020_3_4731_f5286c0
 fun Application.containerApi() = routing {
     post("/new-container") {
         call.authenticated {
@@ -36,7 +36,7 @@ fun Application.containerApi() = routing {
             val params = call.receiveParameters()
             val versionParam = params["version"]
 
-            var version = CONTAINER_LATEST
+            var version = CONTAINER_DEFAULT
             if (versionParam != null) {
                 version = enumValueOf(versionParam)
             }
@@ -55,7 +55,7 @@ fun Application.containerApi() = routing {
             val dbUser = getUserById(user)
             logEvent(EventType.Created, container, dbUser)
             transaction { container.status = ContainerStatus.Deploying }
-            deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
+            deployContainer(container.id.value, version.imageName, rwToken, roToken)
             logEvent(EventType.Started, container, dbUser)
             call.respondSeeOther(HOME_PATH)
         }
@@ -158,7 +158,7 @@ fun deployContainer(id: UUID, kernelFVersion: String, rwToken: String, roToken: 
 }
 
 fun deployContainer(container: KernelFContainer) {
-    deployContainer(container.id.value, container.version.tag, container.rwToken, container.roToken)
+    deployContainer(container.id.value, container.version.imageName, container.rwToken, container.roToken)
 }
 
 

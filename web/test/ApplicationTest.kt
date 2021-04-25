@@ -1,7 +1,7 @@
 package test.cloud.skadi.web.hosting
 
 import cloud.skadi.shared.hmac.sign
-import cloud.skadi.web.hosting.routing.CONTAINER_LATEST
+import cloud.skadi.web.hosting.data.ContainerVersion
 import cloud.skadi.web.hosting.mainModule
 import io.ktor.http.*
 import io.ktor.locations.*
@@ -133,7 +133,7 @@ class ApplicationTest {
                 }
                 handleRequest(HttpMethod.Post, "/new-container") {
                     addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                    setBody(listOf("version" to CONTAINER_LATEST.name).formUrlEncode())
+                    setBody(listOf("version" to ContainerVersion.V2020_3_4731_f5286c0.name).formUrlEncode())
                 }.apply {
                     assertEquals(HttpStatusCode.SeeOther, response.status())
                     assertEquals("/home", response.headers[HttpHeaders.Location])
