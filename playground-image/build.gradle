@@ -1,43 +1,53 @@
-
-def mpsVersion = System.getenv("MPS_VERSION")
-def kernelFVersion = System.getenv("KERNELF_VERSION")
 def registryName = System.getenv("DOCKER_REGISTRY")
 
-String imageTag
-String kernelFDownloadUrl
-
-if(mpsVersion == null) {
-    mpsVersion = "2020.3.3"
+class Image {
+    String mpsVersion
+    String pluginDownloadUrl
+    String imageName
 }
 
-def includesKernelF = kernelFVersion != null && !kernelFVersion.isEmpty()
+static def kernelFUrl(String mpsVersion, String kernelFVersion) {
+    String mpsShortVersion = mpsVersion.substring(0, 6)
+    return "https://github.com/IETS3/iets3.opensource/releases/download/nightly-${mpsShortVersion}.${kernelFVersion}/org.iets3.opensource-with-dependencies-${mpsShortVersion}.${kernelFVersion}.zip"
+}
 
-String mpsShortVersion = mpsVersion.substring(0, 6)
+def images = [
+        new Image(mpsVersion: "2020.3.3", imageName: "2020.3.3"),
+        new Image(mpsVersion: "2020.2.3", imageName: "2020.2.3"),
+        new Image(mpsVersion: "2020.3.1", imageName: "2020.3.1"),
+        new Image(mpsVersion: "2020.3.3", imageName: "2020.3.3-4731.f5286c0", pluginDownloadUrl: kernelFUrl("2020.3.3", "4731.f5286c0")),
+]
 
-if(registryName == null) {
+if (registryName == null) {
     registryName = ""
 } else if (!registryName.endsWith("/")) {
     registryName += "/"
 }
 
-if(includesKernelF) {
-    imageTag = "$registryName$mpsVersion-$kernelFVersion"
-    kernelFDownloadUrl = "https://github.com/IETS3/iets3.opensource/releases/download/nightly-${mpsShortVersion}.${kernelFVersion}/org.iets3.opensource-with-dependencies-${mpsShortVersion}.${kernelFVersion}.zip"
-} else {
-    imageTag = "$registryName$mpsVersion"
-}
-
-String mpsDownloadUrl = "https://download.jetbrains.com/mps/${mpsShortVersion}/MPS-${mpsVersion}.tar.gz"
-
-task buildImage(type:Exec, dependsOn: ":ide-plugin:buildPlugin") {
-    dependsOn gradle.includedBuild('skadi-community-samples').task(':createZip')
-    if(includesKernelF) {
-        commandLine './build-container.sh', imageTag, mpsDownloadUrl, kernelFDownloadUrl
-    } else {
-        commandLine './build-container.sh', imageTag, mpsDownloadUrl
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://projects.itemis.de/nexus/content/repositories/mbeddr'
     }
 }
 
-task pushImage(type:Exec, dependsOn: buildImage) {
-    commandLine "docker", "push", imageTag
+images.forEach { image ->
+    String mpsShortVersion = image.mpsVersion.substring(0, 6)
+    String mpsDownloadUrl = "https://download.jetbrains.com/mps/${mpsShortVersion}/MPS-${image.mpsVersion}.tar.gz"
+    def imageTag = "$registryName${image.imageName}"
+
+    def buildImage = tasks.create("buildImage${image.imageName}", Exec) {
+        dependsOn(":ide-plugin:buildPlugin")
+        dependsOn gradle.includedBuild('skadi-community-samples').task(':createZip')
+        if (image.pluginDownloadUrl != null) {
+            commandLine './build-container.sh', imageTag, mpsDownloadUrl, image.pluginDownloadUrl
+
+        } else {
+            commandLine './build-container.sh', imageTag, mpsDownloadUrl
+        }
+    }
+    tasks.create("pushImage${image.imageName}", Exec) {
+        dependsOn(buildImage)
+        commandLine "docker", "push", imageTag
+    }
 }

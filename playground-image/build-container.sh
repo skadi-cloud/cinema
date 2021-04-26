@@ -22,6 +22,8 @@ set -x # Activate debugging to show execution details: all commands will be prin
 containerName=${1}
 downloadUrl=${2}
 pluginUrl=${3}
+pathToPlugins=${4}
+
 
 # build container:
-DOCKER_BUILDKIT=1 docker build --progress=plain -t "$containerName" --build-arg buildGradle=true --build-arg "downloadUrl=$downloadUrl" --build-arg "pluginUrl=$pluginUrl" -f Dockerfile ..
+DOCKER_BUILDKIT=1 docker build --progress=plain -t "$containerName" --build-arg buildGradle=true --build-arg "downloadUrl=$downloadUrl" --build-arg "pluginUrl=$pluginUrl" --build-arg "pathToPlugins=$pathToPlugins" -f Dockerfile ..
