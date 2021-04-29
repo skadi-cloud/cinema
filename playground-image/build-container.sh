@@ -26,4 +26,4 @@ pathToPlugins=${4}
 
 
 # build container:
-DOCKER_BUILDKIT=1 docker build --progress=plain -t "$containerName" --build-arg buildGradle=true --build-arg "downloadUrl=$downloadUrl" --build-arg "pluginUrl=$pluginUrl" --build-arg "pathToPlugins=$pathToPlugins" -f Dockerfile ..
+DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --progress=plain -t "$containerName" --build-arg buildGradle=true --build-arg "downloadUrl=$downloadUrl" --build-arg "pluginUrl=$pluginUrl" --build-arg "pathToPlugins=$pathToPlugins" -f Dockerfile ..

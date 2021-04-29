@@ -9,14 +9,6 @@ on:
 jobs:
   images:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        mps: [ 2020.3.3, 2020.3.1, 2020.2.3]
-        include:
-          - mps: 2020.3.3
-            kernelF: 4731.f5286c0
-          - mps: 2020.2.3
-            kernelF: 4726.e49ca16
     steps:
       - name: Login to Scaleway Container Registry
         uses: docker/login-action@v1
@@ -44,8 +36,6 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew :playground-image:pushImage
+        run: ./gradlew :playground-image:publishAll
         env:
-          MPS_VERSION: ${{ matrix.mps }}
-          KERNELF_VERSION: ${{ matrix.kernelF }}
           DOCKER_REGISTRY: rg.nl-ams.scw.cloud/cloud-skadi-mps

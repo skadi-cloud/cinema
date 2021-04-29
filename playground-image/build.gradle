@@ -1,7 +1,7 @@
 def registryName = System.getenv("DOCKER_REGISTRY")
 
 class Image {
-    String mpsVersion
+    String ideUrl
     String pluginDownloadUrl
     String imageName
 }
@@ -11,11 +11,20 @@ static def kernelFUrl(String mpsVersion, String kernelFVersion) {
     return "https://github.com/IETS3/iets3.opensource/releases/download/nightly-${mpsShortVersion}.${kernelFVersion}/org.iets3.opensource-with-dependencies-${mpsShortVersion}.${kernelFVersion}.zip"
 }
 
+
+static def mpsDownloadUrl(String version) {
+    String mpsShortVersion = version.substring(0, 6)
+    String mpsDownloadUrl = "https://download.jetbrains.com/mps/${mpsShortVersion}/MPS-${version}.tar.gz"
+    return mpsDownloadUrl
+}
+
 def images = [
-        new Image(mpsVersion: "2020.3.3", imageName: "2020.3.3"),
-        new Image(mpsVersion: "2020.2.3", imageName: "2020.2.3"),
-        new Image(mpsVersion: "2020.3.1", imageName: "2020.3.1"),
-        new Image(mpsVersion: "2020.3.3", imageName: "2020.3.3-4731.f5286c0", pluginDownloadUrl: kernelFUrl("2020.3.3", "4731.f5286c0")),
+        new Image(ideUrl: mpsDownloadUrl("2020.3.3"), imageName: "2020.3.3"),
+        new Image(ideUrl: mpsDownloadUrl("2020.2.3"), imageName: "2020.2.3"),
+        new Image(ideUrl: mpsDownloadUrl("2020.3.1"), imageName: "2020.3.1"),
+        new Image(ideUrl: mpsDownloadUrl("2020.3.3"), imageName: "2020.3.3-4731.f5286c0", pluginDownloadUrl: kernelFUrl("2020.3.3", "4731.f5286c0")),
+        new Image(ideUrl: mpsDownloadUrl("2020.2.3"), imageName: "2020.2.3-4726.e49ca16", pluginDownloadUrl: kernelFUrl("2020.2.3", "4726.e49ca16")),
+        new Image(ideUrl: "https://thoughts-logv.s3.nl-ams.scw.cloud/fasten-2020.3-SNAPSHOT.tar.gz", imageName: "2020.2.3-fasten"),
 ]
 
 if (registryName == null) {
@@ -31,23 +40,34 @@ repositories {
     }
 }
 
+def allTasks = []
+def allBuildTasks = []
+
 images.forEach { image ->
-    String mpsShortVersion = image.mpsVersion.substring(0, 6)
-    String mpsDownloadUrl = "https://download.jetbrains.com/mps/${mpsShortVersion}/MPS-${image.mpsVersion}.tar.gz"
+
     def imageTag = "$registryName${image.imageName}"
 
     def buildImage = tasks.create("buildImage${image.imageName}", Exec) {
         dependsOn(":ide-plugin:buildPlugin")
         dependsOn gradle.includedBuild('skadi-community-samples').task(':createZip')
         if (image.pluginDownloadUrl != null) {
-            commandLine './build-container.sh', imageTag, mpsDownloadUrl, image.pluginDownloadUrl
+            commandLine './build-container.sh', imageTag, image.ideUrl, image.pluginDownloadUrl
 
         } else {
-            commandLine './build-container.sh', imageTag, mpsDownloadUrl
+            commandLine './build-container.sh', imageTag,  image.ideUrl
         }
     }
-    tasks.create("pushImage${image.imageName}", Exec) {
+    allBuildTasks.add(buildImage)
+    def publish = tasks.create("pushImage${image.imageName}", Exec) {
         dependsOn(buildImage)
         commandLine "docker", "push", imageTag
     }
+    allTasks.add(publish)
+}
+
+task buildAll {
+    dependsOn(allBuildTasks)
+}
+task publishAll{
+    dependsOn(allTasks)
 }
