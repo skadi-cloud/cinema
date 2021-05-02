@@ -2,6 +2,7 @@ package cloud.skadi.web.hosting.routing
 
 import cloud.skadi.web.hosting.data.KernelFContainer
 import cloud.skadi.web.hosting.data.getContainerById
+import cloud.skadi.web.hosting.redirectToLoginAndBack
 import cloud.skadi.web.hosting.session
 import io.ktor.application.*
 import io.ktor.http.*
@@ -10,7 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 suspend fun ApplicationCall.authenticated(body: suspend () -> Unit) {
     if (this.session == null) {
-        this.respondRedirect("/")
+        this.redirectToLoginAndBack()
         return
     }
     body()

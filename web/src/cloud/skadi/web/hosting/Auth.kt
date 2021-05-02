@@ -6,7 +6,9 @@ import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.features.*
 import io.ktor.html.*
+import io.ktor.http.*
 import io.ktor.locations.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
@@ -15,30 +17,68 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.html.*
 import org.kohsuke.github.GitHubBuilder
-import java.lang.IllegalArgumentException
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
 import kotlin.time.ExperimentalTime
 
+const val REDIRECT_PARAM = "rd"
+
+class SkadiNonceManager(val call: ApplicationCall) : NonceManager {
+    private var nonce: String? = null
+
+    @OptIn(InternalAPI::class)
+    override suspend fun newNonce(): String {
+        nonce = generateNonce()
+        val redirectTarget = call.parameters[REDIRECT_PARAM]
+        if (redirectTarget != null) {
+            return "${nonce!!}:${redirectTarget.let { Base64.getUrlEncoder().encodeToString(it.toByteArray(Charsets.UTF_8)) }}"
+        } else {
+            return nonce!!
+        }
+    }
+
+    override suspend fun verifyNonce(nonce: String): Boolean {
+        return true
+    }
+}
+
+
+fun ApplicationCall.getRedirectTargetFromState(): String? {
+
+    return this.parameters["state"]?.split(":")?.getOrNull(1)
+        ?.let {
+            String(Base64.getUrlDecoder().decode(it), charset = Charsets.UTF_8)
+        }
+}
+
+suspend fun ApplicationCall.redirectToLoginAndBack() {
+    val target = this.request.uri
+    respondRedirect() {
+        takeFrom("/login/github")
+        parameters[REDIRECT_PARAM] = target
+    }
+}
+
 @ExperimentalTime
 fun Application.installAuth(testing: Boolean) {
-    val loginProviders = listOf(
+    val loginProviders = mapOf("github" to { call: ApplicationCall ->
         OAuthServerSettings.OAuth2ServerSettings(
             name = "github",
             authorizeUrl = "https://github.com/login/oauth/authorize",
             accessTokenUrl = "https://github.com/login/oauth/access_token",
             clientId = GITHUB_ID,
             clientSecret = GITHUB_SECRET,
-            defaultScopes = listOf("user:email")
+            defaultScopes = listOf("user:email"),
+            nonceManager = SkadiNonceManager(call)
         )
-    ).associateBy { it.name }
+    })
 
     install(Authentication) {
         oauth("gitHubOAuth") {
             client = HttpClient(Apache)
-            providerLookup = { loginProviders[application.locations.resolve<Login>(Login::class, this).type] }
+            providerLookup =
+                { loginProviders[application.locations.resolve<Login>(Login::class, this).type]?.invoke(this) }
             urlProvider = {
                 val path = application.locations.href(Login(it.name))
                 if (!application.developmentMode) {
@@ -107,9 +147,9 @@ fun Application.installAuth(testing: Boolean) {
                         email = email,
                         idToken = accessToken
                     )
-
                     call.sessions.set(session)
-                    call.loginSuccess(HOME_PATH)
+                    val target = call.getRedirectTargetFromState() ?: HOME_PATH
+                    call.loginSuccess(target)
                 }
             }
         }

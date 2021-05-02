@@ -68,7 +68,7 @@ fun Application.installInternalApi(registry: PrometheusMeterRegistry) = routing 
                     return@internalApiOnly
                 }
 
-                if (!cloud.skadi.shared.hmac.check(signature, nonce, container.rwToken)) {
+                if (!cloud.skadi.shared.hmac.checkNonce(signature, nonce, container.rwToken)) {
                     log.error("signature mismatch for container $containerId with signature $signature and nonce $nonce")
                     call.respond(HttpStatusCode.BadRequest)
                     return@internalApiOnly

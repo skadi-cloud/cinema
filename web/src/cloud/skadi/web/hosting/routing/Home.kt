@@ -5,6 +5,7 @@ import cloud.skadi.web.hosting.data.createUser
 import cloud.skadi.web.hosting.data.getUserById
 import cloud.skadi.web.hosting.data.loginUser
 import cloud.skadi.web.hosting.data.userExists
+import cloud.skadi.web.hosting.redirectToLoginAndBack
 import cloud.skadi.web.hosting.session
 import cloud.skadi.web.hosting.userStreams
 import cloud.skadi.web.hosting.views.AppTemplate
@@ -30,7 +31,7 @@ fun Application.home() = routing {
 
     get(HOME_PATH) {
         if (call.session == null) {
-            call.respondRedirect("/")
+            call.redirectToLoginAndBack()
             return@get
         }
         val email = call.session!!.email

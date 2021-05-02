@@ -4,28 +4,40 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.random.Random
 
-fun sign(token: String): Pair<String, String> {
+fun signNonce(key: String): Pair<String, String> {
     val nonce = Random.nextBytes(32)
     val algo = "HmacSHA256"
     val mac = Mac.getInstance(algo)
 
-    mac.init(SecretKeySpec(token.toByteArray(), algo))
-
+    mac.init(SecretKeySpec(key.toByteArray(), algo))
     val sig = hex(mac.doFinal(nonce))
     return  Pair(sig, hex(nonce))
 }
 
 
-fun check(sig: String, nonceRaw: String, token: String): Boolean {
-    val nonce = hex(nonceRaw)
+fun sign(key: String, data: String): String {
     val algo = "HmacSHA256"
     val mac = Mac.getInstance(algo)
+    mac.init(SecretKeySpec(key.toByteArray(), algo))
+    return hex(mac.doFinal(data.toByteArray()))
+}
 
-    mac.init(SecretKeySpec(token.toByteArray(), algo))
-    val calculatedSig = mac.doFinal(nonce)
-    println(sig)
+fun check(sig: String, data: String, key: String): Boolean {
+    return check(sig, data.toByteArray(), key)
+}
+
+fun checkNonce(sig: String, nonce: String, key: String): Boolean {
+    return check(sig, hex(nonce), key)
+}
+
+private fun check(signature: String, data: ByteArray, key: String): Boolean {
+    val algo = "HmacSHA256"
+    val mac = Mac.getInstance(algo)
+    mac.init(SecretKeySpec(key.toByteArray(), algo))
+    val calculatedSig = mac.doFinal(data)
+    println(signature)
     println(hex(calculatedSig))
-    return calculatedSig.contentEquals(hex(sig))
+    return calculatedSig.contentEquals(hex(signature))
 }
 
 /**

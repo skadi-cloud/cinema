@@ -1,6 +1,6 @@
 package test.cloud.skadi.web.hosting
 
-import cloud.skadi.shared.hmac.sign
+import cloud.skadi.shared.hmac.signNonce
 import cloud.skadi.web.hosting.routing.CONTAINER_LATEST
 import cloud.skadi.web.hosting.mainModule
 import io.ktor.http.*
@@ -189,7 +189,7 @@ class ApplicationTest {
                         addHeader(HttpHeaders.Host, "localhost:9090")
                         addHeader("X-Heartbeat-Version", "2")
                         addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                        val signature = sign(it.rwToken)
+                        val signature = signNonce(it.rwToken)
                         val body =
                             listOf(Pair("nonce", signature.second), Pair("signature", signature.first)).formUrlEncode()
                         setBody(body)
