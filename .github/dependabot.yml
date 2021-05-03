@@ -21,7 +21,7 @@ updates:
     directory: "/web-js" # Location of package manifests
     schedule:
       interval: "daily"
-  - package-ecosystem: "gitsubmodule
+  - package-ecosystem: "gitsubmodule"
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
