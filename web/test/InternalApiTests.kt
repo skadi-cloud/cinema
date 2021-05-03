@@ -186,6 +186,45 @@ class InternalApiTests {
             }
         }
     }
+    @Test
+    fun `dequeue twice works correctly`() {
+        ensureDbEmpty()
+        val mapper = JsonMapper.builder()
+            .addModule(KotlinModule(strictNullChecks = true))
+            .build()
+        withTestApplication({ mainModule(testing = true) }) {
+            cookiesSession {
+                withContainer { container ->
+                    val task = transaction {
+                        createTask(
+                            getContainerById(container.id)!!,
+                            Task.CloneRepo("https://github.com/IETS3/iets3.opensource", emptyUUID)
+                        )
+                    }
+                    handleRequest(HttpMethod.Post, "/tasks/${container.id}/dequeue") {
+                        addHeader(HttpHeaders.Host, "localhost:9090")
+                        addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+                        val signature = signNonce(container.rwToken)
+                        val body =
+                            listOf(Pair("nonce", signature.second), Pair("signature", signature.first)).formUrlEncode()
+                        setBody(body)
+                    }.apply {
+                        assertEquals(HttpStatusCode.OK, response.status())
+                        handleRequest(HttpMethod.Post, "/tasks/${container.id}/dequeue") {
+                            addHeader(HttpHeaders.Host, "localhost:9090")
+                            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+                            val signature = signNonce(container.rwToken)
+                            val body =
+                                listOf(Pair("nonce", signature.second), Pair("signature", signature.first)).formUrlEncode()
+                            setBody(body)
+                        }.apply {
+                            assertEquals(HttpStatusCode.NotFound, response.status())
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @Test
     fun `finishing a task works`() {

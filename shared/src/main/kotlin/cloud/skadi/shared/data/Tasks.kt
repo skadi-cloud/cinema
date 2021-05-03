@@ -17,14 +17,14 @@ class TaskContainer(val payload: String, val signature: String)
 
 fun getTaskFromJson(json: String): Task {
     val mapper = JsonMapper.builder()
-        .addModule(KotlinModule(strictNullChecks = true))
+        .addModule(KotlinModule())
         .build()
     return mapper.readValue(json)
 }
 
 fun getContainer(json: String): TaskContainer {
     val mapper = JsonMapper.builder()
-        .addModule(KotlinModule(strictNullChecks = true))
+        .addModule(KotlinModule())
         .build()
     return mapper.readValue(json)
 }

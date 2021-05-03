@@ -1,7 +1,8 @@
 package cloud.skadi.ide.plugin.impl
 
 import cloud.skadi.ide.plugin.SkadiHeartbeatService
-import cloud.skadi.shared.hmac.sign
+import cloud.skadi.ide.plugin.ofFormData
+import cloud.skadi.shared.hmac.signNonce
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandEvent
@@ -12,13 +13,12 @@ import com.intellij.openapi.editor.event.*
 import org.apache.http.HttpHeaders
 import org.apache.http.entity.ContentType
 import java.net.URI
-import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 
 class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
@@ -27,6 +27,7 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
     private val documentListener: DocumentListener
     private val logger = Logger.getInstance(this::class.java)
     private val timer = Timer(true)
+    private var activityLock = AtomicInteger(0)
 
     init {
         val multicaster = EditorFactory.getInstance().eventMulticaster
@@ -75,6 +76,14 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
         installHeartbeat()
     }
 
+    override fun acquireActivityLock() {
+        this.activityLock.incrementAndGet()
+    }
+
+    override fun releaseActivityLock() {
+        this.activityLock.decrementAndGet()
+    }
+
     private fun installHeartbeat() {
         logger.info("setting up heartbeat")
 
@@ -98,7 +107,7 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
         timer.scheduleAtFixedRate(Task(address, id, token) {
             val result = this.wasActive
             this.wasActive = false
-            result
+            result || this.activityLock.get() > 0
         }, 0, 60_000)
     }
 
@@ -116,7 +125,7 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
         override fun run() {
             if (wasActive()) {
                 try {
-                    val signature = sign(token)
+                    val signature = signNonce(token)
 
                     val body = mapOf(Pair("nonce", signature.second), Pair("signature", signature.first))
 
@@ -142,22 +151,7 @@ class SkadiHeartbeatServiceImpl : SkadiHeartbeatService, Disposable {
             }
         }
 
-        fun ofFormData(data: Map<String, String>): HttpRequest.BodyPublisher? {
-            val result = StringBuilder()
-            for ((key, value) in data) {
-                if (result.isNotEmpty()) {
-                    result.append("&")
-                }
-                val encodedName = URLEncoder.encode(key, StandardCharsets.UTF_8)
-                val encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8)
-                result.append(encodedName)
-                if (encodedValue != null) {
-                    result.append("=")
-                    result.append(encodedValue)
-                }
-            }
-            return HttpRequest.BodyPublishers.ofString(result.toString())
-        }
+
     }
 }
 

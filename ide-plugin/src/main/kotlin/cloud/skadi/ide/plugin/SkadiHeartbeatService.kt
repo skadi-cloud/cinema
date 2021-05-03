@@ -8,4 +8,6 @@ interface SkadiHeartbeatService {
             return ServiceManager.getService(SkadiHeartbeatService::class.java)
         }
     }
+    fun acquireActivityLock()
+    fun releaseActivityLock()
 }

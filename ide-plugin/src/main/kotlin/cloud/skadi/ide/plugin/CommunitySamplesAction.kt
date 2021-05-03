@@ -37,7 +37,7 @@ class CommunitySamplesAction : AnAction() {
         }
         val samplesFolder = LocalFileSystem.getInstance().findFileByIoFile(samplesPathInUserHome) ?: return
 
-        val firstSample = samplesFolder.children.minByOrNull { it.name } ?: samplesFolder
+        val firstSample = samplesFolder.children.sortedBy { it.name }.firstOrNull() ?: samplesFolder
         val project = PlatformDataKeys.PROJECT.getData(e.dataContext)
         val descriptor = OpenMPSProjectFileChooserDescriptor(true)
         descriptor.title = "Community Samples"
