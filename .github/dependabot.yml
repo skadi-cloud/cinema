@@ -22,7 +22,7 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "gitsubmodule
-    irectory: "/" # Location of package manifests
+    directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
 
