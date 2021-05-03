@@ -53,7 +53,7 @@ class ApplicationTest {
         withTestApplication({ mainModule(testing = true) }) {
             handleRequest(HttpMethod.Get, "/home").apply {
                 assertEquals(HttpStatusCode.Found, response.status())
-                assertEquals("/", response.headers[HttpHeaders.Location])
+                assertEquals("http://localhost/login/github?rd=%2Fhome", response.headers[HttpHeaders.Location])
             }
         }
     }
