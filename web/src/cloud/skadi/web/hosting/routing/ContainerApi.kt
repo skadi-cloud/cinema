@@ -6,6 +6,7 @@ import cloud.skadi.web.hosting.k8s.*
 import cloud.skadi.web.hosting.respondSeeOther
 import cloud.skadi.web.hosting.session
 import cloud.skadi.web.hosting.views.AppTemplate
+import cloud.skadi.web.hosting.views.REDIRECT_AFTER_CREATE
 import cloud.skadi.web.hosting.views.confirmDelete
 import com.fkorotkov.kubernetes.newListOptions
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
@@ -57,7 +58,9 @@ fun Application.containerApi() = routing {
             transaction { container.status = ContainerStatus.Deploying }
             deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
             logEvent(EventType.Started, container, dbUser)
-            call.respondSeeOther(HOME_PATH)
+
+            val redirectTarget = params[REDIRECT_AFTER_CREATE] ?: HOME_PATH
+            call.respondSeeOther(redirectTarget)
         }
 
     }

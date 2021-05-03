@@ -16,7 +16,6 @@ sourceSets {
 
 repositories {
     mavenLocal()
-    jcenter()
     maven { url 'https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven'}
 }
 
@@ -49,6 +48,8 @@ dependencies {
     implementation "org.jetbrains.exposed:exposed-jdbc:$exposed_version"
     implementation "org.jetbrains.exposed:exposed-java-time:$exposed_version"
     implementation "org.postgresql:postgresql:42.2.20"
+
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
 
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.128'
 

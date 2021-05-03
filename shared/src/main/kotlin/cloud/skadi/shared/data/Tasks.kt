@@ -1,0 +1,30 @@
+package cloud.skadi.shared.data
+
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
+import java.util.*
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+sealed class Task(val id: UUID) {
+    class CloneRepo(val url: String, id: UUID) : Task(id)
+    class UploadData(val maxChunkSize: Int, id: UUID) : Task(id)
+}
+
+sealed class TaskContainer(val payload: String, val signature: String)
+
+fun getTaskFromJson(json: String): Task {
+    val mapper = JsonMapper.builder()
+        .addModule(KotlinModule(strictNullChecks = true))
+        .build()
+    return mapper.readValue(json)
+}
+
+fun getContainer(json: String): TaskContainer {
+    val mapper = JsonMapper.builder()
+        .addModule(KotlinModule(strictNullChecks = true))
+        .build()
+    return mapper.readValue(json)
+}
