@@ -51,6 +51,11 @@ fun peekTask(instance: KernelFContainer): TaskEntry? {
     val entry = TaskEntry.find { (TaskTable.state eq TaskState.New) and (TaskTable.instance eq instance.id)}.forUpdate().sortedBy { it.created }.firstOrNull()
     if (entry != null) {
         entry.state = TaskState.InProgress
+        entry.lastChange = LocalDateTime.now()
     }
     return entry
+}
+
+fun getTask(id: UUID): TaskEntry? {
+    return TaskEntry.findById(id)
 }

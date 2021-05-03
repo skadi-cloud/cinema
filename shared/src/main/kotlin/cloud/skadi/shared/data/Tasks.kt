@@ -8,12 +8,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import java.util.*
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-sealed class Task(val id: UUID) {
+sealed class Task(var id: UUID) {
     class CloneRepo(val url: String, id: UUID) : Task(id)
     class UploadData(val maxChunkSize: Int, id: UUID) : Task(id)
 }
 
-sealed class TaskContainer(val payload: String, val signature: String)
+class TaskContainer(val payload: String, val signature: String)
 
 fun getTaskFromJson(json: String): Task {
     val mapper = JsonMapper.builder()
