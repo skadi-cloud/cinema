@@ -126,11 +126,18 @@ jobs:
 
       - uses: Azure/k8s-deploy@v1.4
         with:
+          namespace: kube-system
           manifests: |
             kubernetes/common/traefik/01_crd.yml
             kubernetes/common/traefik/02_volume.yml
-            kubernetes/common/web/01_roles.yml
             kubernetes/staging/traefik/03_deployment.yml
+          imagepullsecrets: |
+            registry-secret
+
+      - uses: Azure/k8s-deploy@v1.4
+        with:
+          manifests: |
+            kubernetes/common/web/01_roles.yml
             kubernetes/staging/web/02_deployment.yml
             kubernetes/staging/web/03_ingress.yml
           imagepullsecrets: |
