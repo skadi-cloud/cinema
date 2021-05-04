@@ -61,6 +61,12 @@ spec:
                 secretKeyRef:
                   name: web-app
                   key: github-id
+
+            - name: COOKIE_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: web-app
+                  key: cookie-salt
           resources:
             requests:
               memory: "150Mi"

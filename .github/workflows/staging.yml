@@ -107,7 +107,7 @@ jobs:
         with:
           namespace: 'default'
           secret-type: 'generic'
-          arguments: --from-literal=db-user=skadi --from-literal=db-password=${{ secrets.STAGING_DB_PASSWORD }} --from-literal=github-secret=${{ secrets.STAGING_GITHUB_SECRET }} --from-literal=github-id=${{ secrets.STAGING_GITHUB_ID }}
+          arguments: --from-literal=db-user=skadi --from-literal=cookie-salt=${{ secrets.COOKIE_SALT }} --from-literal=db-password=${{ secrets.STAGING_DB_PASSWORD }} --from-literal=github-secret=${{ secrets.STAGING_GITHUB_SECRET }} --from-literal=github-id=${{ secrets.STAGING_GITHUB_ID }}
           secret-name: web-app
       - uses: azure/k8s-create-secret@v1
         with:
