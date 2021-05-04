@@ -82,7 +82,7 @@ fun Application.installAuth(testing: Boolean) {
             urlProvider = {
                 val path = application.locations.href(Login(it.name))
                 if (!application.developmentMode) {
-                    "https://skadi.cloud/$path"
+                    "https://$HOST/$path"
                 } else {
                     url(Login(it.name)) {}
                 }
