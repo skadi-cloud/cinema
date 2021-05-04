@@ -35,9 +35,7 @@ private fun check(signature: String, data: ByteArray, key: String): Boolean {
     val mac = Mac.getInstance(algo)
     mac.init(SecretKeySpec(key.toByteArray(), algo))
     val calculatedSig = mac.doFinal(data)
-    println(signature)
-    println(hex(calculatedSig))
-    return calculatedSig.contentEquals(hex(signature))
+    return calculatedSig!!.contentEquals(hex(signature))
 }
 
 /**
