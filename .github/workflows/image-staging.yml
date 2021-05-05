@@ -8,6 +8,8 @@ on:
       - 'ide-plugin/**'
       - 'shared/**'
       - 'skadi-community-samples/**'
+      - 'projector-server/**'
+      - 'projector-server'
 
 jobs:
   images:
