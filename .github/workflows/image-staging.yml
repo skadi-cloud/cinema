@@ -3,6 +3,11 @@ name: playground-images-staging
 on:
   push:
     branches: [ staging ]
+    paths:
+      - 'playground-image/**'
+      - 'ide-plugin/**'
+      - 'shared/**'
+      - 'skadi-community-samples/**'
 
 jobs:
   images:
