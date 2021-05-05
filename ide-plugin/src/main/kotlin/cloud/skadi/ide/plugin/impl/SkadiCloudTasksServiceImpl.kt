@@ -148,14 +148,13 @@ class SkadiCloudTasksServiceImpl : SkadiCloudTasksService {
 
                     } else {
                         reportSuccess(task)
-                    }
-
-                    val directory = Path.of(prjRoot, directoryName)
-                    val dirs = directory.toFile().walkBottomUp().filter { it.isDirectory && it.name == ".mps" }.toList()
-                    if (dirs.isNotEmpty()) {
-                        ProjectUtil.openProject(dirs.first().parent, prj, false)
-                    } else {
-                        logger.error("no project found in cloned repository.")
+                        val directory = Path.of(prjRoot, directoryName)
+                        val dirs = directory.toFile().walkBottomUp().filter { it.isDirectory && it.name == ".mps" }.toList()
+                        if (dirs.isNotEmpty()) {
+                            ProjectUtil.openProject(dirs.first().parent, prj, false)
+                        } else {
+                            logger.error("no project found in cloned repository.")
+                        }
                     }
                 } catch (e:Exception) {
                     reportError(task)
