@@ -56,7 +56,7 @@ fun Application.containerApi() = routing {
             val dbUser = getUserById(user)
             logEvent(EventType.Created, container, dbUser)
             transaction { container.status = ContainerStatus.Deploying }
-            deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
+            deployContainer(container)
             logEvent(EventType.Started, container, dbUser)
 
             val redirectTarget = params[REDIRECT_AFTER_CREATE] ?: HOME_PATH
@@ -124,7 +124,7 @@ fun Application.containerApi() = routing {
                         container.status = ContainerStatus.Deploying
                     }
                     logEvent(EventType.Updated, container, getUserById(call.session!!.email), "new version: $version")
-                    deployContainer(container)
+                    updateContainer(container)
                 }
                 call.respondSeeOther(HOME_PATH)
             }
@@ -154,14 +154,18 @@ fun startContainer(id: UUID) = GlobalScope.launch {
 
 
 fun deployContainer(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) = GlobalScope.launch {
-    client.persistentVolumeClaims().createOrReplace(MPSInstancePVC(id))
-    client.apps().deployments().createOrReplace(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
-    client.services().createOrReplace(MPSInstanceService(id))
-    client.network().ingresses().createOrReplace(MPSInstanceIngress(id))
+    client.persistentVolumeClaims().create(MPSInstancePVC(id))
+    client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
+    client.services().create(MPSInstanceService(id))
+    client.network().ingresses().create(MPSInstanceIngress(id))
 }
 
 fun deployContainer(container: KernelFContainer) {
     deployContainer(container.id.value, container.version.tag, container.rwToken, container.roToken)
+}
+
+fun updateContainer(container: KernelFContainer) {
+    client.apps().deployments().patch(MPSInstanceDeployment(container.id.value, container.version.tag, container.rwToken, container.roToken))
 }
 
 
