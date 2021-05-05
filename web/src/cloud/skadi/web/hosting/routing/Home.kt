@@ -26,10 +26,10 @@ val emptyUUID: UUID
     get() = UUID(0,0)
 
 fun ApplicationCall.openInContainerUrl(container: KernelFContainer, repo: String): String {
-    return this.url {
+    return URLBuilder.createFromCall(this).apply {
         takeFrom("/open-in-playground/${container.id.value}")
         parameters.append(REPO_PARAM, repo)
-    }
+    }.build().fullPath
 }
 
 fun Application.home() = routing {
