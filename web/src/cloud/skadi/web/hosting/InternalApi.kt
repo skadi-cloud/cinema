@@ -138,7 +138,6 @@ fun Application.installInternalApi(registry: PrometheusMeterRegistry) = routing 
                     mapper.writeValueAsString(taskContainer)
                 }
             }
-
         }
     }
     post("/tasks/{taskId}/error") {

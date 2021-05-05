@@ -119,10 +119,8 @@ class SkadiCloudTasksServiceImpl : SkadiCloudTasksService {
         }
 
         fun checkoutAndOpen(task: Task.CloneRepo) {
-            GlobalScope.launch {
                 heartbeatService?.acquireActivityLock()
                 try {
-
                     val prj = ProjectManager.getInstance().defaultProject
                     val git = Git.getInstance()
                     val prjRoot = ProjectUtil.getBaseDir()
@@ -148,31 +146,31 @@ class SkadiCloudTasksServiceImpl : SkadiCloudTasksService {
 
                     } else {
                         reportSuccess(task)
-                        val directory = Path.of(prjRoot, directoryName)
-                        val dirs = directory.toFile().walkBottomUp().filter { it.isDirectory && it.name == ".mps" }.toList()
-                        if (dirs.isNotEmpty()) {
-                            ProjectUtil.openProject(dirs.first().parent, prj, false)
-                        } else {
-                            logger.error("no project found in cloned repository.")
-                        }
+                    }
+                    val directory = Path.of(prjRoot, directoryName)
+                    val dirs = directory.toFile().walkBottomUp().filter { it.isDirectory && it.name == ".mps" }.toList()
+                    if (dirs.isNotEmpty()) {
+                        ProjectUtil.openProject(dirs.first().parent, prj, false)
+                    } else {
+                        logger.error("no project found in cloned repository.")
                     }
                 } catch (e:Exception) {
                     reportError(task)
                 } finally {
                     heartbeatService?.releaseActivityLock()
                 }
-            }
+
         }
 
-        suspend fun reportError(task: Task) {
+         fun reportError(task: Task) {
             makePostWithNonce("http://$backendAddress/tasks/${task.id}/error")
         }
 
-        suspend fun reportSuccess(task: Task) {
+         fun reportSuccess(task: Task) {
             makePostWithNonce("http://$backendAddress/tasks/${task.id}/success")
         }
 
-        suspend fun makePostWithNonce(url: String): HttpResponse<String>? {
+         fun makePostWithNonce(url: String): HttpResponse<String>? {
             val signature = signNonce(token)
             val body = mapOf(Pair("nonce", signature.second), Pair("signature", signature.first))
 
@@ -186,7 +184,7 @@ class SkadiCloudTasksServiceImpl : SkadiCloudTasksService {
                     ContentType.APPLICATION_FORM_URLENCODED.mimeType
                 )
                 .build()
-            return client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+            return client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).join()
         }
     }
 
