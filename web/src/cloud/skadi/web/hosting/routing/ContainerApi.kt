@@ -165,15 +165,8 @@ fun deployContainer(container: KernelFContainer) {
 }
 
 fun updateContainer(container: KernelFContainer) {
-    client.apps().deployments().edit {
-        it.spec.template = MPSInstanceDeployment(
-            container.id.value,
-            container.version.tag,
-            container.rwToken,
-            container.roToken
-        ).spec.template
-        it
-    }
+    client.apps().deployments().withName(deploymentName(container.id.value)).rolling()
+        .updateImage(containerImage(container.version.tag))
 }
 
 

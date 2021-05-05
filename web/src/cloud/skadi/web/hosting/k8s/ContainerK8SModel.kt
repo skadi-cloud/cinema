@@ -55,6 +55,7 @@ class MPSInstanceService(id: UUID) : Service() {
 }
 
 fun deploymentName(id: UUID) = "mps-instance-$id"
+fun containerImage(kernelFVersion: String) = "$containerRegistry/$kernelFVersion:latest"
 class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) : Deployment() {
     init {
         metadata {
@@ -75,7 +76,7 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
                     securityContext { fsGroup = 1024 }
                     containers = listOf(newContainer {
                         name = "mps-instance-$id"
-                        image = "$containerRegistry/$kernelFVersion:latest"
+                        image = containerImage(kernelFVersion)
                         imagePullPolicy = "Always"
                         ports = listOf(newContainerPort { containerPort = 8887 })
                         env = listOf(
@@ -146,6 +147,8 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
             }
         }
     }
+
+
 }
 
 fun ingressName(id: UUID) = "ingress-mps-instance-$id"
