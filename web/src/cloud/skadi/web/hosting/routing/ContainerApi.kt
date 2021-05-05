@@ -154,10 +154,10 @@ fun startContainer(id: UUID) = GlobalScope.launch {
 
 
 fun deployContainer(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) = GlobalScope.launch {
-    client.persistentVolumeClaims().create(MPSInstancePVC(id))
-    client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
-    client.services().create(MPSInstanceService(id))
-    client.network().ingresses().create(MPSInstanceIngress(id))
+    client.persistentVolumeClaims().createOrReplace(MPSInstancePVC(id))
+    client.apps().deployments().createOrReplace(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
+    client.services().createOrReplace(MPSInstanceService(id))
+    client.network().ingresses().createOrReplace(MPSInstanceIngress(id))
 }
 
 fun deployContainer(container: KernelFContainer) {
