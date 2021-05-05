@@ -54,10 +54,10 @@ fun ApplicationCall.getRedirectTargetFromState(): String? {
 
 suspend fun ApplicationCall.redirectToLoginAndBack() {
     val target = this.request.uri
-    respondRedirect() {
+    respondRedirect(URLBuilder.createFromCall(this).apply {
         takeFrom("/login/github")
         parameters[REDIRECT_PARAM] = target
-    }
+    }.build().fullPath)
 }
 
 @ExperimentalTime
