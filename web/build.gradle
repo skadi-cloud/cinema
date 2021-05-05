@@ -58,7 +58,7 @@ dependencies {
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.128'
 
     implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.0.1"
-    implementation "io.fabric8:kubernetes-client:4.11.2"
+    implementation "io.fabric8:kubernetes-client:5.3.0"
 
     implementation "ch.qos.logback:logback-classic:1.2.3"
 
