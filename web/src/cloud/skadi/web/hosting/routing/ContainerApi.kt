@@ -165,7 +165,7 @@ fun deployContainer(container: KernelFContainer) {
 }
 
 fun updateContainer(container: KernelFContainer) {
-    client.apps().deployments().patch(MPSInstanceDeployment(container.id.value, container.version.tag, container.rwToken, container.roToken))
+    client.apps().deployments().replace(MPSInstanceDeployment(container.id.value, container.version.tag, container.rwToken, container.roToken))
 }
 
 

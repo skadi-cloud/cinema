@@ -23,6 +23,7 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
             }
             title { +pageName }
             styleLink("/assets/styles/styles.css")
+            favicons()
             script {
                 src = "https://plausible.io/js/plausible.js"
                 defer = true
@@ -57,6 +58,8 @@ open class GenericAppTemplate(private val pageName: String, private val scriptSr
             title { +pageName }
             styleLink("/assets/styles/styles.css")
 
+            favicons()
+
             if (scriptSrc != null) {
                 script(src = scriptSrc) {}
             }
@@ -74,6 +77,42 @@ open class GenericAppTemplate(private val pageName: String, private val scriptSr
                 insert(content)
             }
         }
+    }
+}
+
+fun HEAD.favicons() {
+    link {
+        rel = "apple-touch-icon"
+        sizes = "180x180"
+        href = "/assets/apple-touch-icon.png"
+    }
+
+    link {
+        rel = "icon"
+        sizes = "32x32"
+        href = "/assets/favicon-32x32.png"
+    }
+
+    link {
+        rel = "icon"
+        sizes = "16x16"
+        href = "/assets/favicon-16x16.png"
+    }
+
+    link {
+        rel = "ask-icon"
+        attributes["color"] = "#00cc99"
+        href = "/assets/safari-pinned-tab.svg"
+    }
+
+    meta {
+        name = "msapplication-TileColor"
+        attributes["color"] = "#00cc99"
+    }
+
+    meta {
+        name = "theme-color"
+        attributes["color"] = "#00cc99"
     }
 }
 
