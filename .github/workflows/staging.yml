@@ -80,8 +80,6 @@ jobs:
         uses: crazy-max/ghaction-docker-meta@v2
         with:
           images: rg.nl-ams.scw.cloud/staging-skadi-cloud/web
-          flavor: |
-            latest=true
           tags: |
             type=sha
 
@@ -136,6 +134,7 @@ jobs:
 
       - uses: Azure/k8s-deploy@v1.4
         with:
+          images: 'rg.nl-ams.scw.cloud/staging-skadi-cloud/web:${{ steps.meta.outputs.tags }}'
           manifests: |
             kubernetes/common/web/01_roles.yml
             kubernetes/staging/web/02_deployment.yml
