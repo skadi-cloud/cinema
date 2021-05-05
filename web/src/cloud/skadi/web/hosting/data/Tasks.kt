@@ -7,6 +7,7 @@ import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.and
 import java.time.LocalDateTime
@@ -18,7 +19,7 @@ enum class TaskState {
 }
 
 object TaskTable : UUIDTable() {
-    val instance = reference("instance", KernelFContainers)
+    val instance = reference("instance", KernelFContainers, onDelete = ReferenceOption.CASCADE)
     val data = varchar("data",4096)
     val state = enumeration("state", TaskState::class)
     val created = datetime("created")
