@@ -84,7 +84,7 @@ class SkadiCloudTasksServiceImpl : SkadiCloudTasksService {
                 client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenAccept {
 
                     if (it.statusCode() == HttpStatus.SC_NOT_FOUND) {
-                        logger.info("no tasks in queue")
+                        logger.debug("no tasks in queue")
                         return@thenAccept
                     }
 
@@ -99,13 +99,13 @@ class SkadiCloudTasksServiceImpl : SkadiCloudTasksService {
                         logger.error("Invalid signature for task!")
                         return@thenAccept
                     }
-
-                    when (val task = getTaskFromJson(container.payload)) {
+                    val task = getTaskFromJson(container.payload)
+                    when (task) {
                         is Task.CloneRepo -> checkoutAndOpen(task)
                         is Task.UploadData -> TODO()
                     }
 
-                    logger.info("heartbeat send")
+                    logger.info("task ${task.id} complete send")
                 }.join()
             } catch (e: Exception) {
                 logger.error(e)
