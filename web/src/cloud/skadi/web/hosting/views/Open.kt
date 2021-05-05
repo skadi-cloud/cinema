@@ -38,7 +38,7 @@ fun FlowContent.openInSkadi() {
                     """
 
                     if(window.location.hash) {
-                        document.getElementById("$REPO_PARAM").value = window.location.hash;
+                        document.getElementById("$REPO_PARAM").value = window.location.hash.substring(1);
                         document.getElementById("openinskadi").submit();
                     }   
                 
