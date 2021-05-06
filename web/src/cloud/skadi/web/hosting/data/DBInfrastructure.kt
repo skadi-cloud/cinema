@@ -18,7 +18,7 @@ fun initDb(jdbc: String, user: String, password: String): Boolean {
     return transaction {
         try {
             withDataBaseLock {
-                SchemaUtils.createMissingTablesAndColumns(Users, KernelFContainers, PlaygroundLogTable)
+                SchemaUtils.createMissingTablesAndColumns(Users, KernelFContainers, PlaygroundLogTable, TaskTable)
             }
         } catch (e: Throwable) {
             logger.error("error updating schema")

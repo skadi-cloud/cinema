@@ -1,6 +1,6 @@
 package test.cloud.skadi.web.hosting
 
-import cloud.skadi.shared.hmac.sign
+import cloud.skadi.shared.hmac.signNonce
 import cloud.skadi.web.hosting.routing.CONTAINER_LATEST
 import cloud.skadi.web.hosting.mainModule
 import io.ktor.http.*
@@ -10,6 +10,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.jsoup.Jsoup
 import org.junit.jupiter.api.Test
+import java.util.*
 import java.util.stream.Stream
 import kotlin.test.assertEquals
 import kotlin.time.ExperimentalTime
@@ -53,26 +54,14 @@ class ApplicationTest {
         withTestApplication({ mainModule(testing = true) }) {
             handleRequest(HttpMethod.Get, "/home").apply {
                 assertEquals(HttpStatusCode.Found, response.status())
-                assertEquals("/", response.headers[HttpHeaders.Location])
-            }
-        }
-    }
-
-    @Test
-    fun `metrics are available on internal api`() {
-        withTestApplication({ mainModule(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/metrics") {
-                addHeader(HttpHeaders.Host, "localhost:9090")
-            }.apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assert(response.content!!.contains("jvm_buffer_total_capacity_bytes"))
-                assert(response.content!!.contains("ktor_http_server_requests_active"))
+                assertEquals("/login/github?rd=%2Fhome", response.headers[HttpHeaders.Location])
             }
         }
     }
 
     @Test
     fun `metrics are not available on public`() {
+        ensureDbEmpty()
         withTestApplication({ mainModule(testing = true) }) {
             handleRequest(HttpMethod.Get, "/metrics").apply {
                 assertEquals(HttpStatusCode.Forbidden, response.status())
@@ -81,20 +70,39 @@ class ApplicationTest {
     }
 
     @Test
-    fun `healthcheck available on internal api`() {
+    fun `health check not available on public`() {
+        ensureDbEmpty()
         withTestApplication({ mainModule(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/health") {
-                addHeader(HttpHeaders.Host, "localhost:9090")
-            }.apply {
-                assertEquals(HttpStatusCode.OK, response.status())
+            handleRequest(HttpMethod.Get, "/health").apply {
+                assertEquals(HttpStatusCode.Forbidden, response.status())
             }
         }
     }
 
     @Test
-    fun `health check not available on public`() {
+    fun `task queue  not available on public`() {
+        ensureDbEmpty()
         withTestApplication({ mainModule(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/health").apply {
+            handleRequest(HttpMethod.Post, "/tasks/${UUID.randomUUID()}/dequeue").apply {
+                assertEquals(HttpStatusCode.Forbidden, response.status())
+            }
+        }
+    }
+
+    @Test
+    fun `task state success  not available on public`() {
+        ensureDbEmpty()
+        withTestApplication({ mainModule(testing = true) }) {
+            handleRequest(HttpMethod.Post, "/tasks/${UUID.randomUUID()}/success").apply {
+                assertEquals(HttpStatusCode.Forbidden, response.status())
+            }
+        }
+    }
+
+    fun `task state error  not available on public`() {
+        ensureDbEmpty()
+        withTestApplication({ mainModule(testing = true) }) {
+            handleRequest(HttpMethod.Post, "/tasks/${UUID.randomUUID()}/success").apply {
                 assertEquals(HttpStatusCode.Forbidden, response.status())
             }
         }
@@ -162,42 +170,5 @@ class ApplicationTest {
         }
     }
 
-    @Test
-    fun `heartbeat v1 works`() {
-        ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
-            cookiesSession {
-                withContainer {
-                    handleRequest(HttpMethod.Post, "/heartbeat/${it.id}") {
-                        addHeader(HttpHeaders.Host, "localhost:9090")
-                        setBody(it.rwToken)
-                    }.apply {
-                        assertEquals(HttpStatusCode.OK, response.status())
-                    }
-                }
-            }
-        }
-    }
 
-    @Test
-    fun `heartbeat v2 works`() {
-        ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
-            cookiesSession {
-                withContainer {
-                    handleRequest(HttpMethod.Post, "/heartbeat/${it.id}") {
-                        addHeader(HttpHeaders.Host, "localhost:9090")
-                        addHeader("X-Heartbeat-Version", "2")
-                        addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                        val signature = sign(it.rwToken)
-                        val body =
-                            listOf(Pair("nonce", signature.second), Pair("signature", signature.first)).formUrlEncode()
-                        setBody(body)
-                    }.apply {
-                        assertEquals(HttpStatusCode.OK, response.status())
-                    }
-                }
-            }
-        }
-    }
 }

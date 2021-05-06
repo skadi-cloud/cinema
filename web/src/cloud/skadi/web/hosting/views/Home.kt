@@ -1,10 +1,11 @@
 package cloud.skadi.web.hosting.views
 
-import cloud.skadi.web.hosting.data.*
+import cloud.skadi.web.hosting.data.containers
+import cloud.skadi.web.hosting.data.remainingContainers
 import kotlinx.html.*
 import java.util.*
 
-fun FlowContent.    appHome(email: String, name: String, toEdit: UUID? = null) {
+fun FlowContent.appHome(email: String, name: String, toEdit: UUID? = null) {
     div {
         id = "top"
         p {
@@ -22,26 +23,7 @@ fun FlowContent.    appHome(email: String, name: String, toEdit: UUID? = null) {
             }
             +"."
         }
-        div {
-            form {
-                attributes["data-turbo-frame"] = "_top"
-                id = "new-playground"
-                method = FormMethod.post
-                action = "/new-container"
-                versionSelectBox()
-
-                button {
-                    type = ButtonType.submit
-                    disabled = !canCreateContainer(email)
-                    id = "create-new-playground"
-                    i(classes = "fas fa-plus")
-                    p {
-                        +"Create Playground"
-                    }
-                }
-            }
-
-        }
+        createPlaygroundForm(email)
         instanceTable {
             containers(email).forEach { container ->
                 containerRow(container, container.id.value == toEdit)

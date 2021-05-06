@@ -9,11 +9,12 @@ import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress
 import cloud.skadi.web.hosting.INSTANCE_HOST
+import cloud.skadi.web.hosting.getEnvOrDefault
 import com.fkorotkov.kubernetes.apps.*
 import java.util.*
 
 
-private val containerRegistry = "rg.nl-ams.scw.cloud/cloud-skadi-mps"
+private val containerRegistry = getEnvOrDefault( "CONTAINER_REGISTRY","rg.nl-ams.scw.cloud/cloud-skadi-mps")
 private val containerImageName = ""
 
 fun UUID.appLabel() = mapOf("app" to "mps-instance-$this")
@@ -54,6 +55,7 @@ class MPSInstanceService(id: UUID) : Service() {
 }
 
 fun deploymentName(id: UUID) = "mps-instance-$id"
+fun containerImage(kernelFVersion: String) = "$containerRegistry/$kernelFVersion:latest"
 class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) : Deployment() {
     init {
         metadata {
@@ -74,7 +76,7 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
                     securityContext { fsGroup = 1024 }
                     containers = listOf(newContainer {
                         name = "mps-instance-$id"
-                        image = "$containerRegistry/$kernelFVersion:latest"
+                        image = containerImage(kernelFVersion)
                         imagePullPolicy = "Always"
                         ports = listOf(newContainerPort { containerPort = 8887 })
                         env = listOf(
@@ -145,6 +147,8 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
             }
         }
     }
+
+
 }
 
 fun ingressName(id: UUID) = "ingress-mps-instance-$id"

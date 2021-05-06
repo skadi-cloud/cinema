@@ -16,8 +16,11 @@ sourceSets {
 
 repositories {
     mavenLocal()
-    jcenter()
+    mavenCentral()
     maven { url 'https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven'}
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
 }
 
 configurations {
@@ -50,10 +53,12 @@ dependencies {
     implementation "org.jetbrains.exposed:exposed-java-time:$exposed_version"
     implementation "org.postgresql:postgresql:42.2.20"
 
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
+
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.128'
 
-    implementation "com.fkorotkov:kubernetes-dsl:2.8.1"
-    implementation "io.fabric8:kubernetes-client:4.11.2"
+    implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.0.1"
+    implementation "io.fabric8:kubernetes-client:5.3.0"
 
     implementation "ch.qos.logback:logback-classic:1.2.3"
 

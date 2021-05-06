@@ -11,11 +11,14 @@
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <preloadingActivity implementation="cloud.skadi.ide.plugin.SkadiInit"/>
         <applicationService serviceInterface="cloud.skadi.ide.plugin.SkadiHeartbeatService"
                         serviceImplementation="cloud.skadi.ide.plugin.impl.SkadiHeartbeatServiceImpl"/>
+        <applicationService serviceInterface="cloud.skadi.ide.plugin.SkadiCloudTasksService"
+                        serviceImplementation="cloud.skadi.ide.plugin.impl.SkadiCloudTasksServiceImpl"/>
     </extensions>
 
 

@@ -2,11 +2,12 @@ package cloud.skadi.web.hosting.views
 
 import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.INSTANCE_HOST
-import cloud.skadi.web.hosting.routing.canStartContainer
-import cloud.skadi.web.hosting.routing.canStopContainer
 import cloud.skadi.web.hosting.data.ContainerStatus
 import cloud.skadi.web.hosting.data.ContainerVersion
 import cloud.skadi.web.hosting.data.KernelFContainer
+import cloud.skadi.web.hosting.data.canCreateContainer
+import cloud.skadi.web.hosting.routing.canStartContainer
+import cloud.skadi.web.hosting.routing.canStopContainer
 import io.ktor.html.*
 import kotlinx.html.*
 import java.time.ZoneOffset
@@ -22,6 +23,7 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
             }
             title { +pageName }
             styleLink("/assets/styles/styles.css")
+            favicons()
             script {
                 src = "https://plausible.io/js/plausible.js"
                 defer = true
@@ -37,7 +39,15 @@ class IndexTemplate(private val pageName: String) : Template<HTML> {
     }
 }
 
-class AppTemplate(private val pageName: String) : Template<HTML> {
+class AppTemplate(pageName: String) : GenericAppTemplate(pageName, "/assets/js/script.js") {
+
+}
+
+class AppTemplateWithoutScript(pageName: String) : GenericAppTemplate(pageName, null) {
+
+}
+
+open class GenericAppTemplate(private val pageName: String, private val scriptSrc: String? = null) : Template<HTML> {
     val content = Placeholder<HtmlBlockTag>()
     override fun HTML.apply() {
         head {
@@ -47,8 +57,12 @@ class AppTemplate(private val pageName: String) : Template<HTML> {
             }
             title { +pageName }
             styleLink("/assets/styles/styles.css")
-            script(src = "/assets/js/script.js") {}
 
+            favicons()
+
+            if (scriptSrc != null) {
+                script(src = scriptSrc) {}
+            }
         }
         body {
             div(classes = "container") {
@@ -65,6 +79,43 @@ class AppTemplate(private val pageName: String) : Template<HTML> {
         }
     }
 }
+
+fun HEAD.favicons() {
+    link {
+        rel = "apple-touch-icon"
+        sizes = "180x180"
+        href = "/assets/apple-touch-icon.png"
+    }
+
+    link {
+        rel = "icon"
+        sizes = "32x32"
+        href = "/assets/favicon-32x32.png"
+    }
+
+    link {
+        rel = "icon"
+        sizes = "16x16"
+        href = "/assets/favicon-16x16.png"
+    }
+
+    link {
+        rel = "ask-icon"
+        attributes["color"] = "#00cc99"
+        href = "/assets/safari-pinned-tab.svg"
+    }
+
+    meta {
+        name = "msapplication-TileColor"
+        attributes["color"] = "#00cc99"
+    }
+
+    meta {
+        name = "theme-color"
+        attributes["color"] = "#00cc99"
+    }
+}
+
 
 fun instanceRowId(container: KernelFContainer) =
     "playground-status-${container.id.value}"
@@ -179,7 +230,7 @@ fun TBODY.containerRow(container: KernelFContainer, edit: Boolean = false) {
             turboFrame {
                 id = "container-settings-${container.id.value}"
                 +container.name
-                if(!edit) {
+                if (!edit) {
                     div {
                         p {
                             if (container.version.buildNumber != null && container.version.commit != null) {
@@ -188,7 +239,7 @@ fun TBODY.containerRow(container: KernelFContainer, edit: Boolean = false) {
                                 +"MPS: ${container.version.mpsVersion.fullVersion}"
                             }
                         }
-                        a(classes = "edit"){
+                        a(classes = "edit") {
                             href = "/home/edit/${container.id.value}"
                             i(classes = "fas fa-cog")
                         }
@@ -253,7 +304,7 @@ fun FORM.versionSelectBox(toSelect: ContainerVersion? = null) {
                 value = version.name
                 if (toSelect == null && i == 0) {
                     selected = true
-                } else if(toSelect == version) {
+                } else if (toSelect == version) {
                     selected = true
                 }
                 if (version.buildNumber != null && version.commit != null) {
@@ -263,5 +314,37 @@ fun FORM.versionSelectBox(toSelect: ContainerVersion? = null) {
                 }
             }
         }
+    }
+}
+
+const val REDIRECT_AFTER_CREATE = "redirectAfterCreate"
+
+fun FlowContent.createPlaygroundForm(email: String, redirectAfterCreate: String? = null) {
+    div {
+        form {
+            attributes["data-turbo-frame"] = "_top"
+            id = "new-playground"
+            method = FormMethod.post
+            action = "/new-container"
+            versionSelectBox()
+            if (redirectAfterCreate != null) {
+                hiddenInput {
+                    id = REDIRECT_AFTER_CREATE
+                    name = REDIRECT_AFTER_CREATE
+                    value = redirectAfterCreate
+                }
+            }
+
+            button {
+                type = ButtonType.submit
+                disabled = !canCreateContainer(email)
+                id = "create-new-playground"
+                i(classes = "fas fa-plus")
+                p {
+                    +"Create Playground"
+                }
+            }
+        }
+
     }
 }

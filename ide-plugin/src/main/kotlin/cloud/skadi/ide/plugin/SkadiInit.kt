@@ -7,9 +7,13 @@ import com.intellij.openapi.progress.ProgressIndicator
 class SkadiInit : PreloadingActivity() {
     private val logger = Logger.getInstance(this::class.java)
     override fun preload(indicator: ProgressIndicator) {
-        val instance = SkadiHeartbeatService.getInstance()
-        if(instance == null) {
-            logger.error("Can't get service")
+        val heartbeatService = SkadiHeartbeatService.getInstance()
+        if(heartbeatService == null) {
+            logger.error("Can't get heartbeat service")
+        }
+        val cloudTasksService = SkadiCloudTasksService.getInstance()
+        if(cloudTasksService == null) {
+            logger.error("Can't get tasks service")
         }
     }
 }

@@ -98,9 +98,6 @@ fun createContainer(
     }
 }
 
-fun deleteContainerByName(name: String) {
-    transaction { KernelFContainers.deleteWhere { KernelFContainers.name eq name } }
-}
 
 fun deleteContainerById(id: UUID) {
     transaction { KernelFContainer.findById(id)?.delete() }

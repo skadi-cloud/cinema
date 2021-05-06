@@ -6,6 +6,7 @@ import cloud.skadi.web.hosting.k8s.*
 import cloud.skadi.web.hosting.respondSeeOther
 import cloud.skadi.web.hosting.session
 import cloud.skadi.web.hosting.views.AppTemplate
+import cloud.skadi.web.hosting.views.REDIRECT_AFTER_CREATE
 import cloud.skadi.web.hosting.views.confirmDelete
 import com.fkorotkov.kubernetes.newListOptions
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
@@ -55,9 +56,11 @@ fun Application.containerApi() = routing {
             val dbUser = getUserById(user)
             logEvent(EventType.Created, container, dbUser)
             transaction { container.status = ContainerStatus.Deploying }
-            deployContainer(container.id.value, CONTAINER_LATEST.tag, rwToken, roToken)
+            deployContainer(container)
             logEvent(EventType.Started, container, dbUser)
-            call.respondSeeOther(HOME_PATH)
+
+            val redirectTarget = params[REDIRECT_AFTER_CREATE] ?: HOME_PATH
+            call.respondSeeOther(redirectTarget)
         }
 
     }
@@ -121,7 +124,7 @@ fun Application.containerApi() = routing {
                         container.status = ContainerStatus.Deploying
                     }
                     logEvent(EventType.Updated, container, getUserById(call.session!!.email), "new version: $version")
-                    deployContainer(container)
+                    updateContainer(container)
                 }
                 call.respondSeeOther(HOME_PATH)
             }
@@ -159,6 +162,11 @@ fun deployContainer(id: UUID, kernelFVersion: String, rwToken: String, roToken: 
 
 fun deployContainer(container: KernelFContainer) {
     deployContainer(container.id.value, container.version.tag, container.rwToken, container.roToken)
+}
+
+fun updateContainer(container: KernelFContainer) {
+    client.apps().deployments().withName(deploymentName(container.id.value)).rolling()
+        .updateImage(containerImage(container.version.tag))
 }
 
 

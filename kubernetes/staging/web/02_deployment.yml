@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  labels:
+    app: web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: '9090'
+        prometheus.io/scrape: 'true'
+      labels:
+        app: web-app
+    spec:
+      serviceAccountName: web-app
+      imagePullSecrets:
+        - name: registry-secret
+      containers:
+        - name: kernel-f
+          image: rg.nl-ams.scw.cloud/staging-skadi-cloud/web:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+            - containerPort: 9090
+          env:
+            - name: SQL_HOST
+              value: "postgres:5432"
+            - name: SQL_DB
+              value: "skadi-staging"
+            - name: INSTANCE_HOST
+              value: "wolves.staging.skadi.cloud"
+            - name: HOST
+              value: "staging.skadi.cloud"
+            - name: CONTAINER_REGISTRY
+              value: "rg.nl-ams.scw.cloud/staging-skadi-cloud"
+            - name: SENTRY_ENVIRONMENT
+              value: staging
+            - name: SQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: web-app
+                  key: db-password
+            - name: SQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: web-app
+                  key: db-user
+            - name: GITHUB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: web-app
+                  key: github-secret
+            - name: GITHUB_ID
+              valueFrom:
+                secretKeyRef:
+                  name: web-app
+                  key: github-id
+
+            - name: COOKIE_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: web-app
+                  key: cookie-salt
+          resources:
+            requests:
+              memory: "150Mi"
+              cpu: "0.1"
+            limits:
+              memory: "500Mi"
+              cpu: "2.0"
+          readinessProbe:
+            failureThreshold: 1
+            httpGet:
+              path: /health
+              port: 9090
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: heartbeat
+spec:
+  selector:
+    app: web-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-frontend
+spec:
+  selector:
+    app: web-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 27863
+
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: postgres
+subsets:
+  - addresses:
+      - ip: 51.158.130.102
+    ports:
+      - port: 27863
