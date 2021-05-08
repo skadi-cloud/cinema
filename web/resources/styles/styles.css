@@ -368,7 +368,8 @@ button.confirm {
     color: var(--main-color);
 }
 
-#create-new-playground {
+
+#new-playground button[type=submit] {
     border: none;
     border-radius: 4px;
     background: var(--main-color);
@@ -376,17 +377,18 @@ button.confirm {
     padding: 9px 6px 8px 10px;
 }
 
-#create-new-playground:disabled {
+
+#new-playground button[type=submit]:disabled {
     background: var(--disable-color);
 }
 
-#create-new-playground i{
+#new-playground button[type=submit] i{
     font-size: 1.25em;
     background: none;
     height: 16px;
 }
 
-#create-new-playground p {
+.slide-button form button[type=submit] p {
     height: 16px;
     font-size: 1.25em;
     max-width: 0;
@@ -394,20 +396,23 @@ button.confirm {
     white-space: nowrap;
     display: inline-block;
     overflow: hidden;
-    vertical-align: baseline;
+    vertical-align: text-bottom;
     transition: max-width 300ms ease-in, margin-left 300ms ease-in;
     font-family: Raleway, sans-serif;
 }
 
-#create-new-playground:hover p {
+.slide-button form button[type=submit]:hover p {
     max-width: 125px;
     margin: 0 5px;
 }
 
-#new-playground {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+.static-button form button[type=submit] p{
+    font-family: Raleway, sans-serif;
+    margin: 0;
+    height: 16px;
+    font-size: 1.25em;
+    vertical-align: text-bottom;
+    display: inline-block;
 }
 
 #new-playground select {
@@ -453,6 +458,22 @@ button.confirm {
 .passive-text {
     color: rgb(178, 182, 195);
     font-weight: 100;
+}
+
+div.content-center {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+div.content-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+div.content-left {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 @media (min-width: 768px) {
