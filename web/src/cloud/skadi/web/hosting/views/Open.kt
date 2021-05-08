@@ -56,7 +56,7 @@ fun FlowContent.selectOrCreatePlayground(email: String, containers: List<KernelF
             p {
                 +"You have no playgrounds, please create a new one to open the repository in."
             }
-            createPlaygroundForm(email, afterCreate)
+            createPlaygroundForm(email, afterCreate, containerClasses = "static-button")
         } else {
             p {
                 +"Open $repo in: "

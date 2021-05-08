@@ -23,7 +23,7 @@ fun FlowContent.appHome(email: String, name: String, toEdit: UUID? = null) {
             }
             +"."
         }
-        createPlaygroundForm(email)
+        createPlaygroundForm(email, containerClasses = "content-right slide-button")
         instanceTable {
             containers(email).forEach { container ->
                 containerRow(container, container.id.value == toEdit)

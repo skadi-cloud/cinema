@@ -319,8 +319,8 @@ fun FORM.versionSelectBox(toSelect: ContainerVersion? = null) {
 
 const val REDIRECT_AFTER_CREATE = "redirectAfterCreate"
 
-fun FlowContent.createPlaygroundForm(email: String, redirectAfterCreate: String? = null) {
-    div {
+fun FlowContent.createPlaygroundForm(email: String, redirectAfterCreate: String? = null, containerClasses: String? = null) {
+    div(classes = containerClasses) {
         form {
             attributes["data-turbo-frame"] = "_top"
             id = "new-playground"
