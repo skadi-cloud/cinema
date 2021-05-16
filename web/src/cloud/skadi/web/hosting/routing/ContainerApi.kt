@@ -194,9 +194,9 @@ fun getPodStatus(id: UUID): ContainerStatus {
     if (state.state.terminated != null) {
         return ContainerStatus.Error
     }
-    if (state.state.running != null) {
+    if (pod.status.conditions.find { it.type == "Ready" }?.status == "True") {
         return ContainerStatus.Running
     }
-    return ContainerStatus.Error
+    return ContainerStatus.Deploying
 }
 
