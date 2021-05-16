@@ -5,7 +5,9 @@ import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.redirectToLoginAndBack
 import cloud.skadi.web.hosting.session
-import cloud.skadi.web.hosting.userStreams
+import cloud.skadi.web.hosting.turbo.HomeTurboStream
+import cloud.skadi.web.hosting.turbo.addTurboChannel
+import cloud.skadi.web.hosting.turbo.removeTurboChannel
 import cloud.skadi.web.hosting.views.*
 import io.ktor.application.*
 import io.ktor.html.*
@@ -32,6 +34,7 @@ fun ApplicationCall.openInContainerUrl(container: KernelFContainer, repo: String
     }.build().fullPath
 }
 
+@ExperimentalStdlibApi
 fun Application.home() = routing {
     get("/") {
         call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
@@ -65,7 +68,7 @@ fun Application.home() = routing {
                     call.respondRedirect(target)
                     return@newSuspendedTransaction
                 } else {
-                    call.respondHtmlTemplate(AppTemplateWithoutScript("Create Playground")) {
+                    call.respondHtmlTemplate(AppTemplate("Create Playground")) {
                         content {
                             selectOrCreatePlayground(email, userContainers, call.parameters[REPO_PARAM]!!, call.request.uri, call)
                         }
@@ -87,6 +90,13 @@ fun Application.home() = routing {
                         }
                     }
                 }
+
+            }
+        }
+    }
+    webSocket("/open-in-playground/{id}/stream") {
+        call.authenticated {
+            call.withUserContainerViaParam { container ->
 
             }
         }
@@ -122,23 +132,18 @@ fun Application.home() = routing {
         }
         val user = getUserById(call.session!!.email)!!
         log.info("streaming events for user ${user.id.value}")
-        val old = userStreams.put(user.id.value, outgoing)
-        try {
-            log.info("old value is $old")
-            old?.close()
-        } catch (e: Throwable) {
-            log.error("can't close old client connection", e)
-        }
+        val stream = HomeTurboStream(user, outgoing)
+        addTurboChannel(stream)
         try {
             for (frame in incoming) {
                 val text = (frame as Frame.Text).readText()
                 log.info("client send $text")
             }
         } catch (e: ClosedReceiveChannelException) {
-            userStreams.remove(user.id.value)
+            removeTurboChannel(stream)
             log.info("connection closed for user ${user.id.value}")
         } catch (e: Throwable) {
-            userStreams.remove(user.id.value)
+            removeTurboChannel(stream)
             log.error("websocket error for user ${user.id.value}", e)
         }
     }

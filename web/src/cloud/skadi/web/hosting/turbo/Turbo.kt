@@ -1,0 +1,69 @@
+package cloud.skadi.web.hosting.turbo
+
+import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.channels.SendChannel
+import org.slf4j.Logger
+import java.util.*
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.reflect.KType
+import kotlin.reflect.typeOf
+
+enum class SendResult {
+    Success, Error, Remove
+}
+
+interface TurboChannel<T> {
+    fun matchesKey(key: String): Boolean
+    suspend fun sendUpdate(data: T): SendResult
+}
+
+abstract class WebsocketTurboChannel<T>(private val channel: SendChannel<Frame>, protected val logger:Logger): TurboChannel<T> {
+    protected suspend fun send(frame: Frame): SendResult {
+        return try {
+            logger.info("sending update")
+            channel.send(frame)
+            logger.info("update send successfully")
+            SendResult.Success
+        } catch (e: CancellationException) {
+            logger.warn("connection closed")
+            SendResult.Remove
+        } catch (t: Throwable) {
+            logger.error("failed to send update", t)
+            SendResult.Error
+        }
+    }
+}
+
+val channels = ConcurrentHashMap<KType, MutableList<TurboChannel<*>>>()
+
+@ExperimentalStdlibApi
+inline fun <reified T> addTurboChannel(channel: TurboChannel<T>) {
+    val l = channels.computeIfAbsent(typeOf<T>()) { _ -> Collections.synchronizedList(mutableListOf()) }
+    l.add(channel)
+}
+
+@ExperimentalStdlibApi
+inline fun <reified T> removeTurboChannel(channel: TurboChannel<T>) {
+    val l = channels[typeOf<T>()]
+    l?.remove(channel)
+}
+
+@ExperimentalStdlibApi
+suspend inline fun <reified T> sendTurboChannelUpdate(key: String, data: T) {
+    val l = channels[typeOf<T>()]
+    val toRemove: List<TurboChannel<T>>? = l?.mapNotNull {
+        val channel = it as TurboChannel<T>
+        if (channel.matchesKey(key)) {
+            val result = channel.sendUpdate(data)
+            if(result == SendResult.Remove) {
+                return@mapNotNull channel
+            }
+        }
+        return@mapNotNull null
+    }
+    toRemove?.forEach {
+        removeTurboChannel(it)
+    }
+}
+
