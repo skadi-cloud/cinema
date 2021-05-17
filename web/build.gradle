@@ -30,7 +30,7 @@ configurations {
 def ktor_version = "1.5.4"
 def logback_version = "1.2.3"
 def exposed_version = '0.31.1'
-def jupiter_version = '5.7.1'
+def jupiter_version = '5.7.2'
 
 dependencies {
     implementation project(":shared")
