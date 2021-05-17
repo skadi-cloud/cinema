@@ -24,6 +24,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 
+@ExperimentalStdlibApi
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
 @ObsoleteCoroutinesApi

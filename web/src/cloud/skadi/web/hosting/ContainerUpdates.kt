@@ -3,27 +3,24 @@ package cloud.skadi.web.hosting
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.routing.getPodStatus
 import cloud.skadi.web.hosting.routing.pauseContainer
-import cloud.skadi.web.hosting.views.instanceControls
-import cloud.skadi.web.hosting.views.instanceStatusFrameContent
-import cloud.skadi.web.hosting.views.template
-import cloud.skadi.web.hosting.views.turboStream
+import cloud.skadi.web.hosting.turbo.sendTurboChannelUpdate
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
-import kotlinx.html.stream.createHTML
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.util.concurrent.CancellationException
 
+@ExperimentalStdlibApi
 @ObsoleteCoroutinesApi
 suspend fun updateNewContainers() {
     val logger = LoggerFactory.getLogger("updateNewContainers")
     for (tick in containerStatusTicker) {
-        val updatesToSend = transaction {
+        newSuspendedTransaction {
             KernelFContainer.find {
                 (KernelFContainers.status eq ContainerStatus.Stopping) or (KernelFContainers.status eq ContainerStatus.Deploying)
             }.mapNotNull {
@@ -45,54 +42,21 @@ suspend fun updateNewContainers() {
                     }
                     ContainerStatus.Running -> null
                 }
-            }.filter { it.first.status != it.second }.map {
+            }.filter { it.first.status != it.second }.forEach {
                 it.first.status = it.second
-                Pair(it.first.user.id.value, listOf(instanceStatusUpdate(it.first), instanceControlsUpdate(it.first)))
+                sendTurboChannelUpdate(it.first.id.value.toString(), it.first)
             }
         }
-        updatesToSend.forEach { sendUpdatesTo(it.first, it.second) }
     }
 }
 
-private suspend fun sendUpdatesTo(user: Int, updates: List<String>) {
-    val logger = LoggerFactory.getLogger("sendUpdatesTo")
-    try {
-        logger.info("trying to send updates to user $user")
-        val channel = getChannelToUser(user) ?: return
-        logger.info("sending update to user $user")
-        updates.forEach {
-            channel.send(Frame.Text(it))
-        }
-    } catch (e: CancellationException) {
-        logger.info("Websocket was already closed.")
-    } catch (e: Throwable) {
-        logger.error("error sending update ${e.message}", e)
-    }
-}
 
-private fun instanceStatusUpdate(it: KernelFContainer) =
-    createHTML().turboStream {
-        target = "status-${it.id.value}"
-        action = "update"
-        template {
-            instanceStatusFrameContent(it)
-        }
-    }
-
-private fun instanceControlsUpdate(it: KernelFContainer) =
-    createHTML().turboStream {
-        target = "controls-${it.id.value}"
-        action = "update"
-        template {
-            instanceControls(it)
-        }
-    }
-
+@ExperimentalStdlibApi
 @ObsoleteCoroutinesApi
 suspend fun updateRunningContainers() {
     val logger = LoggerFactory.getLogger("updateRunningContainers")
     for (tick in runningContainerStatusTicker) {
-        var updatesToSend = transaction {
+        newSuspendedTransaction {
             KernelFContainer.find {
                 (KernelFContainers.status eq ContainerStatus.Running)
             }.mapNotNull {
@@ -109,24 +73,23 @@ suspend fun updateRunningContainers() {
                         null
                     }
                 }
-            }.filter { it.first.status != it.second }.map {
+            }.filter { it.first.status != it.second }.forEach {
                 it.first.status = it.second
-                Pair(it.first.user.id.value, listOf(instanceStatusUpdate(it.first), instanceControlsUpdate(it.first)))
+                sendTurboChannelUpdate(it.first.id.value.toString(), it.first)
             }
         }
-        updatesToSend = updatesToSend + transaction {
+        newSuspendedTransaction {
             KernelFContainer.find {
                 (KernelFContainers.lastHeartBeat less (LocalDateTime.now()
                     .minusMinutes(30))) and (KernelFContainers.status eq ContainerStatus.Running)
-            }.map {
+            }.forEach {
                 it.status = ContainerStatus.Stopping
                 pauseContainer(it.id.value)
                 GlobalScope.launch {
                     logEvent(EventType.Paused, it, data = "heartbead timeout")
                 }
-                Pair(it.user.id.value, listOf(instanceStatusUpdate(it), instanceControlsUpdate(it)))
+                sendTurboChannelUpdate(it.id.value.toString(), it)
             }
         }
-        updatesToSend.forEach { sendUpdatesTo(it.first, it.second) }
     }
 }
