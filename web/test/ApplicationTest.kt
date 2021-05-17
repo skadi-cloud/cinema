@@ -15,6 +15,7 @@ import java.util.stream.Stream
 import kotlin.test.assertEquals
 import kotlin.time.ExperimentalTime
 
+@ExperimentalStdlibApi
 @KtorExperimentalAPI
 @ObsoleteCoroutinesApi
 @KtorExperimentalLocationsAPI

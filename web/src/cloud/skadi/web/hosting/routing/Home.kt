@@ -5,7 +5,7 @@ import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.redirectToLoginAndBack
 import cloud.skadi.web.hosting.session
-import cloud.skadi.web.hosting.userStreams
+import cloud.skadi.web.hosting.turbo.*
 import cloud.skadi.web.hosting.views.*
 import io.ktor.application.*
 import io.ktor.html.*
@@ -32,6 +32,7 @@ fun ApplicationCall.openInContainerUrl(container: KernelFContainer, repo: String
     }.build().fullPath
 }
 
+@ExperimentalStdlibApi
 fun Application.home() = routing {
     get("/") {
         call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
@@ -60,14 +61,20 @@ fun Application.home() = routing {
 
                 val email = call.session!!.email
                 val userContainers = containers(email)
+                val repo = call.parameters[REPO_PARAM]!!
                 if (userContainers.size == 1) {
-                    val target = call.openInContainerUrl(userContainers.first(), call.parameters[REPO_PARAM]!!)
+                    val container = userContainers.first()
+                    val target = call.openInContainerUrl(container, repo)
+                    createTask(container, Task.CloneRepo(repo, emptyUUID))
+                    if(canStartContainer(container)) {
+                        startContainer(container.id.value)
+                    }
                     call.respondRedirect(target)
                     return@newSuspendedTransaction
                 } else {
                     call.respondHtmlTemplate(AppTemplateWithoutScript("Create Playground")) {
                         content {
-                            selectOrCreatePlayground(email, userContainers, call.parameters[REPO_PARAM]!!, call.request.uri, call)
+                            selectOrCreatePlayground(email, userContainers, repo, call.request.uri, call)
                         }
                     }
                 }
@@ -80,14 +87,24 @@ fun Application.home() = routing {
             call.withUserContainerViaParam { container ->
                 newSuspendedTransaction {
                     val repo = call.parameters[REPO_PARAM]!!
-                    createTask(container, Task.CloneRepo(repo, emptyUUID))
-                    call.respondHtmlTemplate(AppTemplateWithoutScript("Opening")) {
+                    call.respondHtmlTemplate(AppTemplate("Opening")) {
                         content {
-                            opening(container, false, repo)
+                            opening(container, repo)
                         }
                     }
                 }
-
+            }
+        }
+    }
+    webSocket("/open-in-playground/{id}/stream") {
+        call.authenticated {
+            call.withUserContainerViaParam { container ->
+                val repo = call.parameters[REPO_PARAM]
+                if(repo == null) {
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@withUserContainerViaParam
+                }
+                runWebSocket(OpenTurboStream(container, repo, outgoing))
             }
         }
     }
@@ -122,25 +139,7 @@ fun Application.home() = routing {
         }
         val user = getUserById(call.session!!.email)!!
         log.info("streaming events for user ${user.id.value}")
-        val old = userStreams.put(user.id.value, outgoing)
-        try {
-            log.info("old value is $old")
-            old?.close()
-        } catch (e: Throwable) {
-            log.error("can't close old client connection", e)
-        }
-        try {
-            for (frame in incoming) {
-                val text = (frame as Frame.Text).readText()
-                log.info("client send $text")
-            }
-        } catch (e: ClosedReceiveChannelException) {
-            userStreams.remove(user.id.value)
-            log.info("connection closed for user ${user.id.value}")
-        } catch (e: Throwable) {
-            userStreams.remove(user.id.value)
-            log.error("websocket error for user ${user.id.value}", e)
-        }
+        runWebSocket(HomeTurboStream(user, outgoing))
     }
 }
 

@@ -1,5 +1,6 @@
 package cloud.skadi.web.hosting.views
 
+import cloud.skadi.web.hosting.data.ContainerStatus
 import cloud.skadi.web.hosting.data.KernelFContainer
 import cloud.skadi.web.hosting.routing.REPO_PARAM
 import cloud.skadi.web.hosting.routing.openInContainerUrl
@@ -54,7 +55,7 @@ fun FlowContent.selectOrCreatePlayground(email: String, containers: List<KernelF
     div(classes = "center") {
         if (containers.isEmpty()) {
             p {
-                +"You have no playgrounds, please create a new one to open the repository in."
+                +"You have no playgrounds, please create a new one to open the repository."
             }
             createPlaygroundForm(email, afterCreate, containerClasses = "static-button")
         } else {
@@ -75,21 +76,33 @@ fun FlowContent.selectOrCreatePlayground(email: String, containers: List<KernelF
     }
 }
 
-fun FlowContent.opening(instance: KernelFContainer, stated : Boolean, repo: String) {
+fun FlowContent.opening(instance: KernelFContainer, repo: String) {
     div(classes = "center") {
-        p {
-            if(stated)
-            {
-                +"Your playground ${instance.name} was started and will open the repository ($repo) when it is stared."
-            } else {
-                +"Your playground ${instance.name} will open the repository ($repo) shortly."
-            }
+        id = "state"
+        openingText(instance, repo)
+    }
+}
 
-        }
-        p(classes = "passive-text") {
-            +"""If the playground is starting for the first time you will have to accept the license terms first. Opening the
+fun FlowContent.openingText(instance: KernelFContainer, repo: String) {
+    p {
+        if(instance.status != ContainerStatus.Running)
+        {
+            +"Your playground ${instance.name} was started and will open the repository ($repo) when it is stared."
+            br
+            +"This page will update automatically when the playground is ready."
+        } else {
+            +"Your playground ${instance.name} will open the repository ($repo) shortly."
+            div {
+                a {
+                    href = fullAccessUrl(instance)
+                    +"Open ${instance.name}"
+                }
+            }
+            p(classes = "passive-text") {
+                +"""If the playground is starting for the first time you will have to accept the license terms first. Opening the
                 |repository will start once you see the welcome screen and can take up to 10 seconds before it stated.
             """.trimMargin()
+            }
         }
     }
 

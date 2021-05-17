@@ -75,6 +75,7 @@ data class UserSession(
     val idToken: String
 )
 
+@ExperimentalStdlibApi
 @KtorExperimentalLocationsAPI
 @ObsoleteCoroutinesApi
 @ExperimentalTime
@@ -104,12 +105,7 @@ val containerStatusTicker = ticker(10_000, mode = TickerMode.FIXED_DELAY)
 @ObsoleteCoroutinesApi
 val runningContainerStatusTicker = ticker(60_000, mode = TickerMode.FIXED_DELAY)
 
-val userStreams = ConcurrentHashMap<Int, SendChannel<Frame>>()
-
-fun getChannelToUser(id: Int): SendChannel<Frame>? {
-    return userStreams.get(id)
-}
-
+@ExperimentalStdlibApi
 @ObsoleteCoroutinesApi
 @KtorExperimentalLocationsAPI
 @ExperimentalTime

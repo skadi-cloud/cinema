@@ -186,17 +186,18 @@ fun getPodStatus(id: UUID): ContainerStatus {
 
     val pod = client.pods().withLabels(id.appLabel()).list(newListOptions { limit = 1 }).items.firstOrNull()
         ?: return ContainerStatus.Error
-    val state = pod.status.containerStatuses.firstOrNull() ?: return ContainerStatus.Deploying
 
-    if (state.state.waiting != null) {
-        return ContainerStatus.Deploying
-    }
-    if (state.state.terminated != null) {
+    if (pod.status.phase == "Failed") {
         return ContainerStatus.Error
     }
-    if (state.state.running != null) {
+
+    if (pod.status.phase == "Pending") {
+        return ContainerStatus.Deploying
+    }
+
+    if (pod.status.conditions.find { it.type == "Ready" }?.status == "True") {
         return ContainerStatus.Running
     }
-    return ContainerStatus.Error
+    return ContainerStatus.Deploying
 }
 
