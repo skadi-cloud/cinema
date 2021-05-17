@@ -159,6 +159,8 @@ fun Application.mainModule(testing: Boolean = false) {
         )
     }
     install(WebSockets)
+    installAuth(testing)
+    installInternalApi(prometheusMeterRegistry)
 
     if(!initDb("jdbc:postgresql://$SQL_HOST/$SQL_DB", SQL_USER, SQL_PASSWORD)) {
         log.error("can't init database")
@@ -175,8 +177,6 @@ fun Application.mainModule(testing: Boolean = false) {
     }
 
     containerApi()
-    installAuth(testing)
-    installInternalApi(prometheusMeterRegistry)
     home()
     open()
 
