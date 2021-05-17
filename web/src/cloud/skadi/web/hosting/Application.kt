@@ -3,6 +3,7 @@ package cloud.skadi.web.hosting
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.routing.containerApi
 import cloud.skadi.web.hosting.routing.home
+import cloud.skadi.web.hosting.routing.open
 import cloud.skadi.web.hosting.views.*
 import io.ktor.application.*
 import io.ktor.features.*
@@ -176,9 +177,10 @@ fun Application.mainModule(testing: Boolean = false) {
     containerApi()
     installAuth(testing)
     installInternalApi(prometheusMeterRegistry)
+    home()
+    open()
 
     routing {
-        home()
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("assets") {
             static("webfonts") {
