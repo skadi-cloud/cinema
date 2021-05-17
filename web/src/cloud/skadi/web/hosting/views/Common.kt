@@ -274,7 +274,7 @@ fun TBODY.containerRow(container: KernelFContainer, edit: Boolean = false) {
 
         td {
             a {
-                val url = "https://${container.id._value}.$INSTANCE_HOST?token=${container.rwToken}"
+                val url = fullAccessUrl(container)
                 href = url
                 target = "_blank"
                 +"Full Access"
@@ -295,6 +295,9 @@ fun TBODY.containerRow(container: KernelFContainer, edit: Boolean = false) {
         }
     }
 }
+
+fun fullAccessUrl(container: KernelFContainer) =
+    "https://${container.id._value}.$INSTANCE_HOST?token=${container.rwToken}"
 
 fun FORM.versionSelectBox(toSelect: ContainerVersion? = null) {
     select {

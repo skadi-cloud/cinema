@@ -1,6 +1,7 @@
 package cloud.skadi.web.hosting.turbo
 
 import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
 import org.slf4j.Logger
 import java.util.*
@@ -18,7 +19,7 @@ interface TurboChannel<T> {
     suspend fun sendUpdate(data: T): SendResult
 }
 
-abstract class WebsocketTurboChannel<T>(private val channel: SendChannel<Frame>, protected val logger:Logger): TurboChannel<T> {
+abstract class WebsocketTurboChannel<T>(private val channel: SendChannel<Frame>, public val logger:Logger): TurboChannel<T> {
     protected suspend fun send(frame: Frame): SendResult {
         return try {
             logger.info("sending update")
@@ -64,6 +65,23 @@ suspend inline fun <reified T> sendTurboChannelUpdate(key: String, data: T) {
     }
     toRemove?.forEach {
         removeTurboChannel(it)
+    }
+}
+
+@ExperimentalStdlibApi
+suspend inline fun <reified T>WebSocketSession.runWebSocket(stream: WebsocketTurboChannel<T>) {
+    addTurboChannel(stream)
+    try {
+        for (frame in incoming) {
+            val text = (frame as Frame.Text).readText()
+            stream.logger.info("client send $text")
+        }
+    } catch (e: ClosedReceiveChannelException) {
+        removeTurboChannel(stream)
+        stream.logger.info("connection closed")
+    } catch (e: Throwable) {
+        removeTurboChannel(stream)
+        stream.logger.error("websocket error", e)
     }
 }
 
