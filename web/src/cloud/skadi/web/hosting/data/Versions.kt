@@ -8,7 +8,8 @@ enum class MPSVersion(private val year: Int, private val major: Int, patch: Int)
     V2020_2_3(2020, 2, 3),
     V2020_2_2(2020, 2, 2),
     V2020_2_1(2020, 2, 1),
-    V2020_2(2020, 2, 0);
+    V2020_2(2020, 2, 0),
+    V2021_1(2021,1,0);
 
     val fullVersion = if (patch != 0) "$year.$major.$patch" else "$year.$major"
     fun isUpgrade(current: MPSVersion) = current.year < this.year || current.major < this.major
@@ -18,7 +19,8 @@ enum class MPSVersion(private val year: Int, private val major: Int, patch: Int)
 @Suppress("EnumEntryName")
 enum class ContainerVersion(val mpsVersion: MPSVersion, val buildNumber: Int? = null, val commit: String? = null) {
     V2020_3_4731_f5286c0(MPSVersion.V2020_3_3, 4731, "f5286c0"),
-    V2020_3_1(MPSVersion.V2020_3_1);
+    V2020_3_1(MPSVersion.V2020_3_1),
+    V2021_1(MPSVersion.V2021_1);
     //V2020_2_4726_e49ca16(MPSVersion.V2020_2_3,4726, "e49ca16");
 
     val tag =
