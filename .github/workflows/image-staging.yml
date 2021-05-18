@@ -10,6 +10,7 @@ on:
       - 'skadi-community-samples/**'
       - 'projector-server/**'
       - 'projector-server'
+      - '.github/workflows/image-staging.yml'
 
 jobs:
   images:
