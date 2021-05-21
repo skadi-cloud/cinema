@@ -7,7 +7,6 @@ import cloud.skadi.web.hosting.data.*
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -29,8 +28,6 @@ suspend fun ApplicationCall.internalApiOnly(body: suspend (ApplicationCall) -> U
     }
     body(this)
 }
-
-private val client = DefaultKubernetesClient().inNamespace("default")!!
 
 private val mapper = JsonMapper.builder()
     .addModule(KotlinModule(strictNullChecks = true))

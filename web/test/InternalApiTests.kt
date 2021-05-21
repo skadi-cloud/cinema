@@ -12,14 +12,19 @@ import cloud.skadi.web.hosting.routing.emptyUUID
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer
 import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
@@ -29,11 +34,24 @@ import kotlin.time.ExperimentalTime
 @KtorExperimentalLocationsAPI
 @ObsoleteCoroutinesApi
 @ExperimentalTime
+
+
 class InternalApiTests {
+
+    lateinit var client: KubernetesClient
+    lateinit var server: KubernetesServer
+
+    @BeforeEach
+    fun before() {
+        server = KubernetesServer(true, true)
+        server.before()
+        client =  server.client
+    }
+
     @Test
     fun `heartbeat v1 works`() {
         ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer {
                     handleRequest(HttpMethod.Post, "/heartbeat/${it.id}") {
@@ -50,7 +68,7 @@ class InternalApiTests {
     @Test
     fun `heartbeat v2 works`() {
         ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer {
                     handleRequest(HttpMethod.Post, "/heartbeat/${it.id}") {
@@ -71,7 +89,7 @@ class InternalApiTests {
 
     @Test
     fun `healthcheck available on internal api`() {
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             handleRequest(HttpMethod.Get, "/health") {
                 addHeader(HttpHeaders.Host, "localhost:9090")
             }.apply {
@@ -82,7 +100,7 @@ class InternalApiTests {
 
     @Test
     fun `metrics are available on internal api`() {
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             handleRequest(HttpMethod.Get, "/metrics") {
                 addHeader(HttpHeaders.Host, "localhost:9090")
             }.apply {
@@ -96,7 +114,7 @@ class InternalApiTests {
     @Test
     fun `task queue returns 404 for none existing instance`() {
         ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             handleRequest(HttpMethod.Post, "/tasks/${UUID.randomUUID()}/dequeue") {
                 addHeader(HttpHeaders.Host, "localhost:9090")
             }.apply {
@@ -108,7 +126,7 @@ class InternalApiTests {
     @Test
     fun `empty task queue for existing instance returns 404`() {
         ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer {
                     handleRequest(HttpMethod.Post, "/tasks/${it.id}/dequeue") {
@@ -129,7 +147,7 @@ class InternalApiTests {
     @Test
     fun `empty task queue for existing instance fails with invalid signature`() {
         ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer {
                     handleRequest(HttpMethod.Post, "/tasks/${it.id}/dequeue") {
@@ -156,7 +174,7 @@ class InternalApiTests {
         val mapper = JsonMapper.builder()
             .addModule(KotlinModule(strictNullChecks = true))
             .build()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer { container ->
                     val task = transaction {
@@ -193,7 +211,7 @@ class InternalApiTests {
         val mapper = JsonMapper.builder()
             .addModule(KotlinModule(strictNullChecks = true))
             .build()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer { container ->
                     val task = transaction {
@@ -233,7 +251,7 @@ class InternalApiTests {
         val mapper = JsonMapper.builder()
             .addModule(KotlinModule(strictNullChecks = true))
             .build()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer { container ->
                     val task = transaction {
@@ -277,7 +295,7 @@ class InternalApiTests {
     @Test
     fun `can't finish a task that isn't started`() {
         ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer { container ->
                     val task = transaction {
@@ -311,7 +329,7 @@ class InternalApiTests {
     @Test
     fun `can't fail a task that isn't started`() {
         ensureDbEmpty()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer { container ->
                     val task = transaction {
@@ -348,7 +366,7 @@ class InternalApiTests {
         val mapper = JsonMapper.builder()
             .addModule(KotlinModule(strictNullChecks = true))
             .build()
-        withTestApplication({ mainModule(testing = true) }) {
+        withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
                 withContainer { container ->
                     val task = transaction {

@@ -4,6 +4,9 @@ import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.routing.containerApi
 import cloud.skadi.web.hosting.routing.home
 import cloud.skadi.web.hosting.views.*
+import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.html.*
@@ -84,7 +87,7 @@ fun main() {
         developmentMode = getEnvOrDefault("ENV", "production") != "production"
 
         module {
-            mainModule(false)
+            mainModule(false, DefaultKubernetesClient().inNamespace("default")!!)
         }
         //watchPaths = listOf("classes", "resources")
         connector {
@@ -111,7 +114,7 @@ val runningContainerStatusTicker = ticker(60_000, mode = TickerMode.FIXED_DELAY)
 @ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
-fun Application.mainModule(testing: Boolean = false) {
+fun Application.mainModule(testing: Boolean = false, client : KubernetesClient) {
     if (!testing) {
         if (GITHUB_ID.isEmpty()) {
             log.error("GITHUB_ID is empty!")
@@ -166,19 +169,19 @@ fun Application.mainModule(testing: Boolean = false) {
 
     if (!testing) {
         GlobalScope.launch {
-            updateNewContainers()
+            updateNewContainers(client)
         }
         GlobalScope.launch {
-            updateRunningContainers()
+            updateRunningContainers(client)
         }
     }
 
-    containerApi()
+    containerApi(client)
     installAuth(testing)
     installInternalApi(prometheusMeterRegistry)
 
     routing {
-        home()
+        home(client)
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("assets") {
             static("webfonts") {

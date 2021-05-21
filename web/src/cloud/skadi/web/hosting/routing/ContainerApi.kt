@@ -9,7 +9,8 @@ import cloud.skadi.web.hosting.views.AppTemplate
 import cloud.skadi.web.hosting.views.REDIRECT_AFTER_CREATE
 import cloud.skadi.web.hosting.views.confirmDelete
 import com.fkorotkov.kubernetes.newListOptions
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
@@ -17,15 +18,13 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.seruco.encoding.base62.Base62
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import java.util.*
 
 val CONTAINER_LATEST = ContainerVersion.V2020_3_4731_f5286c0
-fun Application.containerApi() = routing {
+fun Application.containerApi(client: KubernetesClient) = routing {
     post("/new-container") {
         call.authenticated {
             val user = call.session!!.email
@@ -56,7 +55,7 @@ fun Application.containerApi() = routing {
             val dbUser = getUserById(user)
             logEvent(EventType.Created, container, dbUser)
             transaction { container.status = ContainerStatus.Deploying }
-            deployContainer(container)
+            deployContainer(client, container)
             logEvent(EventType.Started, container, dbUser)
 
             val redirectTarget = params[REDIRECT_AFTER_CREATE] ?: HOME_PATH
@@ -77,7 +76,7 @@ fun Application.containerApi() = routing {
     post("/container/{id}/delete") {
         call.authenticated {
             call.withUserContainerViaParam { container ->
-                undeployContainer(container.id.value)
+                undeployContainer(client, container.id.value)
                 deleteContainerById(container.id.value)
                 logEvent(EventType.Deleted, container, getUserById(call.session!!.email))
                 call.respondSeeOther(HOME_PATH)
@@ -92,7 +91,7 @@ fun Application.containerApi() = routing {
                         container.status = ContainerStatus.Deploying
                         container.lastHeartBeat = LocalDateTime.now()
                     }
-                    startContainer(container.id.value)
+                    startContainer(client, container.id.value)
                     logEvent(EventType.Started, container, getUserById(call.session!!.email))
                 }
                 call.respondSeeOther(HOME_PATH)
@@ -104,7 +103,7 @@ fun Application.containerApi() = routing {
             call.withUserContainerViaParam { container ->
                 if (canStopContainer(container)) {
                     transaction { container.status = ContainerStatus.Stopping }
-                    pauseContainer(container.id.value)
+                    pauseContainer(client, container.id.value)
                     logEvent(EventType.Paused, container, getUserById(call.session!!.email))
                 }
                 call.respondSeeOther(HOME_PATH)
@@ -124,7 +123,7 @@ fun Application.containerApi() = routing {
                         container.status = ContainerStatus.Deploying
                     }
                     logEvent(EventType.Updated, container, getUserById(call.session!!.email), "new version: $version")
-                    updateContainer(container)
+                    updateContainer(client, container)
                 }
                 call.respondSeeOther(HOME_PATH)
             }
@@ -142,42 +141,46 @@ fun canStartContainer(container: KernelFContainer): Boolean {
     return status == ContainerStatus.Stopped
 }
 
-private val client = DefaultKubernetesClient().inNamespace("default")!!
-
-fun pauseContainer(id: UUID) {
+fun pauseContainer(client: KubernetesClient, id: UUID) {
     client.apps().deployments().withName(deploymentName(id)).scale(0)
 }
 
-fun startContainer(id: UUID) {
+fun startContainer(client: KubernetesClient, id: UUID) {
     client.apps().deployments().withName(deploymentName(id)).scale(1)
 }
 
 
-fun deployContainer(id: UUID, kernelFVersion: String, rwToken: String, roToken: String) {
+fun deployContainer(
+    client: KubernetesClient,
+    id: UUID,
+    kernelFVersion: String,
+    rwToken: String,
+    roToken: String
+) {
     client.persistentVolumeClaims().create(MPSInstancePVC(id))
     client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
     client.services().create(MPSInstanceService(id))
     client.network().ingresses().create(MPSInstanceIngress(id))
 }
 
-fun deployContainer(container: KernelFContainer) {
-    deployContainer(container.id.value, container.version.tag, container.rwToken, container.roToken)
+fun deployContainer(client: KubernetesClient, container: KernelFContainer) {
+    deployContainer(client, container.id.value, container.version.tag, container.rwToken, container.roToken)
 }
 
-fun updateContainer(container: KernelFContainer) {
+fun updateContainer(client: KubernetesClient, container: KernelFContainer) {
     client.apps().deployments().withName(deploymentName(container.id.value)).rolling()
         .updateImage(containerImage(container.version.tag))
 }
 
 
-fun undeployContainer(id: UUID) {
+fun undeployContainer(client: KubernetesClient, id: UUID) {
     client.network().ingresses().delete(MPSInstanceIngress(id))
     client.services().delete(MPSInstanceService(id))
     client.apps().deployments().delete(MPSInstanceDeployment(id, "", "", ""))
     client.persistentVolumeClaims().delete(MPSInstancePVC(id))
 }
 
-fun getPodStatus(id: UUID): ContainerStatus {
+fun getPodStatus(client: KubernetesClient, id: UUID): ContainerStatus {
     val deployment = client.apps().deployments().withName(deploymentName(id)).get() ?: return ContainerStatus.Deploying
 
     if (deployment.spec.replicas == 0 && deployment.status.replicas == null) {

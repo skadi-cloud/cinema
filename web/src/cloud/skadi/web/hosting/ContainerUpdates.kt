@@ -4,6 +4,8 @@ import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.routing.getPodStatus
 import cloud.skadi.web.hosting.routing.pauseContainer
 import cloud.skadi.web.hosting.turbo.sendTurboChannelUpdate
+import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -17,7 +19,7 @@ import java.time.LocalDateTime
 
 @ExperimentalStdlibApi
 @ObsoleteCoroutinesApi
-suspend fun updateNewContainers() {
+suspend fun updateNewContainers(client : KubernetesClient) {
     val logger = LoggerFactory.getLogger("updateNewContainers")
     for (tick in containerStatusTicker) {
         newSuspendedTransaction {
@@ -29,13 +31,13 @@ suspend fun updateNewContainers() {
                     ContainerStatus.Error -> null
                     ContainerStatus.Stopped -> null
                     ContainerStatus.Stopping -> try {
-                        Pair(it, getPodStatus(it.id.value))
+                        Pair(it, getPodStatus(client, it.id.value))
                     } catch (e: Exception) {
                         logger.error("error updating pod status for ${it.id.value}", e)
                         null
                     }
                     ContainerStatus.Deploying -> try {
-                        Pair(it, getPodStatus(it.id.value))
+                        Pair(it, getPodStatus(client, it.id.value))
                     } catch (e: Exception) {
                         logger.error("error updating pod status for ${it.id.value}", e)
                         null
@@ -53,7 +55,7 @@ suspend fun updateNewContainers() {
 
 @ExperimentalStdlibApi
 @ObsoleteCoroutinesApi
-suspend fun updateRunningContainers() {
+suspend fun updateRunningContainers(client :KubernetesClient) {
     val logger = LoggerFactory.getLogger("updateRunningContainers")
     for (tick in runningContainerStatusTicker) {
         newSuspendedTransaction {
@@ -67,7 +69,7 @@ suspend fun updateRunningContainers() {
                     ContainerStatus.Stopping -> null
                     ContainerStatus.Deploying -> null
                     ContainerStatus.Running -> try {
-                        Pair(it, getPodStatus(it.id.value))
+                        Pair(it, getPodStatus(client, it.id.value))
                     } catch (e: Exception) {
                         logger.error("error updating pod status for ${it.id.value}", e)
                         null
@@ -84,7 +86,7 @@ suspend fun updateRunningContainers() {
                     .minusMinutes(30))) and (KernelFContainers.status eq ContainerStatus.Running)
             }.forEach {
                 it.status = ContainerStatus.Stopping
-                pauseContainer(it.id.value)
+                pauseContainer(client, it.id.value)
                 GlobalScope.launch {
                     logEvent(EventType.Paused, it, data = "heartbead timeout")
                 }

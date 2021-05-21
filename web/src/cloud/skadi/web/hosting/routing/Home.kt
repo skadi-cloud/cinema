@@ -7,6 +7,8 @@ import cloud.skadi.web.hosting.redirectToLoginAndBack
 import cloud.skadi.web.hosting.session
 import cloud.skadi.web.hosting.turbo.*
 import cloud.skadi.web.hosting.views.*
+import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
@@ -33,7 +35,7 @@ fun ApplicationCall.openInContainerUrl(container: KernelFContainer, repo: String
 }
 
 @ExperimentalStdlibApi
-fun Application.home() = routing {
+fun Application.home(client : KubernetesClient) = routing {
     get("/") {
         call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
             content {
@@ -67,7 +69,7 @@ fun Application.home() = routing {
                     val target = call.openInContainerUrl(container, repo)
                     createTask(container, Task.CloneRepo(repo, emptyUUID))
                     if(canStartContainer(container)) {
-                        startContainer(container.id.value)
+                        startContainer(client, container.id.value)
                     }
                     call.respondRedirect(target)
                     return@newSuspendedTransaction
