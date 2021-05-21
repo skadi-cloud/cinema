@@ -27,6 +27,7 @@ class FeedbackAction : AnAction() {
         val feedbackDialog = FeedbackDialog(e.project)
         if (feedbackDialog.showAndGet()) {
             val (name, email, message, includeLogs) = feedbackDialog.result
+            Sentry.init()
             Sentry.withScope { scope ->
                 if (includeLogs) {
                     val troubleshooting = collectInfoFromExtensions(e.project)

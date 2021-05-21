@@ -144,11 +144,11 @@ fun canStartContainer(container: KernelFContainer): Boolean {
 
 private val client = DefaultKubernetesClient().inNamespace("default")!!
 
-fun pauseContainer(id: UUID) = GlobalScope.launch {
+fun pauseContainer(id: UUID) {
     client.apps().deployments().withName(deploymentName(id)).scale(0)
 }
 
-fun startContainer(id: UUID) = GlobalScope.launch {
+fun startContainer(id: UUID) {
     client.apps().deployments().withName(deploymentName(id)).scale(1)
 }
 
