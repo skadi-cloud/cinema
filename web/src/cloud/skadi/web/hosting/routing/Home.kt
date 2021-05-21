@@ -5,27 +5,27 @@ import cloud.skadi.web.hosting.HOME_PATH
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.redirectToLoginAndBack
 import cloud.skadi.web.hosting.session
-import cloud.skadi.web.hosting.turbo.*
+import cloud.skadi.web.hosting.turbo.HomeTurboStream
+import cloud.skadi.web.hosting.turbo.OpenTurboStream
+import cloud.skadi.web.hosting.turbo.runWebSocket
 import cloud.skadi.web.hosting.views.*
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.time.LocalDateTime
 import java.util.*
 
 const val REPO_PARAM = "repo"
 
 val emptyUUID: UUID
-    get() = UUID(0,0)
+    get() = UUID(0, 0)
 
 fun ApplicationCall.openInContainerUrl(container: KernelFContainer, repo: String): String {
     return URLBuilder.createFromCall(this).apply {
@@ -35,7 +35,7 @@ fun ApplicationCall.openInContainerUrl(container: KernelFContainer, repo: String
 }
 
 @ExperimentalStdlibApi
-fun Application.home(client : KubernetesClient) = routing {
+fun Application.home(client: KubernetesClient) = routing {
     get("/") {
         call.respondHtmlTemplate(IndexTemplate("Skadi Cloud")) {
             content {
@@ -55,7 +55,6 @@ fun Application.home(client : KubernetesClient) = routing {
     get("/open-in-playground") {
         call.authenticated {
             newSuspendedTransaction {
-
                 if (call.parameters[REPO_PARAM] == null) {
                     call.respond(HttpStatusCode.BadRequest, "no repository specified")
                     return@newSuspendedTransaction
@@ -68,7 +67,9 @@ fun Application.home(client : KubernetesClient) = routing {
                     val container = userContainers.first()
                     val target = call.openInContainerUrl(container, repo)
                     createTask(container, Task.CloneRepo(repo, emptyUUID))
-                    if(canStartContainer(container)) {
+                    if (canStartContainer(container)) {
+                        container.status = ContainerStatus.Deploying
+                        container.lastHeartBeat = LocalDateTime.now()
                         startContainer(client, container.id.value)
                     }
                     call.respondRedirect(target)
@@ -102,7 +103,7 @@ fun Application.home(client : KubernetesClient) = routing {
         call.authenticated {
             call.withUserContainerViaParam { container ->
                 val repo = call.parameters[REPO_PARAM]
-                if(repo == null) {
+                if (repo == null) {
                     call.respond(HttpStatusCode.BadRequest)
                     return@withUserContainerViaParam
                 }
