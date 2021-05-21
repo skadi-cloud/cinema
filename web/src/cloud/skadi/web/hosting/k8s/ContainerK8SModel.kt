@@ -79,7 +79,7 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
                         image = containerImage(kernelFVersion)
                         imagePullPolicy = "Always"
                         ports = listOf(newContainerPort { containerPort = 8887 })
-                        env = listOf(
+                        env = mutableListOf(
                             newEnvVar {
                                 name = "SKADI_INSTANCE_ID"
                                 value = id.toString()
