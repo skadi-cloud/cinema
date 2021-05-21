@@ -28,7 +28,12 @@ suspend fun updateNewContainers(client : KubernetesClient) {
             }.mapNotNull {
                 when (it.status) {
                     ContainerStatus.Created -> null
-                    ContainerStatus.Error -> null
+                    ContainerStatus.Error -> try {
+                        Pair(it, getPodStatus(client, it.id.value))
+                    } catch (e: Exception) {
+                        logger.error("error updating pod status for ${it.id.value}", e)
+                        null
+                    }
                     ContainerStatus.Stopped -> null
                     ContainerStatus.Stopping -> try {
                         Pair(it, getPodStatus(client, it.id.value))
@@ -65,7 +70,12 @@ suspend fun updateRunningContainers(client :KubernetesClient) {
                 when (it.status) {
                     ContainerStatus.Created -> null
                     ContainerStatus.Error -> null
-                    ContainerStatus.Stopped -> null
+                    ContainerStatus.Stopped -> try {
+                        Pair(it, getPodStatus(client, it.id.value))
+                    } catch (e: Exception) {
+                        logger.error("error updating pod status for ${it.id.value}", e)
+                        null
+                    }
                     ContainerStatus.Stopping -> null
                     ContainerStatus.Deploying -> null
                     ContainerStatus.Running -> try {
