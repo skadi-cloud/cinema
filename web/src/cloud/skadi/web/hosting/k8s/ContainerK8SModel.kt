@@ -1,6 +1,9 @@
 package cloud.skadi.web.hosting.k8s
 
+import cloud.skadi.web.hosting.INSTANCE_HOST
+import cloud.skadi.web.hosting.getEnvOrDefault
 import com.fkorotkov.kubernetes.*
+import com.fkorotkov.kubernetes.apps.*
 import com.fkorotkov.kubernetes.networking.v1beta1.*
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
@@ -8,13 +11,10 @@ import io.fabric8.kubernetes.api.model.Quantity
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress
-import cloud.skadi.web.hosting.INSTANCE_HOST
-import cloud.skadi.web.hosting.getEnvOrDefault
-import com.fkorotkov.kubernetes.apps.*
 import java.util.*
 
 
-private val containerRegistry = getEnvOrDefault( "CONTAINER_REGISTRY","rg.nl-ams.scw.cloud/cloud-skadi-mps")
+private val containerRegistry = getEnvOrDefault("CONTAINER_REGISTRY", "rg.nl-ams.scw.cloud/cloud-skadi-mps")
 private val containerImageName = ""
 
 fun UUID.appLabel() = mapOf("app" to "mps-instance-$this")
@@ -96,8 +96,13 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
                                 name = "ORG_JETBRAINS_PROJECTOR_SERVER_RO_HANDSHAKE_TOKEN"
                                 value = roToken
                             }
-
                         )
+                        if (System.getenv("SENTRY_DSN") != null) {
+                            env.add(newEnvVar {
+                                name = "SENTRY_DSN"
+                                value = System.getenv("SENTRY_DSN")
+                            })
+                        }
                         resources {
                             requests = mapOf(
                                 "cpu" to Quantity("1500m"),

@@ -5,10 +5,7 @@
         </encoder>
     </appender>
     <appender name="Sentry" class="io.sentry.logback.SentryAppender">
-        <options>
-            <dsn>https://371b6597eb0643b38c4fb68ee55fe1d1@o76671.ingest.sentry.io/5706294</dsn>
-        </options>
-        <minimumEventLevel>WARN</minimumEventLevel>
+        <minimumEventLevel>ERROR</minimumEventLevel>
     </appender>
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

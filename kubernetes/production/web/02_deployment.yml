@@ -64,6 +64,9 @@ spec:
                 secretKeyRef:
                   name: web-app
                   key: cookie-salt
+            - name: SENTRY_DSN
+              value: https://371b6597eb0643b38c4fb68ee55fe1d1@o76671.ingest.sentry.io/5706294
+
           resources:
             requests:
               memory: "150Mi"
