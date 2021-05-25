@@ -55,7 +55,7 @@ dependencies {
 
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
 
-    implementation group: 'org.kohsuke', name: 'github-api', version: '1.128'
+    implementation group: 'org.kohsuke', name: 'github-api', version: '1.129'
 
     implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.0.1"
     implementation "io.fabric8:kubernetes-client:5.4.0"
