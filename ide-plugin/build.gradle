@@ -27,15 +27,15 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '2020.1'
-    plugins 'git4idea'
+    version = '2020.1'
+    plugins = ['git4idea']
 }
 
 patchPluginXml {
-    changeNotes """
+    changeNotes = """
       Add change notes here.<br>
       <em>most HTML tags may be used</em>"""
-    untilBuild(null)
+    untilBuild = null
 }
 
 compileKotlin {
