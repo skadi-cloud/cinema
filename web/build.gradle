@@ -74,7 +74,6 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests:$ktor_version") {
         exclude group: 'junit', module: 'junit'
     }
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiter_version"
     testImplementation "io.fabric8:kubernetes-server-mock:5.4.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$jupiter_version"
