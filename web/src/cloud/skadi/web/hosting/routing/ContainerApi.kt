@@ -188,7 +188,7 @@ fun getPodStatus(client: KubernetesClient, id: UUID): ContainerStatus {
     }
 
     val pod = client.pods().withLabels(id.appLabel()).list(newListOptions { limit = 1 }).items.firstOrNull()
-        ?: return ContainerStatus.Error
+        ?: return ContainerStatus.Deploying
 
     if (pod.status.phase == "Failed") {
         return ContainerStatus.Error

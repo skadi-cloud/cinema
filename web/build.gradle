@@ -27,7 +27,7 @@ configurations {
     jsFiles
 }
 
-def ktor_version = "1.5.4"
+def ktor_version = "1.6.0"
 def logback_version = "1.2.3"
 def exposed_version = '0.31.1'
 def jupiter_version = '5.7.2'
@@ -55,7 +55,7 @@ dependencies {
 
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
 
-    implementation group: 'org.kohsuke', name: 'github-api', version: '1.128'
+    implementation group: 'org.kohsuke', name: 'github-api', version: '1.129'
 
     implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.0.1"
     implementation "io.fabric8:kubernetes-client:5.4.0"
@@ -74,7 +74,6 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests:$ktor_version") {
         exclude group: 'junit', module: 'junit'
     }
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiter_version"
     testImplementation "io.fabric8:kubernetes-server-mock:5.4.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$jupiter_version"
