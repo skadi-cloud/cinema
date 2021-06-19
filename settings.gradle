@@ -7,4 +7,5 @@ include ':ide-plugin'
 include ':playground-image'
 includeBuild('skadi-community-samples')
 include ':shared'
+include ':gist'
 
