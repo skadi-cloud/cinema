@@ -27,7 +27,7 @@ configurations {
     jsFiles
 }
 
-def ktor_version = "1.6.0"
+def ktor_version = "1.6.1"
 def logback_version = "1.2.3"
 def exposed_version = '0.32.1'
 def jupiter_version = '5.7.2'
