@@ -1,5 +1,7 @@
 package cloud.skadi.web.hosting
 
+import cloud.skadi.sharred.web.util.getEnvOfFail
+import cloud.skadi.sharred.web.util.getEnvOrDefault
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.routing.containerApi
 import cloud.skadi.web.hosting.routing.home
@@ -41,18 +43,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 
 
-fun getEnvOfFail(env: String): String {
-    return System.getenv(env) ?: throw IllegalArgumentException("missing $env")
-}
 
-fun getEnvOrDefault(env: String, default: String): String {
-    val value = System.getenv(env) ?: return default
-    if (value.isEmpty()) {
-        return default
-    } else {
-        return value
-    }
-}
 
 val SQL_PASSWORD = getEnvOfFail("SQL_PASSWORD")
 val SQL_USER = getEnvOfFail("SQL_USER")

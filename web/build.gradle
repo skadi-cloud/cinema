@@ -34,6 +34,7 @@ def jupiter_version = '5.7.2'
 
 dependencies {
     implementation project(":shared")
+    implementation project(":shared-web")
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "io.ktor:ktor-server-netty:$ktor_version"

@@ -7,7 +7,6 @@ plugins {
 apply plugin: 'application'
 
 def ktor_version="1.6.0"
-def kotlin_version="1.5.10"
 def logback_version="1.2.3"
 def prometeus_version="1.6.3"
 def exposed_version = '0.32.1'
@@ -23,7 +22,10 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
 }
 
+
 dependencies {
+    implementation project(":shared-web")
+
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-auth:$ktor_version")
     implementation("io.ktor:ktor-locations:$ktor_version")
@@ -35,11 +37,12 @@ dependencies {
     implementation("io.ktor:ktor-metrics:$ktor_version")
     implementation("io.ktor:ktor-metrics-micrometer:$ktor_version")
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeus_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.3")
     implementation("io.ktor:ktor-html-builder:$ktor_version")
     implementation("io.ktor:ktor-websockets:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+
+    implementation "io.seruco.encoding:base62:0.1.3"
 
     implementation 'io.sentry:sentry-logback:4.3.0'
     implementation "org.jetbrains.exposed:exposed-core:$exposed_version"

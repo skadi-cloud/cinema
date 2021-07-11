@@ -1,7 +1,7 @@
 package cloud.skadi.web.hosting.k8s
 
+import cloud.skadi.sharred.web.util.getEnvOrDefault
 import cloud.skadi.web.hosting.INSTANCE_HOST
-import cloud.skadi.web.hosting.getEnvOrDefault
 import com.fkorotkov.kubernetes.*
 import com.fkorotkov.kubernetes.apps.*
 import com.fkorotkov.kubernetes.networking.v1beta1.*
