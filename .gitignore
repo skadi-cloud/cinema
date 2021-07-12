@@ -11,3 +11,5 @@
 .DS_Store
 /shared-web/build/
 /gist/build/
+/gist-ide-plugin/build/
+/gist-shared/build/

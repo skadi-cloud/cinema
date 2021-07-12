@@ -1,6 +1,7 @@
 package cloud.skadi.routing
 
 import cloud.skadi.data.*
+import cloud.skadi.gist.shared.GistVisibility
 import cloud.skadi.plugins.gistSession
 import cloud.skadi.views.RootTemplate
 import io.ktor.application.*

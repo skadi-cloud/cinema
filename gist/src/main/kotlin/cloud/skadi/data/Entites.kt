@@ -1,5 +1,6 @@
 package cloud.skadi.data
 
+import cloud.skadi.gist.shared.GistVisibility
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.UUIDEntity
@@ -38,10 +39,6 @@ class Token(id: EntityID<Int>): IntEntity(id) {
     var token by TokenTable.token
     var user by User referencedOn TokenTable.user
     var created by TokenTable.created
-}
-
-enum class GistVisibility {
-    Public, UnListed, Private
 }
 
 object GistTable: UUIDTable() {

@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>gist-ide-plugin</id>
-    <name>Plugin display name here</name>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+    <id>cloud.skadi.gist</id>
+    <name>Skadi Cloud - Gist</name>
+    <vendor email="kolja@hey.com" url="https://gist.skadi.cloud">Skadi Cloud</vendor>
 
     <description><![CDATA[
     Enter short description for your plugin here.<br>
@@ -18,5 +18,12 @@
 
     <actions>
         <!-- Add your actions here -->
+        <action id="cloud.skadi.gist.mps.plugin.CreateGistFromNodeAction"
+                class="cloud.skadi.gist.mps.plugin.CreateGistFromNodeAction" text="Create Gist"
+                description="Creates a Gist from the current Node">
+            <add-to-group group-id="EditMenu" anchor="first"/>
+            <add-to-group group-id="OtherMenu" anchor="first"/>
+            <add-to-group group-id="jetbrains.mps.ide.actions.FlyingActions_ActionGroup" />
+        </action>
     </actions>
 </idea-plugin>

@@ -25,6 +25,7 @@ repositories {
 
 dependencies {
     implementation project(":shared-web")
+    implementation project(":gist-shared")
 
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-auth:$ktor_version")
