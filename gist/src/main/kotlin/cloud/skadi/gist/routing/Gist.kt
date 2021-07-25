@@ -1,9 +1,9 @@
-package cloud.skadi.routing
+package cloud.skadi.gist.routing
 
-import cloud.skadi.data.*
+import cloud.skadi.gist.data.*
+import cloud.skadi.gist.plugins.gistSession
 import cloud.skadi.gist.shared.GistVisibility
-import cloud.skadi.plugins.gistSession
-import cloud.skadi.views.RootTemplate
+import cloud.skadi.gist.views.RootTemplate
 import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
@@ -13,7 +13,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import io.seruco.encoding.base62.Base62
-import kotlinx.html.h1
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -27,18 +26,14 @@ fun Application.configureGistRouting(upload: suspend (GistRoot, InputStream) -> 
     routing {
         post("/gist/create") {
             val token = call.request.header("X-SKADI-GIST-TOKEN")
-            if (token == null) {
-                call.respond(HttpStatusCode.BadRequest)
-                return@post
-            }
-            val user = newSuspendedTransaction {
-                Token.find { TokenTable.token eq token }.firstOrNull()?.user
-            }
 
-            if (user == null) {
-                call.respond(HttpStatusCode.Unauthorized)
-                return@post
-            }
+            val user = if (token != null)
+                newSuspendedTransaction {
+                    Token.find { TokenTable.token eq token }.firstOrNull()?.user
+                }
+            else
+                null
+
 
             val parts = call.receiveMultipart()
             val parsedRoot = mutableMapOf<Int, GistPart>()
@@ -96,6 +91,9 @@ fun Application.configureGistRouting(upload: suspend (GistRoot, InputStream) -> 
                     }
                 }
             }
+            if (user == null) {
+                visibility = GistVisibility.Public
+            }
 
             if (name == null || description == null || visibility == null || parsedRoot.isEmpty()) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -151,17 +149,17 @@ fun Application.configureGistRouting(upload: suspend (GistRoot, InputStream) -> 
             val base62 = Base62.createInstance()
 
             val decoded = base62.decode(idParam.toByteArray())
-            val bytes = ByteBuffer.allocate(decoded.size).put(decoded)
+            val bytes = ByteBuffer.allocate(decoded.size).put(decoded).rewind()
             val gistId = UUID(bytes.long, bytes.long)
 
             val gist = newSuspendedTransaction { Gist.findById(gistId) }
-            if(gist == null) {
+            if (gist == null) {
                 log.warn("unknown gist: $gistId")
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
-            if(gist.visibility == GistVisibility.Private && gist.user != user) {
+            if (gist.visibility == GistVisibility.Private && gist.user != user) {
                 log.warn("gist $gistId not visible for user")
                 call.respond(HttpStatusCode.NotFound)
                 return@get
@@ -169,7 +167,7 @@ fun Application.configureGistRouting(upload: suspend (GistRoot, InputStream) -> 
 
             call.respondHtmlTemplate(RootTemplate("Skadi Gist", user = user)) {
                 content {
-                    
+
                 }
             }
         }

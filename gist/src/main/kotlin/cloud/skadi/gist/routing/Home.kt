@@ -1,4 +1,4 @@
-package cloud.skadi.routing
+package cloud.skadi.gist.routing
 
 import io.ktor.application.*
 import io.ktor.routing.*

@@ -1,7 +1,6 @@
-package cloud.skadi.views
+package cloud.skadi.gist.views
 
-import cloud.skadi.data.Gist
-import cloud.skadi.data.User
+import cloud.skadi.gist.data.User
 import io.ktor.html.*
 import kotlinx.html.*
 

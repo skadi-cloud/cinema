@@ -4,6 +4,7 @@ import cloud.skadi.gist.shared.*
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.engine.java.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -21,7 +22,9 @@ import org.jetbrains.mps.openapi.model.SModelReference
 import org.jetbrains.mps.openapi.model.SNode
 import org.jetbrains.mps.openapi.module.SRepository
 
-val client = io.ktor.client.HttpClient(Java)
+val client = io.ktor.client.HttpClient(Java) {
+    followRedirects = false
+}
 const val HOST = "http://localhost:8080/gist/create"
 
 private val mapper = JsonMapper.builder()
@@ -36,6 +39,7 @@ suspend fun upload(
     repository: SRepository
 ): String? {
     val response = client.post<HttpResponse>(HOST) {
+        expectSuccess = false
         body = MultiPartContent.build {
             add("name", name)
             if (description != null) {
@@ -54,7 +58,7 @@ suspend fun upload(
         }
     }
 
-    return if(response.status.value == 301) {
+    return if(response.status.value == 302) {
         response.headers[HttpHeaders.Location]
     } else {
         null

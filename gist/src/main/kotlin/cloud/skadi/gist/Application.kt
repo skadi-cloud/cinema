@@ -1,0 +1,56 @@
+package cloud.skadi.gist
+
+import cloud.skadi.gist.data.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import cloud.skadi.gist.plugins.*
+import cloud.skadi.gist.routing.configureGistRouting
+import cloud.skadi.sharred.web.util.getEnvOfFail
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SchemaUtils.withDataBaseLock
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger("dbInfrastructure")
+
+val SQL_PASSWORD = getEnvOfFail("SQL_PASSWORD")
+val SQL_USER = getEnvOfFail("SQL_USER")
+val SQL_DB = getEnvOfFail("SQL_DB")
+val SQL_HOST = getEnvOfFail("SQL_HOST")
+
+fun initDb(jdbc: String, database: String, user: String, password: String): Boolean {
+
+
+    Database.connect(
+        "$jdbc$database", driver = "org.postgresql.Driver",
+        user = user, password = password
+    )
+
+    return transaction {
+        try {
+            withDataBaseLock {
+                SchemaUtils.createMissingTablesAndColumns(Users, GistTable, GistRootTable, TokenTable, LikeTable, CommentTable)
+            }
+        } catch (e: Throwable) {
+            logger.error("error updating schema" ,e)
+            return@transaction false
+        }
+        return@transaction true
+    }
+}
+
+fun main() {
+
+    initDb("jdbc:postgresql://$SQL_HOST/",SQL_DB,SQL_USER, SQL_PASSWORD)
+
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+        configureRouting()
+        configureSecurity()
+        configureHTTP()
+        configureMonitoring()
+        configureTemplating()
+        configureSockets()
+        configureGistRouting { gistRoot, inputStream ->  }
+    }.start(wait = true)
+}

@@ -1,4 +1,4 @@
-package cloud.skadi.plugins
+package cloud.skadi.gist.plugins
 
 import cloud.skadi.sharred.web.util.getEnvOrDefault
 import io.ktor.application.*

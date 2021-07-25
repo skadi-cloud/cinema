@@ -14,7 +14,10 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
+        <notificationGroup id="Skadi Gist" displayType="BALLOON"/>
+
     </extensions>
+
 
     <actions>
         <!-- Add your actions here -->
@@ -22,8 +25,9 @@
                 class="cloud.skadi.gist.mps.plugin.CreateGistFromNodeAction" text="Create Gist"
                 description="Creates a Gist from the current Node">
             <add-to-group group-id="EditMenu" anchor="first"/>
+            <add-to-group group-id="FileMenu" anchor="first"/>
             <add-to-group group-id="OtherMenu" anchor="first"/>
-            <add-to-group group-id="jetbrains.mps.ide.actions.FlyingActions_ActionGroup" />
+            <!--<add-to-group group-id="jetbrains.mps.ide.actions.FlyingActions_ActionGroup" />-->
         </action>
     </actions>
 </idea-plugin>

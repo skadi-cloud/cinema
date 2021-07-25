@@ -1,4 +1,4 @@
-package cloud.skadi.data
+package cloud.skadi.gist.data
 
 import cloud.skadi.gist.shared.GistVisibility
 import org.jetbrains.exposed.dao.IntEntity
@@ -44,7 +44,7 @@ class Token(id: EntityID<Int>): IntEntity(id) {
 object GistTable: UUIDTable() {
     val name = varchar("name", 1024)
     val description = text("description").nullable()
-    val user = reference("user", Users)
+    val user = optReference("user", Users)
     val visibility = enumeration("visibility", GistVisibility::class).default(GistVisibility.Private)
     val created = datetime("created").index()
 }
@@ -54,7 +54,7 @@ class Gist(id: EntityID<UUID>): UUIDEntity(id) {
     var name by GistTable.name
     var description by GistTable.description
     var visibility by GistTable.visibility
-    var user by User referencedOn GistTable.user
+    var user by User optionalReferencedOn GistTable.user
     var created by GistTable.created
     val roots by GistRoot referrersOn GistRootTable.gist
     var likedBy by User via LikeTable
