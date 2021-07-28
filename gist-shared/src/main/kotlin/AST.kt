@@ -3,7 +3,11 @@ package cloud.skadi.gist.shared
 data class UsedLanguage(val name: String, val id: String)
 data class Import(val name: String, val id: String)
 
-data class Property(val value: String?, val id: String)
+enum class PropertyType {
+    String, Int, Bool, Enum, Other
+}
+
+data class Property(val value: String?, val id: String, val type: PropertyType?)
 data class Child(val containmentLinkId: String, val node: Node)
 data class Reference(val referenceId: String, val targetNodeReference: String)
 data class Node(

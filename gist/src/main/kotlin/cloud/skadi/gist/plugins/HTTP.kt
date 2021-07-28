@@ -4,6 +4,7 @@ import io.ktor.features.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.application.*
+import io.ktor.jackson.*
 
 fun Application.configureHTTP() {
     install(CachingHeaders) {
@@ -25,4 +26,7 @@ fun Application.configureHTTP() {
     }
     install(ForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
     install(XForwardedHeaderSupport) // WARNING: for security, do not include this if not behind a reverse proxy
+    install(ContentNegotiation) {
+        jackson()
+    }
 }

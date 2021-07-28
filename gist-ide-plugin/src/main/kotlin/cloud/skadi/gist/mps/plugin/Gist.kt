@@ -17,10 +17,14 @@ import jetbrains.mps.smodel.adapter.structure.language.SLanguageAdapterById
 import jetbrains.mps.smodel.adapter.structure.link.SContainmentLinkAdapterById
 import jetbrains.mps.smodel.adapter.structure.property.SPropertyAdapterById
 import jetbrains.mps.smodel.adapter.structure.ref.SReferenceLinkAdapterById
+import jetbrains.mps.smodel.adapter.structure.types.SEnumerationAdapter
+import jetbrains.mps.smodel.adapter.structure.types.SPrimitiveTypes
 import org.jetbrains.mps.openapi.language.SLanguage
+import org.jetbrains.mps.openapi.language.SProperty
 import org.jetbrains.mps.openapi.model.SModelReference
 import org.jetbrains.mps.openapi.model.SNode
 import org.jetbrains.mps.openapi.module.SRepository
+import java.util.*
 
 val client = io.ktor.client.HttpClient(Java) {
     followRedirects = false
@@ -38,27 +42,25 @@ suspend fun upload(
     nodes: List<Pair<SNode, String?>>,
     repository: SRepository
 ): String? {
+
+    val gistCreationRequest = GistCreationRequest(
+        name = name,
+        description = description,
+        visibility = visibility,
+        roots = nodes.mapIndexed { index, (node, name) ->
+            GistNode(
+                name ?: "name-$index",
+                Base64.getMimeEncoder().encodeToString(node.asImage(repository).toByteArray()),
+                serializeRootNode(node)
+            )
+        })
     val response = client.post<HttpResponse>(HOST) {
         expectSuccess = false
-        body = MultiPartContent.build {
-            add("name", name)
-            if (description != null) {
-                add("description", description)
-            }
-            add("visibility", visibility.toString())
-
-            nodes.forEachIndexed { index, (node, name) ->
-                val n = name ?: "node-$index"
-                val serialized = serializeRootNode(node)
-                val image = node.asImage(repository)
-                add("image-$index", image.toByteArray(), contentType = ContentType.Image.PNG, filename = n)
-                add("node-$index", mapper.writeValueAsString(serialized), contentType = ContentType.Application.Json)
-                add("name-$index", n)
-            }
-        }
+        contentType(ContentType.Application.Json)
+        body = mapper.writeValueAsString(gistCreationRequest)
     }
 
-    return if(response.status.value == 302) {
+    return if (response.status.value == 302) {
         response.headers[HttpHeaders.Location]
     } else {
         null
@@ -67,15 +69,16 @@ suspend fun upload(
 
 fun serializeRootNode(node: SNode): AST {
     var serializedNode: Node? = null
-    var descendants: MutableList<SNode>?
+
     var usedLanguages: List<SLanguage> = emptyList()
     var imports: List<SModelReference> = emptyList()
 
     node.model!!.repository.modelAccess.runReadAction {
         serializedNode = node.serialize()
-        descendants = SNodeOperations.getNodeDescendants(node, null, true)
-        usedLanguages = descendants!!.map { it.concept.language }.distinct()
-        imports = descendants!!.flatMap { it.references.mapNotNull { reference -> reference.targetSModelReference } }.distinct()
+        val descendants: MutableList<SNode> = SNodeOperations.getNodeDescendants(node, null, true)
+        usedLanguages = descendants.map { it.concept.language }.distinct()
+        imports = descendants.flatMap { it.references.mapNotNull { reference -> reference.targetSModelReference } }
+            .distinct()
     }
 
     return AST(
@@ -85,6 +88,23 @@ fun serializeRootNode(node: SNode): AST {
     )
 }
 
+fun SProperty.convertType() =
+    when (this.type) {
+        SPrimitiveTypes.STRING -> PropertyType.String
+        SPrimitiveTypes.BOOLEAN -> PropertyType.Bool
+        SPrimitiveTypes.INTEGER -> PropertyType.Int
+        is SEnumerationAdapter -> PropertyType.Enum
+        else -> PropertyType.Other
+    }
+
+fun SProperty.getValue(node: SNode): String? =
+    when (this.type) {
+        SPrimitiveTypes.BOOLEAN -> SPropertyOperations.getBoolean(node, this).toString()
+        SPrimitiveTypes.INTEGER -> SPropertyOperations.getInteger(node, this).toString()
+        else -> SPropertyOperations.getString(node, this)
+    }
+
+
 fun SNode.serialize(): Node {
     return Node(
         id = this.nodeId.toString(),
@@ -92,7 +112,8 @@ fun SNode.serialize(): Node {
         properties = this.properties.map {
             Property(
                 id = (it as SPropertyAdapterById).serialize(),
-                value = SPropertyOperations.getString(this, it)
+                value = it.getValue(this),
+                type = it.convertType()
             )
         },
         children = this.children.map {

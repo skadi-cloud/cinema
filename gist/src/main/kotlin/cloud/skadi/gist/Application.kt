@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SchemaUtils.withDataBaseLock
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
+import java.io.File
 
 private val logger = LoggerFactory.getLogger("dbInfrastructure")
 
@@ -43,6 +44,7 @@ fun initDb(jdbc: String, database: String, user: String, password: String): Bool
 fun main() {
 
     initDb("jdbc:postgresql://$SQL_HOST/",SQL_DB,SQL_USER, SQL_PASSWORD)
+    val storage = DirectoryBasedStorage(File("data"), "rendered")
 
     embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
         configureRouting()
@@ -51,6 +53,7 @@ fun main() {
         configureMonitoring()
         configureTemplating()
         configureSockets()
-        configureGistRouting { gistRoot, inputStream ->  }
+        configureGistRouting(storage::put, storage::get)
+        storage.install(this)
     }.start(wait = true)
 }

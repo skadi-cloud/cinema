@@ -3,8 +3,8 @@ package cloud.skadi.gist.mps.plugin
 import com.intellij.util.ui.ImageUtil
 import jetbrains.mps.editor.runtime.HeadlessEditorComponent
 import jetbrains.mps.nodeEditor.cells.ParentSettings
-import jetbrains.mps.smodel.SNode
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.swing.Swing
 import kotlinx.coroutines.withContext
 import org.jetbrains.mps.openapi.module.SRepository
 import java.awt.Color
@@ -15,8 +15,11 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
+private const val SCALE_FACTOR = 1.05
+
+@Suppress("BlockingMethodInNonBlockingContext")
 suspend fun org.jetbrains.mps.openapi.model.SNode.asImage(repository: SRepository): ByteArrayOutputStream {
-    return withContext(Dispatchers.Main) {
+    return withContext(Dispatchers.Swing) {
         val headlessEditorComponent = HeadlessEditorComponent(repository)
         headlessEditorComponent.editNode(this@asImage)
         this@asImage.model!!.repository.modelAccess.runReadAction {
@@ -28,8 +31,8 @@ suspend fun org.jetbrains.mps.openapi.model.SNode.asImage(repository: SRepositor
 
         val rootCell = headlessEditorComponent.rootCell
 
-        val w = (rootCell.x + rootCell.width) * 1.05
-        val h = (rootCell.y + rootCell.height) * 1.05
+        val w = (rootCell.x + rootCell.width) * SCALE_FACTOR
+        val h = (rootCell.y + rootCell.height) * SCALE_FACTOR
         val image = ImageUtil.createImage(w.toInt(), h.toInt(), BufferedImage.TYPE_INT_RGB)
         val g = image.createGraphics()
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VBGR)
