@@ -22,7 +22,7 @@ private const val SAMPLE_FOLDER = "community-samples"
 class CommunitySamplesAction : AnAction() {
     override fun update(e: AnActionEvent) {
         val file = File(PathManager.getHomePath(), ZIP_NAME)
-        if(!file.exists()) {
+        if (!file.exists()) {
             e.presentation.isEnabled = false
         }
     }
@@ -43,8 +43,8 @@ class CommunitySamplesAction : AnAction() {
         descriptor.title = "Community Samples"
         val result = FileChooser.chooseFile(descriptor, project, firstSample)
 
-        if(result != null) {
-            ProjectUtil.openProject(result.path, project,false )
+        if (result != null) {
+            ProjectUtil.openProject(result.path, project, false)
         }
 
     }
@@ -73,10 +73,12 @@ private class SamplesExtractionTask(val zipFile: File) : Task.Modal(null, "Extra
     }
 
     override fun onThrowable(error: Throwable) {
-        Messages.showErrorDialog("""Could not extract samples to ${samplesPathInUserHome.absolutePath}
+        Messages.showErrorDialog(
+            """Could not extract samples to ${samplesPathInUserHome.absolutePath}
             | Error:
             | ${error.message}
-        """.trimMargin(), "Community Samples Extraction Failed")
+        """.trimMargin(), "Community Samples Extraction Failed"
+        )
     }
 }
 
