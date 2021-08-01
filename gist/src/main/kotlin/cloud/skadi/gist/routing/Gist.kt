@@ -104,21 +104,21 @@ fun Application.configureGistRouting(
             newSuspendedTransaction {
                 call.respondHtmlTemplate(RootTemplate("Skadi Gist", user = user)) {
                     content {
-                        h2 {
+                        h2(classes = "gist-name") {
                             +gist.name
                         }
-                        p {
+                        p(classes = "gist-description") {
                             +(gist.description ?: "")
                         }
                         gist.roots.notForUpdate().forEach { root ->
                             div(classes = "root") {
-                                h3 {
+                                h3(classes = "root-name") {
                                     root.name
                                 }
                                 img(classes = "rendered") {
                                     src = url(call, root).mainUrl
                                 }
-                                textInput { value = root.node }
+                                //textInput { value = root.node }
 
                                 div(classes = "comments") {
                                     root.comments.notForUpdate().forEach { comment ->

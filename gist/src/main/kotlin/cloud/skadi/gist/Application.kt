@@ -46,14 +46,21 @@ fun main() {
     initDb("jdbc:postgresql://$SQL_HOST/",SQL_DB,SQL_USER, SQL_PASSWORD)
     val storage = DirectoryBasedStorage(File("data"), "rendered")
 
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
-        configureRouting()
-        configureSecurity()
-        configureHTTP()
-        configureMonitoring()
-        configureTemplating()
-        configureSockets()
-        configureGistRouting(storage::put, storage::get)
-        storage.install(this)
-    }.start(wait = true)
+    embeddedServer(Netty, environment = applicationEngineEnvironment {
+        connector {
+            port = 8080
+            host = "0.0.0.0"
+        }
+        developmentMode = true
+        module {
+            configureRouting()
+            configureSecurity()
+            configureHTTP()
+            configureMonitoring()
+            configureTemplating()
+            configureSockets()
+            configureGistRouting(storage::put, storage::get)
+            storage.install(this)
+        }
+    }).start(wait = true)
 }

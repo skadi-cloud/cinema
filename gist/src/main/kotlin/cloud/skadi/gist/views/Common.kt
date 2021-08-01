@@ -42,6 +42,7 @@ fun HEAD.favicons() {
 
 class RootTemplate(private val pageName: String, private val user: User? = null) : Template<HTML> {
     val content = Placeholder<HtmlBlockTag>()
+    val menu = Placeholder<HtmlBlockTag>()
     override fun HTML.apply() {
 
         head {
@@ -60,6 +61,24 @@ class RootTemplate(private val pageName: String, private val user: User? = null)
             }
         }
         body {
+            div() {
+                id = "header"
+                div {
+                    id = "branding"
+                    img {
+                        id = "header-image"
+                        src = "/assets/icon-inverted.png"
+                    }
+                    div {
+                        h1 { +"Skadi Cloud" }
+                        h1(classes = "sub") { +"Gist" }
+                    }
+                }
+                div {
+                    id = "menu"
+                    insert(menu)
+                }
+            }
             div(classes = "container") {
                 insert(content)
             }
