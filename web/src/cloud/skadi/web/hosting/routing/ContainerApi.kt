@@ -160,7 +160,7 @@ fun deployContainer(
     client.persistentVolumeClaims().create(MPSInstancePVC(id))
     client.apps().deployments().create(MPSInstanceDeployment(id, kernelFVersion, rwToken, roToken))
     client.services().create(MPSInstanceService(id))
-    client.network().ingresses().create(MPSInstanceIngress(id))
+    client.network().v1().ingresses().create(MPSInstanceIngress(id))
 }
 
 fun deployContainer(client: KubernetesClient, container: KernelFContainer) {
@@ -174,7 +174,7 @@ fun updateContainer(client: KubernetesClient, container: KernelFContainer) {
 
 
 fun undeployContainer(client: KubernetesClient, id: UUID) {
-    client.network().ingresses().delete(MPSInstanceIngress(id))
+    client.network().v1().ingresses().delete(MPSInstanceIngress(id))
     client.services().delete(MPSInstanceService(id))
     client.apps().deployments().delete(MPSInstanceDeployment(id, "", "", ""))
     client.persistentVolumeClaims().delete(MPSInstancePVC(id))

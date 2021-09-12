@@ -53,7 +53,7 @@ spec:
             - --providers.kubernetescrd=true
             - --providers.kubernetesingress=true
             - --log.level=INFO
-          image: traefik:2.4
+          image: traefik:2.5
           imagePullPolicy: Always
           resources:
             requests:
