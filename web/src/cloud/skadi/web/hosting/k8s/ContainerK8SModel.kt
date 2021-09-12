@@ -157,7 +157,7 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
 }
 
 fun ingressName(id: UUID) = "ingress-mps-instance-$id"
-class MPSInstanceIngress(id: UUID) : Ingress() {
+class MPSInstanceIngress(id: UUID) : io.fabric8.kubernetes.api.model.networking.v1.Ingress() {
     init {
         metadata { name = ingressName(id) }
         spec {
