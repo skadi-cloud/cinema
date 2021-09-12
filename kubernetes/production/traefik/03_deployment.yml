@@ -105,8 +105,7 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
-      serviceAccount: traefik
-      serviceAccountName: traefik
+      serviceAccountName: traefik-ingress-controller
       terminationGracePeriodSeconds: 60
       volumes:
         - name: traefik-data
