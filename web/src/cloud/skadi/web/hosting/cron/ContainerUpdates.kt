@@ -1,21 +1,26 @@
-package cloud.skadi.web.hosting
+package cloud.skadi.web.hosting.cron
 
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.routing.getPodStatus
 import cloud.skadi.web.hosting.routing.pauseContainer
 import cloud.skadi.web.hosting.turbo.sendTurboChannelUpdate
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient
-import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.channels.TickerMode
+import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+
+@ObsoleteCoroutinesApi
+val containerStatusTicker = ticker(10_000, mode = TickerMode.FIXED_DELAY)
+
+@ObsoleteCoroutinesApi
+val runningContainerStatusTicker = ticker(60_000, mode = TickerMode.FIXED_DELAY)
 
 @ExperimentalStdlibApi
 @ObsoleteCoroutinesApi

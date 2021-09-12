@@ -27,6 +27,7 @@ object KernelFContainers : UUIDTable() {
     val status = enumeration("status", ContainerStatus::class)
     val rwToken = varchar("rw-token",128)
     val roToken = varchar("ro-token",128)
+    val scheduledForDeletion = datetime("scheduledForDeletion").nullable()
 }
 
 class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -41,6 +42,7 @@ class KernelFContainer(id: EntityID<UUID>) : UUIDEntity(id) {
     var status by KernelFContainers.status
     var roToken by KernelFContainers.roToken
     var rwToken by KernelFContainers.rwToken
+    var scheduledForDeletion by KernelFContainers.scheduledForDeletion
 }
 
 
