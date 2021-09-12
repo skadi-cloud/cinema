@@ -27,7 +27,7 @@ suspend fun markInstanceForSweep() {
                         (KernelFContainers.lastHeartBeat less LocalDateTime.now().minusDays(30)) and
                         (KernelFContainers.scheduledForDeletion.isNull())
             }.apply {
-                logger.info("Marking ${this.copy()} for deletion in 14 days.")
+                logger.info("Marking ${this.count()} for deletion in 14 days.")
             }
                 .forUpdate()
                 .forEach { it.scheduledForDeletion = LocalDateTime.now().plusDays(14) }
