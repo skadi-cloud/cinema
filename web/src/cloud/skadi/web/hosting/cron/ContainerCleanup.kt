@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
 @ObsoleteCoroutinesApi
-val markTimer = ticker(600_000, mode = TickerMode.FIXED_DELAY)
+val markTimer = ticker(600_000, initialDelayMillis = 60_000 , mode = TickerMode.FIXED_DELAY)
 
 @ObsoleteCoroutinesApi
 suspend fun markInstanceForSweep() {
@@ -36,7 +36,7 @@ suspend fun markInstanceForSweep() {
 }
 
 @ObsoleteCoroutinesApi
-val deleteTimer = ticker(3600_000, mode = TickerMode.FIXED_DELAY)
+val deleteTimer = ticker(3600_000, initialDelayMillis = 60_000, mode = TickerMode.FIXED_DELAY)
 
 @ObsoleteCoroutinesApi
 suspend fun sweepContainers(client: KubernetesClient) {
