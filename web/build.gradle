@@ -58,13 +58,13 @@ dependencies {
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.133'
 
     implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.0.1"
-    implementation "io.fabric8:kubernetes-client:5.5.0"
+    implementation "io.fabric8:kubernetes-client:5.7.3"
 
     implementation "ch.qos.logback:logback-classic:1.2.3"
 
     implementation "io.ktor:ktor-metrics:$ktor_version"
     implementation "io.ktor:ktor-metrics-micrometer:$ktor_version"
-    implementation "io.micrometer:micrometer-registry-prometheus:1.7.1"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.7.3"
 
     implementation "io.seruco.encoding:base62:0.1.3"
 
