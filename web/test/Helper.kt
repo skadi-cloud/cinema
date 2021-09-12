@@ -57,11 +57,11 @@ fun CookieTrackerTestApplicationEngine.withContainer(setup: (ContainerData) -> U
         val body = Jsoup.parse(response.content)
         val rows = body.select("#instances > table > tbody > tr")
         val row = rows.first()
-        val links = row.select("td:nth-child(4)")
-        val rwToken = Url(links.select("a").first().attr("href")).parameters["token"]!!
+        val links = row!!.select("td:nth-child(4)")
+        val rwToken = Url(links.select("a").first()!!.attr("href")).parameters["token"]!!
         val roToken = Url(links.select("a")[1].attr("href")).parameters["token"]!!
 
-        val rowId = row.children().first().id()
+        val rowId = row.children().first()!!.id()
         val containerId = rowId.substring(7)
         setup(ContainerData(containerId, rwToken, roToken))
     }
