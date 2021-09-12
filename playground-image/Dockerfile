@@ -29,7 +29,7 @@ FROM debian AS pluginDownloader
 
 # prepare tools:
 RUN apt-get update
-RUN apt-get install wget bsdtar -y
+RUN apt-get install wget libarchive-tools -y
 # download IDE to the /ide dir:
 WORKDIR /download
 ARG pluginUrl
