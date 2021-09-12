@@ -55,10 +55,10 @@ dependencies {
 
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
 
-    implementation group: 'org.kohsuke', name: 'github-api', version: '1.131'
+    implementation group: 'org.kohsuke', name: 'github-api', version: '1.133'
 
     implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.0.1"
-    implementation "io.fabric8:kubernetes-client:5.5.0"
+    implementation "io.fabric8:kubernetes-client:5.7.3"
 
     implementation "ch.qos.logback:logback-classic:1.2.3"
 
@@ -68,7 +68,7 @@ dependencies {
 
     implementation "io.seruco.encoding:base62:0.1.3"
 
-    implementation 'io.sentry:sentry-logback:4.3.0'
+    implementation 'io.sentry:sentry-logback:5.1.2'
 
     testImplementation 'org.jsoup:jsoup:1.14.2'
     testImplementation("io.ktor:ktor-server-tests:$ktor_version") {
