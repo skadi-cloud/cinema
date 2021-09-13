@@ -32,7 +32,7 @@ val client = io.ktor.client.HttpClient(Java) {
 const val HOST = "http://localhost:8080/gist/create"
 
 private val mapper = JsonMapper.builder()
-    .addModule(KotlinModule(strictNullChecks = true))
+    .addModule(KotlinModule())
     .build()
 
 suspend fun upload(
