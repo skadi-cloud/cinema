@@ -4,13 +4,12 @@ import cloud.skadi.sharred.web.util.getEnvOrDefault
 import cloud.skadi.web.hosting.INSTANCE_HOST
 import com.fkorotkov.kubernetes.*
 import com.fkorotkov.kubernetes.apps.*
-import com.fkorotkov.kubernetes.networking.v1beta1.*
+import com.fkorotkov.kubernetes.networking.v1.*
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
 import io.fabric8.kubernetes.api.model.Quantity
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.apps.Deployment
-import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress
 import java.util.*
 
 
@@ -157,8 +156,9 @@ class MPSInstanceDeployment(id: UUID, kernelFVersion: String, rwToken: String, r
 }
 
 fun ingressName(id: UUID) = "ingress-mps-instance-$id"
-class MPSInstanceIngress(id: UUID) : Ingress() {
+class MPSInstanceIngress(id: UUID) : io.fabric8.kubernetes.api.model.networking.v1.Ingress() {
     init {
+
         metadata { name = ingressName(id) }
         spec {
             rules = listOf(newIngressRule {
@@ -168,8 +168,12 @@ class MPSInstanceIngress(id: UUID) : Ingress() {
                         path = "/"
                         pathType = "Prefix"
                         backend {
-                            serviceName = serviceName(id)
-                            servicePort = IntOrString(80)
+                            service {
+                                name = serviceName(id)
+                                port {
+                                    number = 80
+                                }
+                            }
                         }
                     })
                 }

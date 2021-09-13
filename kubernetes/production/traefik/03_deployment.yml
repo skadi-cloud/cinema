@@ -53,7 +53,7 @@ spec:
             - --providers.kubernetescrd=true
             - --providers.kubernetesingress=true
             - --log.level=INFO
-          image: traefik:2.4
+          image: traefik:2.5
           imagePullPolicy: Always
           resources:
             requests:
@@ -105,8 +105,7 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
-      serviceAccount: traefik
-      serviceAccountName: traefik
+      serviceAccountName: traefik-ingress-controller
       terminationGracePeriodSeconds: 60
       volumes:
         - name: traefik-data

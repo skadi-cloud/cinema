@@ -53,7 +53,7 @@ spec:
             - --providers.kubernetescrd=true
             - --providers.kubernetesingress=true
             - --log.level=INFO
-          image: traefik:2.4
+          image: traefik:2.5
           imagePullPolicy: Always
           resources:
             requests:
@@ -105,8 +105,7 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
-      serviceAccount: traefik
-      serviceAccountName: traefik
+      serviceAccountName: traefik-ingress-controller
       terminationGracePeriodSeconds: 60
       volumes:
         - name: traefik-data
@@ -128,17 +127,15 @@ spec:
       port: 80
       protocol: TCP
       targetPort: 80
-      nodePort: 80
     - name: websecure
       port: 443
       protocol: TCP
       targetPort: 443
-      nodePort: 443
   selector:
     app: traefik
     release: traefik
   sessionAffinity: None
-  type: NodePort
+  type: LoadBalancer
 status:
   loadBalancer: {}
 

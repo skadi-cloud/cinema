@@ -1,19 +1,19 @@
 package cloud.skadi.web.hosting
 
+import cloud.skadi.web.hosting.cron.markInstanceForSweep
+import cloud.skadi.web.hosting.cron.sweepContainers
+import cloud.skadi.web.hosting.cron.updateNewContainers
+import cloud.skadi.web.hosting.cron.updateRunningContainers
 import cloud.skadi.sharred.web.util.getEnvOfFail
 import cloud.skadi.sharred.web.util.getEnvOrDefault
 import cloud.skadi.web.hosting.data.*
 import cloud.skadi.web.hosting.routing.containerApi
 import cloud.skadi.web.hosting.routing.home
-import cloud.skadi.web.hosting.views.*
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.html.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.locations.*
 import io.ktor.metrics.micrometer.*
@@ -34,12 +34,9 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.sentry.Sentry
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.TickerMode
 import kotlinx.coroutines.channels.ticker
 import java.lang.RuntimeException
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 
 
@@ -93,12 +90,9 @@ fun main() {
     embeddedServer(Netty, env).start(true)
 }
 
-@ObsoleteCoroutinesApi
-val containerStatusTicker = ticker(10_000, mode = TickerMode.FIXED_DELAY)
 
-@ObsoleteCoroutinesApi
-val runningContainerStatusTicker = ticker(60_000, mode = TickerMode.FIXED_DELAY)
 
+@DelicateCoroutinesApi
 @ExperimentalStdlibApi
 @ObsoleteCoroutinesApi
 @KtorExperimentalLocationsAPI
@@ -159,12 +153,10 @@ fun Application.mainModule(testing: Boolean = false, client : KubernetesClient) 
     }
 
     if (!testing) {
-        GlobalScope.launch {
-            updateNewContainers(client)
-        }
-        GlobalScope.launch {
-            updateRunningContainers(client)
-        }
+        GlobalScope.launch { updateNewContainers(client) }
+        GlobalScope.launch { updateRunningContainers(client) }
+        GlobalScope.launch { markInstanceForSweep() }
+        GlobalScope.launch { sweepContainers(client) }
     }
 
     containerApi(client)
