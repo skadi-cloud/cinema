@@ -39,19 +39,27 @@ suspend fun upload(
     name: String,
     description: String?,
     visibility: GistVisibility,
-    nodes: List<Pair<SNode, String?>>,
+    nodes: List<SNode>,
     repository: SRepository
 ): String? {
+
 
     val gistCreationRequest = GistCreationRequest(
         name = name,
         description = description,
         visibility = visibility,
-        roots = nodes.mapIndexed { index, (node, name) ->
+        roots = nodes.mapIndexed { index, node ->
+            var isRoot = false
+            var nodeName : String? = null
+            repository.modelAccess.runReadAction {
+                isRoot = node.parent == null
+                nodeName = node.presentation
+            }
             GistNode(
-                name ?: "name-$index",
-                Base64.getMimeEncoder().encodeToString(node.asImage(repository).toByteArray()),
-                serializeRootNode(node)
+                nodeName ?: "name-$index",
+                base64Img = Base64.getMimeEncoder().encodeToString(node.asImage(repository).toByteArray()),
+                serialised = serializeRootNode(node),
+                isRoot = isRoot
             )
         })
     val response = client.post<HttpResponse>(HOST) {

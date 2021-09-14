@@ -64,6 +64,7 @@ object GistRootTable: UUIDTable() {
     val name = varchar("name", 1024)
     val gist = reference("gist", GistTable)
     val node = text("node")
+    val isRoot = bool("isRoot")
 }
 
 class GistRoot(id: EntityID<UUID>): UUIDEntity(id) {
@@ -71,6 +72,7 @@ class GistRoot(id: EntityID<UUID>): UUIDEntity(id) {
     var gist by Gist referencedOn GistRootTable.gist
     var name by GistRootTable.name
     var node by GistRootTable.node
+    var isRoot by GistRootTable.isRoot
     val comments by Comment referrersOn CommentTable.root
 }
 

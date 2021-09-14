@@ -58,6 +58,7 @@ fun Application.configureGistRouting(
                         this.gist = gist
                         this.name = it.name
                         this.node = it.serialised.asJson()
+                        this.isRoot = it.isRoot
                     } to it.base64Img.decodeBase64().inputStream()
                 }
             }

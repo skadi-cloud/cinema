@@ -4,7 +4,7 @@ enum class GistVisibility {
     Public, UnListed, Private
 }
 
-data class GistNode(val name: String, val base64Img: String, val serialised: AST)
+data class GistNode(val name: String, val base64Img: String, val serialised: AST, val isRoot: Boolean)
 
 data class GistCreationRequest(
     val name: String,
