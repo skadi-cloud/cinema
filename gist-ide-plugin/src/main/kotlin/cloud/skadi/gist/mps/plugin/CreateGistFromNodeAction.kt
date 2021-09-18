@@ -14,7 +14,7 @@ class CreateGistFromNodeAction : AnAction() {
         val window = ToolWindowManager.getInstance(e.project!!).getToolWindow(SkadiToolWindowController.ID) ?: return
         window.activate {
             window.contentManager.selectedContent?.getUserData(SkadiToolWindowController.KEY)
-                ?.createGist(e.project!!, e.dataContext, SkadiGistSettings.getInstance(e.project!!))
+                ?.createGist(e.project!!, e.dataContext)
         }
     }
 

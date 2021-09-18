@@ -18,6 +18,9 @@
         <toolWindow factoryClass="cloud.skadi.gist.mps.plugin.ui.SkadiToolWindowFactory" id="Skadi Cloud"
                     doNotActivateOnStart="true"
                     anchor="right"/>
+        <applicationConfigurable displayName="Skadi Cloud" parentId="tools"
+                                 instance="cloud.skadi.gist.mps.plugin.config.SkadiConfigurable"
+                                 id="cloud.skadi.gist.mps.plugin.config.SkadiConfigurable"/>
 
     </extensions>
 

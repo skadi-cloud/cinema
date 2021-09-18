@@ -45,14 +45,16 @@ class SkadiToolWindowController(private val window: ToolWindow) {
     private val titleDocument = PlainDocument()
     private val descriptionDocument = PlainDocument()
     private val wrapper = JPanel()
+    private val settings = SkadiGistSettings.getInstance()
+    private var visiblility = settings.visiblility
 
     fun getContent(): JComponent {
         return wrapper
     }
 
-    fun createGist(project: Project, dataContext: DataContext, settings: SkadiGistSettings) {
+    fun createGist(project: Project, dataContext: DataContext) {
 
-        val createAction = CreateGistAction(project, dataContext, settings)
+        val createAction = CreateGistAction(project, dataContext) { visiblility }
 
         val cancelAction = object : AbstractAction("Cancel") {
             override fun actionPerformed(e: ActionEvent?) {
@@ -106,21 +108,30 @@ class SkadiToolWindowController(private val window: ToolWindow) {
         }
 
         val publicBtn = JBRadioButton("Public").apply {
-            isSelected = settings.visiblility == SkadiGistSettings.Visiblility.Public
+            isSelected = visiblility == SkadiGistSettings.Visiblility.Public
             addActionListener {
-                settings.visiblility = SkadiGistSettings.Visiblility.Public
+                visiblility = SkadiGistSettings.Visiblility.Public
+                if(settings.rememberVisiblility) {
+                    settings.visiblility = SkadiGistSettings.Visiblility.Public
+                }
             }
         }
         val internalBtn = JBRadioButton("Internal").apply {
-            isSelected = settings.visiblility == SkadiGistSettings.Visiblility.Internal
+            isSelected = visiblility == SkadiGistSettings.Visiblility.Internal
             addActionListener {
-                settings.visiblility = SkadiGistSettings.Visiblility.Internal
+                visiblility = SkadiGistSettings.Visiblility.Internal
+                if(settings.rememberVisiblility) {
+                    settings.visiblility = SkadiGistSettings.Visiblility.Internal
+                }
             }
         }
         val privateBtn = JBRadioButton("Private").apply {
-            isSelected = settings.visiblility == SkadiGistSettings.Visiblility.Private
+            isSelected = visiblility == SkadiGistSettings.Visiblility.Private
             addActionListener {
-                settings.visiblility = SkadiGistSettings.Visiblility.Private
+                visiblility = SkadiGistSettings.Visiblility.Private
+                if(settings.rememberVisiblility) {
+                    settings.visiblility = SkadiGistSettings.Visiblility.Private
+                }
             }
         }
         val visibilityGroup = ButtonGroup().apply {
@@ -139,14 +150,12 @@ class SkadiToolWindowController(private val window: ToolWindow) {
             add(publicBtn)
         }
 
-
         val statusPanel = JPanel().apply {
             layout = MigLayout(LC().gridGap("0", "${JBUIScale.scale(8)}").insets("0").fill().flowY().hideMode(3))
             border = JBUI.Borders.empty(8)
             add(visibilityPanel, CC().minWidth("0"))
             add(actionsPanel, CC().minWidth("0"))
         }
-
 
         val newContent = JPanel(null).apply {
             background = UIUtil.getListBackground()
@@ -173,7 +182,7 @@ class SkadiToolWindowController(private val window: ToolWindow) {
     inner class CreateGistAction(
         val project: Project,
         val dataContext: DataContext,
-        val settings: SkadiGistSettings,
+        val getVisibility: () -> SkadiGistSettings.Visiblility,
     ) : AbstractAction("Create gist") {
         override fun actionPerformed(e: ActionEvent?) {
 
@@ -184,7 +193,7 @@ class SkadiToolWindowController(private val window: ToolWindow) {
                         val url = upload(
                             titleDocument.getText(0, titleDocument.length),
                             descriptionDocument.getText(0, descriptionDocument.length),
-                            settings.visiblility.toModel(),
+                            getVisibility().toModel(),
                             listOf((node)),
                             dataContext.getData(MPSCommonDataKeys.CONTEXT_MODEL)!!.repository
                         )
