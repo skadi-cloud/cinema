@@ -2,6 +2,9 @@ package cloud.skadi.gist.mps.plugin.http
 
 import cloud.skadi.gist.mps.plugin.config.SkadiGistSettings
 import cloud.skadi.gist.mps.plugin.getLoginUrl
+import cloud.skadi.gist.shared.PARAMETER_CSRF_TOKEN
+import cloud.skadi.gist.shared.PARAMETER_DEVICE_TOKEN
+import cloud.skadi.gist.shared.PARAMETER_USER_NAME
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -10,13 +13,11 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.util.io.origin
 import com.intellij.util.io.referrer
-import io.grpc.netty.shaded.io.netty.handler.codec.http.HttpMethod
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.*
 import io.netty.handler.stream.ChunkedStream
 import kotlinx.html.*
-import kotlinx.html.dom.createHTMLDocument
 import kotlinx.html.stream.createHTML
 import org.apache.http.entity.ContentType
 import org.jetbrains.ide.HttpRequestHandler
@@ -50,18 +51,19 @@ class HttpHandler : HttpRequestHandler() {
     ): Boolean {
         val parameters = urlDecoder.parameters()
         val token =
-            parameters["device-token"]?.firstOrNull() ?: return respondWithError("missing token", request, context)
-        val user = parameters["user"]?.firstOrNull() ?: return respondWithError("missing user", request, context)
-
+            parameters[PARAMETER_DEVICE_TOKEN]?.firstOrNull() ?: return respondWithError("missing token", request, context)
+        val user = parameters[PARAMETER_USER_NAME]?.firstOrNull() ?: return respondWithError("missing user", request, context)
+        val csrfToken = parameters[PARAMETER_CSRF_TOKEN]?.firstOrNull() ?: return respondWithError(
+            "missing csrf token",
+            request,
+            context
+        )
 
         val settings = SkadiGistSettings.getInstance()
 
-        val referrer = URL(request.referrer)
-        val origin = URL(request.origin)
-        val backend = URL(settings.backendAddress)
+        if(!settings.checkCsrfToken(csrfToken))
+            return respondWithError("ivalid csrf token", request, context)
 
-        if (referrer.host != backend.host || origin.host != backend.host)
-            return respondWithError("Request not from backend", request, context)
 
         if (settings.isLoggedIn) {
             val notificationGroup =

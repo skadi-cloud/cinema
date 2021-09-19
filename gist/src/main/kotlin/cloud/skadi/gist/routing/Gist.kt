@@ -76,7 +76,7 @@ fun Application.configureGistRoutes(
 
         }
         get("/gist/{id}") {
-            val session = call.gistSession()
+            val session = call.gistSession
             var user: User? = null
             if (session != null) {
                 user = newSuspendedTransaction { User.find { Users.email eq session.email }.firstOrNull() }
@@ -129,7 +129,7 @@ fun Application.configureGistRoutes(
                                             }
                                         }
                                     }
-                                    if (call.gistSession() != null) {
+                                    if (call.gistSession != null) {
                                         div(classes = "create-comment") {
                                             form {
 

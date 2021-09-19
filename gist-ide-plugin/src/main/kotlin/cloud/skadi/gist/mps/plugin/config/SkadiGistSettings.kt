@@ -1,17 +1,21 @@
 package cloud.skadi.gist.mps.plugin.config
 
+import cloud.skadi.gist.mps.plugin.CreateGistFromNodeAction
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.generateServiceName
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.*
+import com.intellij.openapi.diagnostic.Logger
+import io.ktor.util.*
 
 
 @Service
 @State(name = "SkadiGistSettings", storages = [Storage("skadi-settings.xml")], reportStatistic = false)
 class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiGistSettings.State> {
 
+    val logger = Logger.getInstance(SkadiGistSettings::class.java)
     enum class Visiblility {
         Public,
         Internal,
@@ -19,6 +23,7 @@ class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiG
     }
 
     private val listeners = mutableMapOf<Any, (Boolean) -> Unit>()
+    private var csfrToken: String? = null
 
     class State : BaseState() {
         var visiblity by enum(Visiblility.Public)
@@ -89,6 +94,22 @@ class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiG
     }
 
     override fun getStateModificationCount() = state.modificationCount
+
+
+    fun newCsrfToken(): String {
+        val nonce = generateNonce()
+        csfrToken = nonce
+        return nonce
+    }
+
+    fun checkCsrfToken(token: String): Boolean {
+        if(token == csfrToken) {
+            csfrToken = null
+            return true
+        }
+        logger.warn("got invalid csrf token ($token)")
+        return false
+    }
 
     companion object {
         const val DEFAULT_BACKEND = "http://localhost:8080/"

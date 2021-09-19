@@ -51,6 +51,7 @@ fun getLoginUrl(settings: SkadiGistSettings): String {
         builder.parameters.also {
             it.append(PARAMETER_DEVICE_NAME,InetAddress.getLocalHost().hostName)
             it.append(PARAMETER_CALLBACK,url.toString())
+            it.append(PARAMETER_CSRF_TOKEN, settings.newCsrfToken())
         }
     }.buildString()
 }

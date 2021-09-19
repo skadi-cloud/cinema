@@ -57,7 +57,7 @@ class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
 
             }
             row("Logged in as") {
-                textField(settings::loggedInUser).visibleIf(ifLoginChanged)
+                textField(settings::loggedInUser).visibleIf(ifLoginChanged).enabled(false)
                 label("Not logged in").visibleIf(ifLoginChanged.not())
                 browserLink("Login", getLoginUrl(settings)).visibleIf(ifLoginChanged.not())
                 link("Log out") {

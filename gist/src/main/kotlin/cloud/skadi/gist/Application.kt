@@ -55,7 +55,7 @@ fun main() {
         developmentMode = true
         module {
             configureRouting()
-            configureSecurity()
+            configureOAuth()
             configureHTTP()
             configureMonitoring()
             configureTemplating()

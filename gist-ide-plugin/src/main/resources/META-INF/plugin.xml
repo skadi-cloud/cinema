@@ -21,6 +21,7 @@
         <applicationConfigurable displayName="Skadi Cloud" parentId="tools"
                                  instance="cloud.skadi.gist.mps.plugin.config.SkadiConfigurable"
                                  id="cloud.skadi.gist.mps.plugin.config.SkadiConfigurable"/>
+        <httpRequestHandler implementation="cloud.skadi.gist.mps.plugin.http.HttpHandler" />
 
     </extensions>
 

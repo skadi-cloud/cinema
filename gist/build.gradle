@@ -54,5 +54,6 @@ dependencies {
     implementation "org.postgresql:postgresql:42.2.22"
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.131'
 
-    testImplementation("io.ktor:ktor-server-tests:$ktor_version")
+    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
 }

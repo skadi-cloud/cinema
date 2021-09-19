@@ -17,6 +17,7 @@ object Users : IntIdTable() {
     val regDate = datetime("reg-date")
     val lastLogin = datetime("last-login-date")
     val login = varchar("login", 1024).uniqueIndex()
+    val name = varchar("name", 1024)
 }
 
 class User(id: EntityID<Int>) : IntEntity(id) {
@@ -25,12 +26,14 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var regDate by Users.regDate
     var lastLogin by Users.lastLogin
     var login by Users.login
+    var name by Users.name
     var likedGists by Gist via LikeTable
 }
 
 object TokenTable: IntIdTable() {
     val token = varchar("token", 256).uniqueIndex()
     val created = datetime("created")
+    val name = varchar("name", 256)
     val user = reference("user", Users)
 }
 
@@ -39,6 +42,7 @@ class Token(id: EntityID<Int>): IntEntity(id) {
     var token by TokenTable.token
     var user by User referencedOn TokenTable.user
     var created by TokenTable.created
+    var name by TokenTable.name
 }
 
 object GistTable: UUIDTable() {

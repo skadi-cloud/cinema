@@ -1,7 +1,12 @@
 package cloud.skadi.gist
 
+import cloud.skadi.gist.data.User
+import cloud.skadi.gist.data.user
+import cloud.skadi.gist.plugins.gistSession
+import cloud.skadi.gist.plugins.redirectToLoginAndBack
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import io.ktor.application.*
 import io.seruco.encoding.base62.Base62
 import java.nio.ByteBuffer
 import java.util.*
@@ -24,3 +29,19 @@ fun UUID.encodeBase62() = base62.encode(
 ).decodeToString()
 
 fun String.decodeBase64() = Base64.getMimeDecoder().decode(this)!!
+
+suspend fun ApplicationCall.authenticated(body: suspend (User) -> Unit) {
+    if (this.gistSession == null) {
+        this.redirectToLoginAndBack()
+        return
+    }
+
+    val user = gistSession!!.user()
+
+    if(user == null) {
+        this.application.log.error("Valid session but user (${gistSession?.email}) not found!")
+        this.redirectToLoginAndBack()
+        return
+    }
+    body(user)
+}
