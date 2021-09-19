@@ -57,6 +57,7 @@ class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiG
 
     fun logout() {
         state.loggedInUser = null
+        PasswordSafe.instance.set(createCredentialAttributes("device"), null)
         listeners.forEach { it.value(isLoggedIn) }
     }
 
@@ -71,15 +72,13 @@ class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiG
     private fun createCredentialAttributes(key: String) =
         CredentialAttributes(generateServiceName("Skadi Cloud Gist", key))
 
-    val deviceToken
-        get() = PasswordSafe.instance.get(createCredentialAttributes("device"))?.userName
 
-    val deviceSecret
-        get() = PasswordSafe.instance.get(createCredentialAttributes("device"))?.password
+    var deviceToken
+        get() = PasswordSafe.instance.get(createCredentialAttributes("device"))?.getPasswordAsString()
+        set(value) {
+            PasswordSafe.instance.set(createCredentialAttributes("device"), Credentials(loggedInUser, value))
+        }
 
-    fun setDeviceCredentials(token: String, secret: String) {
-        PasswordSafe.instance.set(createCredentialAttributes("device"), Credentials(token, secret))
-    }
 
     private var state = State()
 

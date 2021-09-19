@@ -1,5 +1,6 @@
 package cloud.skadi.gist.mps.plugin.config
 
+import cloud.skadi.gist.mps.plugin.getLoginUrl
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.ValidationInfo
@@ -58,7 +59,7 @@ class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
             row("Logged in as") {
                 textField(settings::loggedInUser).visibleIf(ifLoginChanged)
                 label("Not logged in").visibleIf(ifLoginChanged.not())
-                browserLink("Login", "${settings.backendAddress}/ide/login").visibleIf(ifLoginChanged.not())
+                browserLink("Login", getLoginUrl(settings)).visibleIf(ifLoginChanged.not())
                 link("Log out") {
                     settings.logout()
                 }.visibleIf(ifLoginChanged).withLargeLeftGap()

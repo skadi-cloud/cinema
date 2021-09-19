@@ -1,8 +1,10 @@
 package cloud.skadi.gist.mps.plugin
 
+import cloud.skadi.gist.mps.plugin.config.SkadiGistSettings
 import cloud.skadi.gist.shared.*
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.intellij.util.Urls
 import io.ktor.client.engine.java.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -19,11 +21,13 @@ import jetbrains.mps.smodel.adapter.structure.property.SPropertyAdapterById
 import jetbrains.mps.smodel.adapter.structure.ref.SReferenceLinkAdapterById
 import jetbrains.mps.smodel.adapter.structure.types.SEnumerationAdapter
 import jetbrains.mps.smodel.adapter.structure.types.SPrimitiveTypes
+import org.jetbrains.builtInWebServer.BuiltInServerOptions
 import org.jetbrains.mps.openapi.language.SLanguage
 import org.jetbrains.mps.openapi.language.SProperty
 import org.jetbrains.mps.openapi.model.SModelReference
 import org.jetbrains.mps.openapi.model.SNode
 import org.jetbrains.mps.openapi.module.SRepository
+import java.net.InetAddress
 import java.util.*
 
 val client = io.ktor.client.HttpClient(Java) {
@@ -34,6 +38,22 @@ const val HOST = "http://localhost:8080/gist/create"
 private val mapper = JsonMapper.builder()
     .addModule(KotlinModule())
     .build()
+
+
+fun getLoginUrl(settings: SkadiGistSettings): String {
+
+    val serverPort = BuiltInServerOptions.getInstance().effectiveBuiltInServerPort
+    val authority = "localhost:$serverPort"
+    val url = Urls.newHttpUrl(authority, "/skadi-gist/login-response")
+
+    return URLBuilder(settings.backendAddress).also { builder ->
+        builder.pathComponents("ide", "login")
+        builder.parameters.also {
+            it.append(PARAMETER_DEVICE_NAME,InetAddress.getLocalHost().hostName)
+            it.append(PARAMETER_CALLBACK,url.toString())
+        }
+    }.buildString()
+}
 
 suspend fun upload(
     name: String,

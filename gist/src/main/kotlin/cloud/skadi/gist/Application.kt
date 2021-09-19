@@ -4,7 +4,8 @@ import cloud.skadi.gist.data.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import cloud.skadi.gist.plugins.*
-import cloud.skadi.gist.routing.configureGistRouting
+import cloud.skadi.gist.routing.configureGistRoutes
+import cloud.skadi.gist.routing.configureIdeRoutes
 import cloud.skadi.sharred.web.util.getEnvOfFail
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -59,7 +60,8 @@ fun main() {
             configureMonitoring()
             configureTemplating()
             configureSockets()
-            configureGistRouting(storage::put, storage::get)
+            configureGistRoutes(storage::put, storage::get)
+            configureIdeRoutes()
             storage.install(this)
         }
     }).start(wait = true)

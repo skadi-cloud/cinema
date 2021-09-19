@@ -18,7 +18,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import java.io.InputStream
 import java.time.LocalDateTime
 
-fun Application.configureGistRouting(
+fun Application.configureGistRoutes(
     upload: suspend (GistRoot, InputStream) -> Unit,
     url: (ApplicationCall, GistRoot) -> UrlList
 ) {
