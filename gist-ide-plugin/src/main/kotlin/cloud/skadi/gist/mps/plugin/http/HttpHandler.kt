@@ -37,11 +37,11 @@ class HttpHandler : HttpRequestHandler() {
         request: FullHttpRequest,
         context: ChannelHandlerContext
     ): Boolean {
-        when {
+        return when {
             urlDecoder.path().endsWith("/login-response") ->
                 handleLogin(urlDecoder, request, context)
+            else -> false
         }
-        return false
     }
 
     private fun handleLogin(
@@ -62,7 +62,7 @@ class HttpHandler : HttpRequestHandler() {
         val settings = SkadiGistSettings.getInstance()
 
         if(!settings.checkCsrfToken(csrfToken))
-            return respondWithError("ivalid csrf token", request, context)
+            return respondWithError("invalid csrf token", request, context)
 
 
         if (settings.isLoggedIn) {
@@ -84,6 +84,15 @@ class HttpHandler : HttpRequestHandler() {
 
         settings.loggedInUser = user
         settings.deviceToken = token
+
+        respond(request, context) {
+            head { title = "Skadi Cloud Gist" }
+            body {
+                h1 { +"Login Successful" }
+                h2 { +"You successfully logged in as $user. You can close this website now." }
+            }
+        }
+
         return true
     }
 
@@ -91,16 +100,7 @@ class HttpHandler : HttpRequestHandler() {
         msg: String, request: FullHttpRequest,
         context: ChannelHandlerContext
     ): Boolean {
-        val response = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST)
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, ContentType.TEXT_HTML)
-        response.addCommonHeaders()
-        response.headers().set(HttpHeaderNames.CACHE_CONTROL, "private, must-revalidate") //NON-NLS
-        response.headers().set(HttpHeaderNames.LAST_MODIFIED, Date(Calendar.getInstance().timeInMillis))
-
-
-        val channel = context.channel()
-        channel.write(response)
-        val htmlText = createHTML().html {
+        respond(request, context) {
             head { title = "Skadi Cloud Gist - Error" }
             body {
                 h1 { +"Error" }
@@ -110,9 +110,27 @@ class HttpHandler : HttpRequestHandler() {
                 }
             }
         }
+        return true
+    }
+
+    private fun respond(request: FullHttpRequest, context: ChannelHandlerContext, block : HTML.() -> Unit) {
+        val response = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST)
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, ContentType.TEXT_HTML)
+        response.addCommonHeaders()
+        response.headers().set(HttpHeaderNames.CACHE_CONTROL, "private, must-revalidate") //NON-NLS
+        response.headers().set(HttpHeaderNames.LAST_MODIFIED, Date(Calendar.getInstance().timeInMillis))
+
+        val content = createHTML().html(block = block).toByteArray()
 
         if (request.method() != HttpMethod.HEAD) {
-            val stream = ByteArrayInputStream(htmlText.toByteArray())
+            HttpUtil.setContentLength(response, content.size.toLong())
+        }
+
+        val channel = context.channel()
+        channel.write(response)
+
+        if (request.method() != HttpMethod.HEAD) {
+            val stream = ByteArrayInputStream(content)
             channel.write(ChunkedStream(stream))
             stream.close()
         }
@@ -122,7 +140,5 @@ class HttpHandler : HttpRequestHandler() {
         if (!keepAlive) {
             future.addListener(ChannelFutureListener.CLOSE)
         }
-
-        return true
     }
 }
