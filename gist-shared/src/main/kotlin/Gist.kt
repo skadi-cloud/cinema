@@ -12,3 +12,5 @@ data class GistCreationRequest(
     val visibility: GistVisibility?,
     val roots: List<GistNode>
 )
+
+data class ImportGistMessage(val roots: List<AST>)

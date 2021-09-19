@@ -3,9 +3,13 @@ package cloud.skadi.gist.routing
 import cloud.skadi.gist.*
 import cloud.skadi.gist.data.*
 import cloud.skadi.gist.plugins.gistSession
+import cloud.skadi.gist.shared.AST
 import cloud.skadi.gist.shared.GistCreationRequest
 import cloud.skadi.gist.shared.GistVisibility
+import cloud.skadi.gist.shared.ImportGistMessage
 import cloud.skadi.gist.views.RootTemplate
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
@@ -27,11 +31,12 @@ fun Application.configureGistRoutes(
             val token = call.request.header("X-SKADI-GIST-TOKEN")
 
             val user = if (token != null)
-                newSuspendedTransaction {
-                    Token.find { TokenTable.token eq token }.firstOrNull()?.user
-                }
+                userByToken(token)
             else
                 null
+
+            if(token != null && user == null)
+                log.warn("Can't find user by token ($token)")
 
             val (name, description, visibility, roots) = call.receive<GistCreationRequest>()
 
@@ -40,11 +45,18 @@ fun Application.configureGistRoutes(
                 log.error("missing property of the gist name=$name, description=$description, visibility=$visibility, partsIsEmpty=${roots.isEmpty()}")
                 return@post
             }
+
+            if(user == null && visibility == GistVisibility.Private) {
+                call.respond(HttpStatusCode.BadRequest)
+                log.error("tried to create private gist without a user.")
+                return@post
+            }
+
             val gistAndRoots = newSuspendedTransaction {
                 val gist = Gist.new {
                     this.description = description
                     this.name = name
-                    if(user == null || visibility == null) {
+                    if(visibility == null) {
                         this.visibility = GistVisibility.Public
                     } else {
                         this.visibility = visibility
@@ -76,63 +88,38 @@ fun Application.configureGistRoutes(
 
         }
         get("/gist/{id}") {
-            val session = call.gistSession
-            var user: User? = null
-            if (session != null) {
-                user = newSuspendedTransaction { User.find { Users.email eq session.email }.firstOrNull() }
-            }
+            call.withUserReadableGist { gist, user ->
+                newSuspendedTransaction {
+                    call.respondHtmlTemplate(RootTemplate("Skadi Gist", user = user)) {
+                        content {
+                            h2(classes = "gist-name") {
+                                +gist.name
+                            }
+                            p(classes = "gist-description") {
+                                +(gist.description ?: "")
+                            }
+                            gist.roots.notForUpdate().forEach { root ->
+                                div(classes = "root") {
+                                    h3(classes = "root-name") {
+                                        root.name
+                                    }
+                                    img(classes = "rendered") {
+                                        src = url(call, root).mainUrl
+                                    }
 
-            val idParam = call.parameters["id"]
-
-            if (idParam == null) {
-                call.respond(HttpStatusCode.BadRequest)
-                return@get
-            }
-            val gistId = idParam.decodeBase62UUID()
-
-            val gist = newSuspendedTransaction { Gist.findById(gistId) }
-            if (gist == null) {
-                log.warn("unknown gist: $gistId")
-                call.respond(HttpStatusCode.NotFound)
-                return@get
-            }
-
-            if (gist.visibility == GistVisibility.Private && gist.user != user) {
-                log.warn("gist $gistId not visible for user")
-                call.respond(HttpStatusCode.NotFound)
-                return@get
-            }
-            newSuspendedTransaction {
-                call.respondHtmlTemplate(RootTemplate("Skadi Gist", user = user)) {
-                    content {
-                        h2(classes = "gist-name") {
-                            +gist.name
-                        }
-                        p(classes = "gist-description") {
-                            +(gist.description ?: "")
-                        }
-                        gist.roots.notForUpdate().forEach { root ->
-                            div(classes = "root") {
-                                h3(classes = "root-name") {
-                                    root.name
-                                }
-                                img(classes = "rendered") {
-                                    src = url(call, root).mainUrl
-                                }
-                                //textInput { value = root.node }
-
-                                div(classes = "comments") {
-                                    root.comments.notForUpdate().forEach { comment ->
-                                        div(classes = "comment") {
-                                            p {
-                                                +comment.markdown
+                                    div(classes = "comments") {
+                                        root.comments.notForUpdate().forEach { comment ->
+                                            div(classes = "comment") {
+                                                p {
+                                                    +comment.markdown
+                                                }
                                             }
                                         }
-                                    }
-                                    if (call.gistSession != null) {
-                                        div(classes = "create-comment") {
-                                            form {
+                                        if (call.gistSession != null) {
+                                            div(classes = "create-comment") {
+                                                form {
 
+                                                }
                                             }
                                         }
                                     }
@@ -143,5 +130,41 @@ fun Application.configureGistRoutes(
                 }
             }
         }
+        get("/gist/{id}/nodes") {
+            call.withUserReadableGist { gist, _ ->
+                val jsonNodes = newSuspendedTransaction { gist.roots.notForUpdate().map { jacksonObjectMapper().readValue<AST>(it.node) } }
+                call.respond(ImportGistMessage(jsonNodes))
+            }
+        }
     }
+}
+
+suspend fun ApplicationCall.withUserReadableGist(block: suspend (Gist, User?) -> Unit) {
+    val session = this.gistSession
+    var user: User? = null
+    if (session != null) {
+        user = userByEmail(session.email)
+    }
+
+    val idParam = this.parameters["id"]
+
+    if (idParam == null) {
+        this.respond(HttpStatusCode.BadRequest)
+        return
+    }
+    val gistId = idParam.decodeBase62UUID()
+
+    val gist = newSuspendedTransaction { Gist.findById(gistId) }
+    if (gist == null) {
+        this.application.log.warn("unknown gist: $gistId")
+        this.respond(HttpStatusCode.NotFound)
+        return
+    }
+
+    if (gist.visibility == GistVisibility.Private && gist.user != user) {
+        this.application.log.warn("gist $gistId not visible for user")
+        this.respond(HttpStatusCode.NotFound)
+        return
+    }
+    block(gist, user)
 }
