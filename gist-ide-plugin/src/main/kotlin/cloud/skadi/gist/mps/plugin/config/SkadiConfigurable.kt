@@ -4,7 +4,12 @@ import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.layout.*
-import javax.swing.JComboBox
+import io.ktor.client.engine.java.*
+import io.ktor.client.features.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import kotlinx.coroutines.runBlocking
+import java.net.URL
 import javax.swing.JTextField
 
 class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
@@ -21,7 +26,7 @@ class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
         super.reset()
         settings.unregisterLoginListener(this)
         settings.registerLoginListener(this) {
-            listeners.forEach { listener ->  listener(it) }
+            listeners.forEach { listener -> listener(it) }
         }
     }
 
@@ -53,7 +58,7 @@ class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
             row("Logged in as") {
                 textField(settings::loggedInUser).visibleIf(ifLoginChanged)
                 label("Not logged in").visibleIf(ifLoginChanged.not())
-                browserLink("Login", "${settings.backendAddress}/login-ide").visibleIf(ifLoginChanged.not())
+                browserLink("Login", "${settings.backendAddress}/ide/login").visibleIf(ifLoginChanged.not())
                 link("Log out") {
                     settings.logout()
                 }.visibleIf(ifLoginChanged).withLargeLeftGap()
@@ -61,8 +66,43 @@ class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
         }
     }
 
-    private fun validateBackend():  ValidationInfoBuilder.(JTextField) -> ValidationInfo? = {
-        null
+    private fun validateBackend(): ValidationInfoBuilder.(JTextField) -> ValidationInfo? = {
+        val checkUrl = checkUrl(it.text)
+        if(checkUrl == null) error("Can not parse Url.")
+        else if (checkUrl.protocol != "https") warning("Using a backend over HTTP is not recommended")
+        else when (checkBackendConnection(checkUrl)) {
+            null -> null
+            is String -> error(it)
+            else -> error("Unknown error")
+        }
     }
 
+    private fun checkUrl(url: String): URL? {
+        return try {
+            URL(url)
+        } catch (e : Exception) {
+            null
+        }
+    }
+
+    private fun checkBackendConnection(url: URL): String? {
+        val client = io.ktor.client.HttpClient(Java) {
+            followRedirects = true
+        }
+        val helloEndpoint = URL(url, "/ide/hello")
+        return runBlocking {
+            try {
+                val res = client.get<HttpResponse>(helloEndpoint) {
+                    timeout {
+                        connectTimeoutMillis = 10_000
+                        requestTimeoutMillis = 10_000
+                        socketTimeoutMillis = 10_000
+                    }
+                }
+                return@runBlocking null
+            } catch (e: Exception) {
+                return@runBlocking "Error connecting to backend: ${e.message}"
+            }
+        }
+    }
 }

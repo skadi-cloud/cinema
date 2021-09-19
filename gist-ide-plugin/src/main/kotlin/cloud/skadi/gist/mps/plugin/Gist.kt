@@ -42,8 +42,6 @@ suspend fun upload(
     nodes: List<SNode>,
     repository: SRepository
 ): String? {
-
-
     val gistCreationRequest = GistCreationRequest(
         name = name,
         description = description,

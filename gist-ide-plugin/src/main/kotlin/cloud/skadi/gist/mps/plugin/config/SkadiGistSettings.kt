@@ -1,13 +1,17 @@
 package cloud.skadi.gist.mps.plugin.config
 
+import com.intellij.credentialStore.CredentialAttributes
+import com.intellij.credentialStore.Credentials
+import com.intellij.credentialStore.generateServiceName
+import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.*
-import com.intellij.ui.layout.ComponentPredicate
 
-const val DEFAULT_BACKEND = "http://localhost:8080/gist/create"
+
 @Service
 @State(name = "SkadiGistSettings", storages = [Storage("skadi-settings.xml")], reportStatistic = false)
 class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiGistSettings.State> {
+
     enum class Visiblility {
         Public,
         Internal,
@@ -49,7 +53,7 @@ class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiG
         }
 
     val isLoggedIn
-        get () = state.loggedInUser != null
+        get() = state.loggedInUser != null
 
     fun logout() {
         state.loggedInUser = null
@@ -64,6 +68,19 @@ class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiG
         listeners.remove(key)
     }
 
+    private fun createCredentialAttributes(key: String) =
+        CredentialAttributes(generateServiceName("Skadi Cloud Gist", key))
+
+    val deviceToken
+        get() = PasswordSafe.instance.get(createCredentialAttributes("device"))?.userName
+
+    val deviceSecret
+        get() = PasswordSafe.instance.get(createCredentialAttributes("device"))?.password
+
+    fun setDeviceCredentials(token: String, secret: String) {
+        PasswordSafe.instance.set(createCredentialAttributes("device"), Credentials(token, secret))
+    }
+
     private var state = State()
 
     override fun getState() = state
@@ -75,6 +92,8 @@ class SkadiGistSettings : PersistentStateComponentWithModificationTracker<SkadiG
     override fun getStateModificationCount() = state.modificationCount
 
     companion object {
+        const val DEFAULT_BACKEND = "http://localhost:8080/"
+
         @JvmStatic
         fun getInstance() = ApplicationManager.getApplication().getService(SkadiGistSettings::class.java)
     }
