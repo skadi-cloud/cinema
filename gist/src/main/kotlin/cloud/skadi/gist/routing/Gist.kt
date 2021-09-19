@@ -3,10 +3,7 @@ package cloud.skadi.gist.routing
 import cloud.skadi.gist.*
 import cloud.skadi.gist.data.*
 import cloud.skadi.gist.plugins.gistSession
-import cloud.skadi.gist.shared.AST
-import cloud.skadi.gist.shared.GistCreationRequest
-import cloud.skadi.gist.shared.GistVisibility
-import cloud.skadi.gist.shared.ImportGistMessage
+import cloud.skadi.gist.shared.*
 import cloud.skadi.gist.views.RootTemplate
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -28,14 +25,14 @@ fun Application.configureGistRoutes(
 ) {
     routing {
         post("/gist/create") {
-            val token = call.request.header("X-SKADI-GIST-TOKEN")
+            val token = call.request.header(HEADER_SKADI_TOKEN)
 
             val user = if (token != null)
                 userByToken(token)
             else
                 null
 
-            if(token != null && user == null)
+            if (token != null && user == null)
                 log.warn("Can't find user by token ($token)")
 
             val (name, description, visibility, roots) = call.receive<GistCreationRequest>()
@@ -46,7 +43,7 @@ fun Application.configureGistRoutes(
                 return@post
             }
 
-            if(user == null && visibility == GistVisibility.Private) {
+            if (user == null && visibility == GistVisibility.Private) {
                 call.respond(HttpStatusCode.BadRequest)
                 log.error("tried to create private gist without a user.")
                 return@post
@@ -56,7 +53,7 @@ fun Application.configureGistRoutes(
                 val gist = Gist.new {
                     this.description = description
                     this.name = name
-                    if(visibility == null) {
+                    if (visibility == null) {
                         this.visibility = GistVisibility.Public
                     } else {
                         this.visibility = visibility
@@ -132,7 +129,9 @@ fun Application.configureGistRoutes(
         }
         get("/gist/{id}/nodes") {
             call.withUserReadableGist { gist, _ ->
-                val jsonNodes = newSuspendedTransaction { gist.roots.notForUpdate().map { jacksonObjectMapper().readValue<AST>(it.node) } }
+                val jsonNodes = newSuspendedTransaction {
+                    gist.roots.notForUpdate().map { jacksonObjectMapper().readValue<AST>(it.node) }
+                }
                 call.respond(ImportGistMessage(jsonNodes))
             }
         }
@@ -140,11 +139,15 @@ fun Application.configureGistRoutes(
 }
 
 suspend fun ApplicationCall.withUserReadableGist(block: suspend (Gist, User?) -> Unit) {
+    val token = this.request.header(HEADER_SKADI_TOKEN)
     val session = this.gistSession
-    var user: User? = null
-    if (session != null) {
-        user = userByEmail(session.email)
-    }
+
+    val user = if (token != null)
+        userByToken(token)
+    else if (session != null)
+        userByEmail(session.email)
+    else
+        null
 
     val idParam = this.parameters["id"]
 
