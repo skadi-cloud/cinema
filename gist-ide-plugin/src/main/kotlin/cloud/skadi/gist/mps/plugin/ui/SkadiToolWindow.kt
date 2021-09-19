@@ -3,6 +3,7 @@ package cloud.skadi.gist.mps.plugin.ui
 import cloud.skadi.gist.mps.plugin.config.SkadiGistSettings
 import cloud.skadi.gist.mps.plugin.upload
 import cloud.skadi.gist.shared.GistVisibility
+import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.notification.NotificationGroupManager
@@ -82,7 +83,7 @@ class SkadiToolWindowController(private val window: ToolWindow) {
         val descriptionField = JBTextArea(descriptionDocument).apply {
             background = UIUtil.getListBackground()
             border = JBUI.Borders.empty(8, 8, 0, 8)
-            emptyText.text = "Description"
+            emptyText.text = "Description (Markdown supported!)"
             lineWrap = true
         }.also {
             CollaborationToolsUIUtil.overrideUIDependentProperty(it) {
@@ -115,8 +116,9 @@ class SkadiToolWindowController(private val window: ToolWindow) {
                     settings.visiblility = SkadiGistSettings.Visiblility.Public
                 }
             }
+            toolTipText = "Gist will be listed on the front page."
         }
-        val internalBtn = JBRadioButton("Internal").apply {
+        val internalBtn = JBRadioButton("Unlisted").apply {
             isSelected = visiblility == SkadiGistSettings.Visiblility.Internal
             addActionListener {
                 visiblility = SkadiGistSettings.Visiblility.Internal
@@ -124,6 +126,7 @@ class SkadiToolWindowController(private val window: ToolWindow) {
                     settings.visiblility = SkadiGistSettings.Visiblility.Internal
                 }
             }
+            toolTipText = "Gist will be accessible for everyone with the link but it's not listed on the front page."
         }
         val privateBtn = JBRadioButton("Private").apply {
             isSelected = visiblility == SkadiGistSettings.Visiblility.Private
@@ -133,6 +136,11 @@ class SkadiToolWindowController(private val window: ToolWindow) {
                     settings.visiblility = SkadiGistSettings.Visiblility.Private
                 }
             }
+            isEnabled = settings.isLoggedIn
+            settings.registerLoginListener(this) {
+                isEnabled = settings.isLoggedIn
+            }
+            toolTipText = "Gist will only be accessible to you. (requires login)"
         }
         val visibilityGroup = ButtonGroup().apply {
             add(publicBtn)
@@ -145,15 +153,18 @@ class SkadiToolWindowController(private val window: ToolWindow) {
         val visibilityPanel = JPanel(HorizontalLayout(JBUIScale.scale(8))).apply {
             border = JBUI.Borders.empty(8)
             add(visibilityLabel)
-            add(privateBtn)
-            add(internalBtn)
             add(publicBtn)
+            add(internalBtn)
+            add(privateBtn)
         }
+
+        val loginWarning = createLoginWarning(settings)
 
         val statusPanel = JPanel().apply {
             layout = MigLayout(LC().gridGap("0", "${JBUIScale.scale(8)}").insets("0").fill().flowY().hideMode(3))
             border = JBUI.Borders.empty(8)
             add(visibilityPanel, CC().minWidth("0"))
+            add(loginWarning, CC().minWidth("0"))
             add(actionsPanel, CC().minWidth("0"))
         }
 
@@ -177,6 +188,22 @@ class SkadiToolWindowController(private val window: ToolWindow) {
         wrapper.add(newContent, BorderLayout.CENTER)
         wrapper.revalidate()
         wrapper.repaint()
+    }
+
+    private fun createLoginWarning(settings: SkadiGistSettings): JComponent {
+        val iconLabel = JLabel(AllIcons.Ide.Notification.WarningEvents)
+        val textPane = JLabel("Without loging in you are not able to delete the gist!")
+
+        val pane = JPanel(MigLayout(LC().insets("0").gridGap("0","0"))).apply {
+            add(iconLabel, CC().alignY("top").gapRight("${iconLabel.iconTextGap}"))
+            add(textPane, CC().minWidth("0"))
+        }
+        pane.isVisible = !settings.isLoggedIn
+
+        settings.registerLoginListener(this) {
+            pane.isVisible = !settings.isLoggedIn
+        }
+        return pane
     }
 
     inner class CreateGistAction(

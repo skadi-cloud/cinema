@@ -49,7 +49,7 @@ class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
                 buttonGroup(settings::visiblility) {
                     row { radioButton("Public", SkadiGistSettings.Visiblility.Public) }
                     row { radioButton("Internal", SkadiGistSettings.Visiblility.Internal) }
-                    row { radioButton("Private", SkadiGistSettings.Visiblility.Private) }
+                    row { radioButton("Private", SkadiGistSettings.Visiblility.Private).enableIf(ifLoginChanged) }
                 }
                 checkBox("Remeber visiblilty", settings::rememberVisiblility)
             }
@@ -57,7 +57,7 @@ class SkadiConfigurable : BoundConfigurable("Skadi Gist") {
 
             }
             row("Logged in as") {
-                textField(settings::loggedInUser).visibleIf(ifLoginChanged).enabled(false)
+                textField(settings::loggedInUser).applyIfEnabled().visibleIf(ifLoginChanged).enabled(false)
                 label("Not logged in").visibleIf(ifLoginChanged.not())
                 browserLink("Login", getLoginUrl(settings)).visibleIf(ifLoginChanged.not())
                 link("Log out") {
