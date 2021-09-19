@@ -7,6 +7,7 @@ import cloud.skadi.gist.shared.*
 import cloud.skadi.gist.views.RootTemplate
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.vladsch.flexmark.parser.ParserEmulationProfile
 import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
@@ -87,13 +88,15 @@ fun Application.configureGistRoutes(
         get("/gist/{id}") {
             call.withUserReadableGist { gist, user ->
                 newSuspendedTransaction {
+
+                    ParserEmulationProfile.COMMONMARK
                     call.respondHtmlTemplate(RootTemplate("Skadi Gist", user = user)) {
                         content {
                             h2(classes = "gist-name") {
                                 +gist.name
                             }
                             p(classes = "gist-description") {
-                                +(gist.description ?: "")
+                                unsafe { +markdownToHtml(gist.description ?: "") }
                             }
                             gist.roots.notForUpdate().forEach { root ->
                                 div(classes = "root") {
