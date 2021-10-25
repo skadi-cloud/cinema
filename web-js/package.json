@@ -2,7 +2,7 @@
   "dependencies": {
     "@hotwired/turbo": "*",
     "@stimulus/webpack-helpers": "^2.0.0",
-    "stimulus": "^2.0.0"
+    "stimulus": "^3.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.15.8",
