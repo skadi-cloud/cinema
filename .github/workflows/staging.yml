@@ -122,7 +122,7 @@ jobs:
           container-registry-password: ${{ secrets.STAGING_SCALEWAY_TOKEN_DOCKER }}
           secret-name: registry-secret
 
-      - uses: Azure/k8s-deploy@v1.4
+      - uses: Azure/k8s-deploy@v1.5
         with:
           namespace: kube-system
           manifests: |
@@ -132,7 +132,7 @@ jobs:
           imagepullsecrets: |
             registry-secret
 
-      - uses: Azure/k8s-deploy@v1.4
+      - uses: Azure/k8s-deploy@v1.5
         with:
           images: 'rg.nl-ams.scw.cloud/staging-skadi-cloud/web:${{ steps.meta.outputs.version }}'
           manifests: |
