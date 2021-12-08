@@ -96,7 +96,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build-args: release=${{ steps.vars.outputs.tag }}
 
-      - uses: azure/k8s-set-context@v1
+      - uses: azure/k8s-set-context@v2
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.STAGING_KUBECONFIG }} # Use secret (https://developer.github.com/actions/managing-workflows/storing-secrets/)
