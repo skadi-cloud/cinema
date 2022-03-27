@@ -25,7 +25,7 @@ jobs:
             kernelF: 4726.e49ca16
     steps:
       - name: Login to Scaleway Container Registry
-        uses: docker/login-action@v1.13.0
+        uses: docker/login-action@v1.14.1
         with:
           registry: rg.nl-ams.scw.cloud/staging-skadi-cloud
           username: nologin
