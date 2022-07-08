@@ -17,7 +17,7 @@ repositories {
 def mpsVersion = "2021.3.1"
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.70"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.10"
     compileOnly "com.jetbrains:mps-workbench:$mpsVersion"
     compileOnly "com.jetbrains:mps-core:$mpsVersion"
     compileOnly "com.jetbrains:mps-openapi:$mpsVersion"
