@@ -49,7 +49,7 @@ jobs:
       id: vars
       run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
     - name: build docker images
-      uses: docker/build-push-action@v3.0.0
+      uses: docker/build-push-action@v3.1.0
       with:
         context: web
         push: true
