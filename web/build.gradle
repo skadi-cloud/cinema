@@ -70,7 +70,7 @@ dependencies {
 
     implementation 'io.sentry:sentry-logback:6.0.0'
 
-    testImplementation 'org.jsoup:jsoup:1.14.3'
+    testImplementation 'org.jsoup:jsoup:1.15.2'
     testImplementation("io.ktor:ktor-server-tests:$ktor_version") {
         exclude group: 'junit', module: 'junit'
     }
