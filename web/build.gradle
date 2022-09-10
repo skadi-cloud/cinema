@@ -82,12 +82,10 @@ dependencies {
 }
 
 compileKotlin {
-    kotlinOptions.useIR = true
     kotlinOptions.jvmTarget = targetJvm
 }
 
 compileTestKotlin {
-    kotlinOptions.useIR = true
     kotlinOptions.jvmTarget = targetJvm
 }
 
