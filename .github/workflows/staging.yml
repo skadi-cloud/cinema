@@ -77,7 +77,7 @@ jobs:
           password: ${{ secrets.STAGING_SCALEWAY_TOKEN_DOCKER }}
       - name: Docker meta
         id: meta
-        uses: crazy-max/ghaction-docker-meta@v4.3.0
+        uses: crazy-max/ghaction-docker-meta@v4.4.0
         with:
           images: rg.nl-ams.scw.cloud/staging-skadi-cloud/web
           tags: |
