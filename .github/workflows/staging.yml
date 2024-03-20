@@ -38,7 +38,7 @@ jobs:
         with:
           submodules: recursive
           #token: ${{ secrets.CLONE_PAT }}
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
