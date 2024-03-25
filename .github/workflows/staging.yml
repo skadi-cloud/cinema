@@ -101,20 +101,20 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.STAGING_KUBECONFIG }} # Use secret (https://developer.github.com/actions/managing-workflows/storing-secrets/)
         id: setcontext
-      - uses: azure/k8s-create-secret@v4
+      - uses: azure/k8s-create-secret@v5
         with:
           namespace: 'default'
           secret-type: 'generic'
           arguments: --from-literal=db-user=skadi --from-literal=cookie-salt=${{ secrets.COOKIE_SALT }} --from-literal=db-password=${{ secrets.STAGING_DB_PASSWORD }} --from-literal=github-secret=${{ secrets.STAGING_GITHUB_SECRET }} --from-literal=github-id=${{ secrets.STAGING_GITHUB_ID }}
           secret-name: web-app
-      - uses: azure/k8s-create-secret@v4
+      - uses: azure/k8s-create-secret@v5
         with:
           namespace: 'kube-system'
           secret-type: 'generic'
           arguments: --from-literal=token=${{ secrets.STAGING_SCALEWAY_TOKEN }}
           secret-name: scw-dns-token
       - name: Set imagePullSecret
-        uses: azure/k8s-create-secret@v4
+        uses: azure/k8s-create-secret@v5
         with:
           namespace: 'default'
           container-registry-url: 'rg.nl-ams.scw.cloud'
