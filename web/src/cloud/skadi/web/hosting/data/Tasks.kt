@@ -35,7 +35,7 @@ class TaskEntry(id: EntityID<UUID>): UUIDEntity(id) {
     var lastChange by TaskTable.lastChange
 }
 private val mapper = JsonMapper.builder()
-    .addModule(KotlinModule.Builder().withStrictNullChecks(true).build())
+    .addModule(KotlinModule.Builder().build())
     .build()
 
 fun createTask(instance: KernelFContainer, task: Task): TaskEntry {

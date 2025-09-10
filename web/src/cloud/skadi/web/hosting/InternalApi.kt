@@ -30,7 +30,7 @@ suspend fun ApplicationCall.internalApiOnly(body: suspend (ApplicationCall) -> U
 }
 
 private val mapper = JsonMapper.builder()
-    .addModule(KotlinModule.Builder().withStrictNullChecks(true).build())
+    .addModule(KotlinModule.Builder().build())
     .build()
 
 suspend fun ApplicationCall.checkSignature(container: KernelFContainer): Boolean {

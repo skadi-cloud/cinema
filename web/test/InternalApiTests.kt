@@ -172,7 +172,7 @@ class InternalApiTests {
     fun `dequeue for existing instance works`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(KotlinModule.Builder().withStrictNullChecks(true).build())
+            .addModule(KotlinModule.Builder().build())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
@@ -209,7 +209,7 @@ class InternalApiTests {
     fun `dequeue twice works correctly`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(KotlinModule.Builder().withStrictNullChecks(true).build())
+            .addModule(KotlinModule.Builder().build())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
@@ -249,7 +249,7 @@ class InternalApiTests {
     fun `finishing a task works`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(KotlinModule.Builder().withStrictNullChecks(true).build())
+            .addModule(KotlinModule.Builder().build())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
@@ -364,7 +364,7 @@ class InternalApiTests {
     fun `failing a task works`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(KotlinModule.Builder().withStrictNullChecks(true).build())
+            .addModule(KotlinModule.Builder().build())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
