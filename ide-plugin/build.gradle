@@ -40,12 +40,12 @@ patchPluginXml {
 
 compileKotlin {
     kotlinOptions.jvmTarget = targetJvm
-    kotlinOptions.apiVersion = "1.7"
+    kotlinOptions.apiVersion = "1.4"
 }
 
 compileTestKotlin {
     kotlinOptions.jvmTarget = targetJvm
-    kotlinOptions.apiVersion = "1.7"
+    kotlinOptions.apiVersion = "1.4"
 }
 
 buildSearchableOptions.enabled(false)
