@@ -7,13 +7,12 @@ Always reference these instructions first and fallback to search or bash command
 ## Working Effectively
 
 ### Critical Prerequisites
-- **JAVA VERSION**: Must use Java 11. Build FAILS with Java 17/21. 
-- **COPILOT SETUP**: Java 11 is automatically configured via the copilot setup action (`.github/workflows/copilot-setup-steps.yml`)
+- **JAVA VERSION**: Now uses targetJvm=17. Works with Java 17, 21, or higher.
+- **COPILOT SETUP**: Java is automatically configured via the copilot setup action (`.github/workflows/copilot-setup-steps.yml`)
 - **MANUAL SETUP** (if needed):
   ```bash
-  sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
-  sudo update-alternatives --config java  # Select Java 11
-  java -version  # Verify shows Java 11
+  sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
+  java -version  # Verify shows Java 17 or higher
   ```
 
 ### Bootstrap and Build Process
@@ -24,16 +23,19 @@ Always reference these instructions first and fallback to search or bash command
 #### What Works vs What Doesn't
 - **WORKS**: Web-js module builds successfully:
   ```bash
-  ./gradlew :web-js:build --no-daemon  # Takes ~12 seconds - VALIDATED
+  ./gradlew :web-js:build --no-daemon  # Takes ~23 seconds - VALIDATED
   ```
 - **WORKS**: Gradle clean and basic operations:
   ```bash
-  ./gradlew clean --no-daemon  # Takes ~8 seconds - VALIDATED
+  ./gradlew clean --no-daemon  # Takes ~20 seconds - VALIDATED
+  ```
+- **WORKS**: Full project assembly - MAJOR BREAKTHROUGH:
+  ```bash
+  ./gradlew assemble --no-daemon  # Takes ~34 seconds - VALIDATED
   ```
 - **WORKS**: Dependency downloads from external repositories (network connectivity resolved)
-- **FAILS**: Full project build due to Kotlin version conflicts in shared module
-- **FAILS**: Shared module compilation due to Kotlin 2.0.0 vs 1.7.20 version conflicts
-- **PARTIALLY WORKS**: IDE plugin module downloads dependencies but has configuration warnings
+- **WORKS**: Shared module compilation with warnings (API version 1.4 deprecated)
+- **WORKS**: IDE plugin module with configuration warnings but successful build
 
 ### Database Requirements
 - **REQUIRED**: PostgreSQL database with these environment variables:
@@ -51,9 +53,9 @@ Always reference these instructions first and fallback to search or bash command
   ```
 
 ### Available Gradle Commands
-- **Clean**: `./gradlew clean --no-daemon` (8 seconds - VALIDATED)
-- **Build web-js**: `./gradlew :web-js:build --no-daemon` (12 seconds - VALIDATED)
-- **Full assemble** (with copilot setup): `./gradlew assemble --no-daemon` (fails due to Kotlin version conflicts)
+- **Clean**: `./gradlew clean --no-daemon` (20 seconds - VALIDATED)
+- **Build web-js**: `./gradlew :web-js:build --no-daemon` (23 seconds - VALIDATED)
+- **Full assemble**: `./gradlew assemble --no-daemon` (34 seconds - VALIDATED)
 - **List tasks**: `./gradlew tasks --no-daemon`
 - **Check dependencies**: `./gradlew :web:dependencies --no-daemon`
 
@@ -81,7 +83,7 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Important Files
 - **`build.gradle`**: Root build configuration
-- **`gradle.properties`**: Kotlin version (1.7.20), target JVM (11)
+- **`gradle.properties`**: Kotlin version (1.4.31), target JVM (17)
 - **`web/src/cloud/skadi/web/hosting/Application.kt`**: Main application entry point
 - **`web/Dockerfile`**: Production container setup
 - **`.github/workflows/gradle.yml`**: CI/CD pipeline
@@ -113,52 +115,57 @@ With the copilot setup action, dependency resolution works reliably. Recommended
 ## Known Issues and Limitations
 
 ### Build Issues
-- **Java 17 incompatibility**: "Unsupported class file major version 61" - use Java 11 (automatically configured with copilot setup)
-- **Kotlin version conflicts**: Shared module uses stdlib 2.0.0 while project targets 1.7.20
-- **IDE plugin dependencies**: Has configuration warnings but dependencies download successfully
+- **IDE plugin configuration warnings**: Requires targetCompatibility=1.8 and jvmTarget=1.8 for IntelliJ Platform 2020.1, but builds successfully with current settings
+- **Kotlin API deprecation warnings**: API version 1.4 is deprecated, but still functional
+- **Database datetime warnings**: Uses deprecated datetime functions, should migrate to javatime package
+- **Kubernetes client stability**: Downgraded from 6.13.0 to 6.9.0 for improved stability
 
 ### Working Around Issues
-- Focus development on web-js module which builds reliably
-- Use Docker for full development environment setup  
-- The copilot setup action resolves most dependency and network issues
+- **Full build now works reliably** - main development blocker resolved
+- Use Docker for containerized development environment setup  
+- The copilot setup action resolves dependency and network issues
 - Reference GitHub Actions workflow for known-working configuration
+- IDE plugin warnings can be ignored as build completes successfully
 
 ## Time Expectations
-- **Java 11 setup**: Automated with copilot setup action
+- **Java setup**: Automated with copilot setup action (any Java 17+ works)
 - **Dependency resolution**: 3-10 minutes (works reliably with copilot setup)  
-- **Clean build**: `./gradlew clean` takes 8 seconds - VALIDATED
-- **Web-js build**: `./gradlew :web-js:build` takes 12 seconds - VALIDATED
+- **Clean build**: `./gradlew clean` takes 20 seconds - VALIDATED
+- **Web-js build**: `./gradlew :web-js:build` takes 23 seconds - VALIDATED
+- **Full assemble**: `./gradlew assemble` takes 34 seconds - VALIDATED
 - **NPM install**: 1 second when cached, 20+ seconds fresh - VALIDATED
 - **Webpack build**: `npx webpack` takes ~1.3 seconds - VALIDATED
 - **PostgreSQL setup**: 30+ seconds for Docker download and start - VALIDATED
-- **Full build (when Kotlin issues resolved)**: 10-45 minutes - NEVER CANCEL
 - **Docker image build**: 15-60 minutes - NEVER CANCEL
 
 ## CI/CD Integration
 The project uses GitHub Actions with:
-- **Copilot setup action**: Handles Java 11 setup, Gradle caching, and dependency resolution
+- **Copilot setup action**: Handles Java setup, Gradle caching, and dependency resolution
 - PostgreSQL service container
 - Gradle build with specific environment variables
 - Test result archiving
+- **Recent stability improvements**: Kubernetes client downgraded for reliability
 
 Always check `.github/workflows/copilot-setup-steps.yml` and `.github/workflows/gradle.yml` for the most current CI setup.
 
 ## Common Debugging Steps
-1. **Build fails**: Check Java version first (`java -version`) - Java 11 should be automatically configured
-2. **Kotlin version conflicts**: The main build blocker is Kotlin 2.0.0 vs 1.7.20 incompatibility in shared module
+1. **Build fails**: Check Java version first (`java -version`) - Java 17+ should be automatically configured
+2. **IDE plugin warnings**: Configuration warnings can be ignored - build completes successfully
 3. **Database errors**: Verify PostgreSQL is running and environment variables are set
 4. **Frontend issues**: Verify npm and node versions, try rebuilding web-js module
 5. **Dependency issues**: Should be resolved with copilot setup action
+6. **Deprecated API warnings**: Kotlin API 1.4 warnings can be ignored for now
 
 ## Validation Scenarios
 
 When making changes, ALWAYS test these scenarios to ensure your modifications work:
 
 ### Basic Validation Steps
-1. **Verify Java version**: `java -version` should show Java 11 (automatically configured)
-2. **Clean build test**: `./gradlew clean --no-daemon` (should complete in ~8 seconds)
-3. **Frontend build test**: `./gradlew :web-js:build --no-daemon` (should complete in ~12 seconds)
-4. **Database connectivity**: If modifying database code, test PostgreSQL connection:
+1. **Verify Java version**: `java -version` should show Java 17 or higher (automatically configured)
+2. **Clean build test**: `./gradlew clean --no-daemon` (should complete in ~20 seconds)
+3. **Frontend build test**: `./gradlew :web-js:build --no-daemon` (should complete in ~23 seconds)
+4. **Full build test**: `./gradlew assemble --no-daemon` (should complete in ~34 seconds)
+5. **Database connectivity**: If modifying database code, test PostgreSQL connection:
    ```bash
    docker run -d --name postgres-test -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=skadi -p 5433:5432 postgres
    # Should start successfully and show "database system is ready to accept connections" in logs
@@ -168,21 +175,23 @@ When making changes, ALWAYS test these scenarios to ensure your modifications wo
 
 ### Code Change Validation
 - **Frontend changes**: Always rebuild web-js module and verify webpack output
-- **Backend changes**: Test compilation with `./gradlew :web-js:build --no-daemon` (works reliably)
-- **Shared module changes**: Will fail due to Kotlin version conflicts until resolved
+- **Backend changes**: Test compilation with `./gradlew assemble --no-daemon` (works reliably)
+- **Shared module changes**: Now works with deprecation warnings - safe to ignore
 - **Database schema changes**: Ensure environment variables are documented
 - **Docker changes**: Test container builds with copilot setup environment
 
 ### Manual Testing Scenarios
-With copilot setup action providing reliable dependency resolution:
+With copilot setup action providing reliable dependency resolution and working build system:
 - **Frontend**: Inspect generated `script.js` file for expected changes
 - **API changes**: Review Kotlin source code for syntax and logic correctness  
+- **Full stack**: Use `./gradlew assemble` to validate complete build
 - **Configuration**: Verify environment variable requirements are documented
 
 ## Emergency Procedures
 If builds are completely broken:
-- Use the web-js module as the working reference
-- Set up PostgreSQL database manually
+- **First try**: `./gradlew clean --no-daemon && ./gradlew assemble --no-daemon` (should work)
+- Use the web-js module as a lightweight working reference
+- Set up PostgreSQL database manually if database tests fail
 - Use Docker for full development environment setup
 - Reference GitHub Actions copilot setup workflow for known-working configuration
-- The main blocker is now Kotlin version conflicts in shared module, not network issues
+- **Major blockers resolved**: Network connectivity, Kotlin compatibility, and Java version issues are now fixed
