@@ -58,7 +58,7 @@ dependencies {
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.320'
 
     implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.5.0"
-    implementation "io.fabric8:kubernetes-client:6.13.0"
+    implementation "io.fabric8:kubernetes-client:6.9.0"
 
     implementation "ch.qos.logback:logback-classic:1.2.3"
 
@@ -77,7 +77,7 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiter_version"
-    testImplementation "io.fabric8:kubernetes-server-mock:6.13.0"
+    testImplementation "io.fabric8:kubernetes-server-mock:6.9.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$jupiter_version"
 }
 
