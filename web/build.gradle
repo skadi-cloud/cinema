@@ -29,7 +29,7 @@ configurations {
 
 def ktor_version = "1.6.8"
 def logback_version = "1.5.18"
-def exposed_version = '0.35.3'
+def exposed_version = '0.61.0'
 def jupiter_version = '5.9.1'
 def fabric8_k8s_version = '6.9.0'
 
