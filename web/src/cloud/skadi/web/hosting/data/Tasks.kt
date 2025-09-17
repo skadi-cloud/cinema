@@ -2,7 +2,9 @@ package cloud.skadi.web.hosting.data
 
 import cloud.skadi.shared.data.Task
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -35,7 +37,7 @@ class TaskEntry(id: EntityID<UUID>): UUIDEntity(id) {
     var lastChange by TaskTable.lastChange
 }
 private val mapper = JsonMapper.builder()
-    .addModule(KotlinModule(strictNullChecks = true))
+    .addModule(kotlinModule { configure(KotlinFeature.StrictNullChecks, true) })
     .build()
 
 fun createTask(instance: KernelFContainer, task: Task): TaskEntry {
