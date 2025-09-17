@@ -38,7 +38,7 @@ jobs:
         with:
           submodules: recursive
           #token: ${{ secrets.CLONE_PAT }}
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -46,11 +46,11 @@ jobs:
           key: ${{ runner.os }}-gradle-new-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-new-
-      - name: Set up JDK 11
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'adopt'
-          java-version: 11
+          distribution: 'temurin'
+          java-version: 21
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
@@ -77,7 +77,7 @@ jobs:
           password: ${{ secrets.STAGING_SCALEWAY_TOKEN_DOCKER }}
       - name: Docker meta
         id: meta
-        uses: crazy-max/ghaction-docker-meta@v5.5.1
+        uses: crazy-max/ghaction-docker-meta@v5.8.0
         with:
           images: rg.nl-ams.scw.cloud/staging-skadi-cloud/web
           tags: |
