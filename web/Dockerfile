@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk
+FROM openjdk:22-jdk
 EXPOSE 8080:8080
 RUN mkdir /app
 ARG release
