@@ -38,7 +38,7 @@ jobs:
 
     - name: Docker meta
       id: meta
-      uses: crazy-max/ghaction-docker-meta@v5.8.0
+      uses: crazy-max/ghaction-docker-meta@v5.9.0
       with:
         images: rg.nl-ams.scw.cloud/cloud-skadi-mps/web
         tags: |
