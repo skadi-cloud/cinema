@@ -54,7 +54,7 @@ dependencies {
     implementation "org.jetbrains.exposed:exposed-java-time:$exposed_version"
     implementation "org.postgresql:postgresql:42.5.5"
 
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.20.+"
 
     implementation group: 'org.kohsuke', name: 'github-api', version: '1.320'
 
