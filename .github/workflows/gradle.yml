@@ -36,11 +36,11 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v5.0.0
+    - uses: actions/checkout@v6.0.1
       with:
         submodules: recursive
         #token: ${{ secrets.CLONE_PAT }}
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       with:
         path: |
           ~/.gradle/caches
@@ -66,7 +66,7 @@ jobs:
         GITHUB_ID: ${{ secrets.OAUTH_ID }}
         COOKIE_SALT: ${{ secrets.COOKIE_SALT }}
     - name: Archive test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: ${{ always() }}
       with:
         name: test-results
