@@ -3,7 +3,7 @@ package cloud.skadi.shared.data
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.util.*
 
@@ -17,14 +17,14 @@ class TaskContainer(val payload: String, val signature: String)
 
 fun getTaskFromJson(json: String): Task {
     val mapper = JsonMapper.builder()
-        .addModule(KotlinModule())
+        .addModule(kotlinModule())
         .build()
     return mapper.readValue(json)
 }
 
 fun getContainer(json: String): TaskContainer {
     val mapper = JsonMapper.builder()
-        .addModule(KotlinModule())
+        .addModule(kotlinModule())
         .build()
     return mapper.readValue(json)
 }
