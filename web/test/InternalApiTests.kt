@@ -10,8 +10,6 @@ import cloud.skadi.web.hosting.data.getTask
 import cloud.skadi.web.hosting.mainModule
 import cloud.skadi.web.hosting.routing.emptyUUID
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.fabric8.kubernetes.client.KubernetesClient

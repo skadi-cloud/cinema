@@ -5,8 +5,6 @@ import cloud.skadi.shared.data.TaskContainer
 import cloud.skadi.shared.hmac.sign
 import cloud.skadi.web.hosting.data.*
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.application.*
