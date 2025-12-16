@@ -28,7 +28,7 @@ configurations {
 }
 
 def ktor_version = "1.6.8"
-def logback_version = "1.5.18"
+def logback_version = "1.5.22"
 def exposed_version = '0.35.3'
 def jupiter_version = '5.13.4'
 def junit_platform_version = '1.13.4'
@@ -62,7 +62,7 @@ dependencies {
     implementation "com.github.fkorotkov:k8s-kotlin-dsl:3.5.0"
     implementation "io.fabric8:kubernetes-client:$fabric8_k8s_version"
 
-    implementation "ch.qos.logback:logback-classic:1.5.18"
+    implementation "ch.qos.logback:logback-classic:1.5.22"
 
     implementation "io.ktor:ktor-metrics:$ktor_version"
     implementation "io.ktor:ktor-metrics-micrometer:$ktor_version"
