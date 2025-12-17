@@ -30,7 +30,7 @@ configurations {
 def ktor_version = "1.6.8"
 def logback_version = "1.5.22"
 def exposed_version = '0.35.3'
-def jupiter_version = '5.13.4'
+def jupiter_version = '6.0.1'
 def junit_platform_version = '1.13.4'
 def fabric8_k8s_version = '6.9.0'
 
