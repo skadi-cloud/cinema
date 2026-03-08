@@ -11,8 +11,6 @@
     <option name="vmParameters" value="" />
     <option name="workingDirectory" value="" />
     <envs>
-      <env name="GITHUB_SECRET" value="c34ba52e88df5bcd79588427aadc770312630d3d" />
-      <env name="GITHUB_ID" value="2e42cbb49e1ef57ae0db" />
       <env name="COOKIE_SALT" value="57a326945c1968f45236589" />
       <env name="SQL_PASSWORD" value="mysecretpassword" />
       <env name="SQL_USER" value="postgres" />
