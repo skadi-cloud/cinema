@@ -1,0 +1,10 @@
+plugins {
+    id 'base'
+}
+
+task assembleSite(type: Copy) {
+    from 'src'
+    into "$buildDir/site"
+}
+
+assemble.dependsOn assembleSite

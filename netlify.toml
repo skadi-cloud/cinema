@@ -1,0 +1,3 @@
+[build]
+  command = "./gradlew :static-site:assemble"
+  publish = "static-site/build/site"

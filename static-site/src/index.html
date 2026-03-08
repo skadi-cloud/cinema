@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skadi Cloud</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="stylesheet" href="vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/solid.min.css">
+    <link rel="stylesheet" href="styles/styles.css">
+    <style>
+        /* Use a system font stack to avoid external font dependencies (Google Fonts). */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="sunset-banner">
+        <p>&#9888; Skadi Cloud has been shut down. This page is preserved for archival purposes.</p>
+    </div>
+    <div class="container">
+        <div id="header-featured">
+            <div id="feature-bg-color"></div>
+            <div id="header-featured-name">
+                <img id="header-logo" src="assets/icon.png" alt="Skadi Cloud Logo">
+                <h1>skadi cloud</h1>
+                <p>An experiment with Projector to put JetBrains MPS into the browser.</p>
+            </div>
+            <div id="scroll-down">
+                <div><i class="fas fa-chevron-circle-down" aria-hidden="true"></i></div>
+            </div>
+            <img id="featured-bg" src="assets/featured.png" alt="Featured Screenshot">
+        </div>
+
+        <div id="about">
+            <h2>about</h2>
+            <p>Skadi was a MPS playground in the browser. It was built as a demo of what was possible with
+                JetBrains Projector and MPS. It was not a real service like Codespaces by GitHub or similar &mdash; it
+                was a tech demo and was treated as such. Users were able to play around with MPS without installing
+                anything. Skadi included a bunch of samples including KernelF to explore MPS.</p>
+            <p>KernelF was a functional base language for building domain specific languages on top of it. Skadi was
+                built using JetBrains Projector, a framework for remote access to Java applications, Kubernetes and
+                JetBrains Meta Programming System.</p>
+        </div>
+
+        <div id="faq">
+            <h2 id="faq-header">faq</h2>
+            <div class="faq-item">
+                <div>
+                    <h3>Why was this built?</h3>
+                    <p>As a demo to the community, as an impulse to get new ideas and discussions started.
+                        A while back I <a href="https://blog.logv.ws/2021/03/16/jetbrains-projector-a-game-changer-for-jetbrains-mps-projects/">wrote down</a>
+                        my ideas how Projector and MPS could be used together and this was essentially the
+                        implementation of one of those ideas.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>Why was this free?</h3>
+                    <p>As mentioned this was a demo to the community and not a commercial service. The running costs
+                        were paid out of pocket. The demo has now been shut down.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>Should I have used this for real projects?</h3>
+                    <p>Definitely <b>NOT</b>. This playground was more of a proof of concept to show what was possible
+                        with Projector, Kubernetes and MPS. Data could get deleted at any time and the playground could
+                        be shut down.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>What's that name?</h3>
+                    <p>Skadi is the <a href="https://www.gods-and-goddesses.com/norse/skadi/">Norse</a> giant goddess
+                        of winter, hunting, and skiing.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>Could I use this on my iPad/Phone/Tablet?</h3>
+                    <p>Yes. But it was highly recommended to use a physical keyboard. Key mappings could get weird
+                        and might not work as expected. Especially on iOS keyboard shortcuts tended to behave strangely.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>Were there bugs?</h3>
+                    <p>Most likely. This was a proof of concept and implemented as such. Projector, the underlying
+                        technology used to give access to the IDE, was young technology and likely also contained bugs.
+                        It was a playground for experimenting with non-sensitive data.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>Was the connection to the IDE safe?</h3>
+                    <p>While the connection was encrypted there was no additional authentication in place. If the link,
+                        including the token, to an instance got leaked, anyone with the link could connect to it. The
+                        playground list provided two links: one that granted full access and one that was read only.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>Could I access GitHub?</h3>
+                    <p>Yes, but the JetBrains plugins for GitHub did not work. The authentication workflow would fail
+                        because it assumed you were on your own machine and not in a browser. Personal access tokens
+                        could be used as a workaround.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>How big could my project get?</h3>
+                    <p style="display:inline">Users had 10GB of persistent storage in the user directory </p>
+                    <pre style="display:inline">/home/projector-user</pre>
+                    <p style="display:inline">. Everything else was not persisted and would be deleted if the instance
+                        was shut down or restarted. 10GB was plenty of space for playing around with MPS.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>What was the skadi-cloud plugin in the IDE?</h3>
+                    <p>The plugin was responsible for detecting whether a user was connected to the IDE or not.
+                        If there was no connection to a playground for more than 30 minutes the playground was shut
+                        down automatically. Users could start it again from the playground overview and reconnect.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div>
+                    <h3>How long was data stored?</h3>
+                    <p>Playgrounds were kept for 30 days after being shut down. After 30 days of inactivity the
+                        playground was deleted entirely.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="legal">
+            <h2>Legal Disclosure</h2>
+            <p>Information in accordance with Section 5 TMG</p>
+            <p>
+                Kolja Dummann<br>
+                R&#252;derner Str. 2<br>
+                70329 Stuttgart
+            </p>
+            <h3>Contact Information</h3>
+            <p>
+                Email: <a href="mailto:kolja@hey.com">kolja@hey.com</a><br>
+                Internet address: <a href="https://skadi.cloud">https://skadi.cloud</a>
+            </p>
+            <h3>Cookies and Personal Data</h3>
+            <p>This service is no longer active. No cookies or personal data are collected on this archived page.</p>
+        </div>
+    </div>
+</body>
+</html>
