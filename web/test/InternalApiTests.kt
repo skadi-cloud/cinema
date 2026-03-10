@@ -10,8 +10,6 @@ import cloud.skadi.web.hosting.data.getTask
 import cloud.skadi.web.hosting.mainModule
 import cloud.skadi.web.hosting.routing.emptyUUID
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.fabric8.kubernetes.client.KubernetesClient
@@ -174,7 +172,7 @@ class InternalApiTests {
     fun `dequeue for existing instance works`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(kotlinModule { configure(KotlinFeature.StrictNullChecks, true) })
+            .addModule(kotlinModule())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
@@ -211,7 +209,7 @@ class InternalApiTests {
     fun `dequeue twice works correctly`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(kotlinModule { configure(KotlinFeature.StrictNullChecks, true) })
+            .addModule(kotlinModule())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
@@ -251,7 +249,7 @@ class InternalApiTests {
     fun `finishing a task works`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(kotlinModule { configure(KotlinFeature.StrictNullChecks, true) })
+            .addModule(kotlinModule())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
@@ -366,7 +364,7 @@ class InternalApiTests {
     fun `failing a task works`() {
         ensureDbEmpty()
         val mapper = JsonMapper.builder()
-            .addModule(kotlinModule { configure(KotlinFeature.StrictNullChecks, true) })
+            .addModule(kotlinModule())
             .build()
         withTestApplication({ mainModule(testing = true, client) }) {
             cookiesSession {
